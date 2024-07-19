@@ -8,7 +8,21 @@ public class BattleActionGame : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore",
+			// GameFeatures
+			"ModularGameplay",
+			"GameFeatures",
+			"ModularGameplayActors",
+			// GAS
+			"GameplayTags",
+			"GameplayTasks",
+			"GameplayAbilities",
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
