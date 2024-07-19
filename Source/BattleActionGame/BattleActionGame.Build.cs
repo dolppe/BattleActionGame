@@ -22,6 +22,8 @@ public class BattleActionGame : ModuleRules
 			"GameplayTags",
 			"GameplayTasks",
 			"GameplayAbilities",
+			// CommonUser
+			"CommonUser",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

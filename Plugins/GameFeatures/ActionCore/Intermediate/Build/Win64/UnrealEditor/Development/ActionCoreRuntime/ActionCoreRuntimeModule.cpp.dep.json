@@ -1,0 +1,14 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "f:\\battleactiongame\\plugins\\gamefeatures\\actioncore\\source\\actioncoreruntime\\private\\actioncoreruntimemodule.cpp",
+        "ProvidedModule": "",
+        "PCH": "f:\\unrealengine-5.1\\engine\\intermediate\\build\\win64\\unrealeditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "Includes": [
+            "f:\\battleactiongame\\plugins\\gamefeatures\\actioncore\\intermediate\\build\\win64\\unrealeditor\\development\\actioncoreruntime\\definitions.actioncoreruntime.h",
+            "f:\\battleactiongame\\plugins\\gamefeatures\\actioncore\\source\\actioncoreruntime\\public\\actioncoreruntimemodule.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
