@@ -4,6 +4,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "BattleGameState.generated.h"
 
+class UBattleExperienceManagerComponent;
+
 UCLASS()
 class ABattleGameState : public AModularGameStateBase
 {
@@ -12,5 +14,9 @@ public:
 
 	ABattleGameState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+
+private:
+	UPROPERTY()
+	TObjectPtr<UBattleExperienceManagerComponent> ExperienceManagerComponent;
 	
 };
