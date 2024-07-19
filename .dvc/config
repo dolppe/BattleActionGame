@@ -1,0 +1,4 @@
+[core]
+    remote = battleaction
+['remote "battleaction"']
+    url = gdrive://19OjNqieJd6TTzgRFpFNqyCdv3BzBX8Nq
