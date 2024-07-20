@@ -8,6 +8,7 @@
 #include "BattleActionGame/Character/BattlePawnExtensionComponent.h"
 #include "BattleActionGame/Player/BattlePlayerController.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
+#include "BattleActionGame/UI/BattleHUD.h"
 #include "Kismet/GameplayStatics.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameMode)
@@ -19,6 +20,7 @@ ABattleGameMode::ABattleGameMode(const FObjectInitializer& ObjectInitializer)
 	PlayerControllerClass = ABattlePlayerController::StaticClass();
 	PlayerStateClass = ABattlePlayerState::StaticClass();
 	DefaultPawnClass = ABattleCharacter::StaticClass();
+	HUDClass = ABattleHUD::StaticClass();
 }
 
 void ABattleGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
