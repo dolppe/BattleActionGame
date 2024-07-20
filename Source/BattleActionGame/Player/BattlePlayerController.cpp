@@ -1,9 +1,8 @@
 #include "BattlePlayerController.h"
 
 #include "BattlePlayerState.h"
-#include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Camera/BattlePlayerCameraManager.h"
-
+#include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattlePlayerController)
 
 ABattlePlayerController::ABattlePlayerController(const FObjectInitializer& ObjectInitializer)
@@ -12,16 +11,14 @@ ABattlePlayerController::ABattlePlayerController(const FObjectInitializer& Objec
 	PlayerCameraManagerClass = ABattlePlayerCameraManager::StaticClass();
 }
 
-
 void ABattlePlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	if (UBattleAbilitySystemComponent* BattleASC = GetBattleAbilitySystemComponent())
+	if (UBattleAbilitySystemComponent* BattleASC = GetBattleABilitySystemComponent())
 	{
 		BattleASC->ProcessAbilityInput(DeltaTime, bGamePaused);
 	}
 	
 	Super::PostProcessInput(DeltaTime, bGamePaused);
-
 	
 }
 
@@ -30,7 +27,7 @@ ABattlePlayerState* ABattlePlayerController::GetBattlePlayerState() const
 	return CastChecked<ABattlePlayerState>(PlayerState, ECastCheckedType::NullAllowed);
 }
 
-UBattleAbilitySystemComponent* ABattlePlayerController::GetBattleAbilitySystemComponent() const
+UBattleAbilitySystemComponent* ABattlePlayerController::GetBattleABilitySystemComponent() const
 {
 	const ABattlePlayerState* BattlePS = GetBattlePlayerState();
 	return (BattlePS ? BattlePS->GetBattleAbilitySystemComponent() : nullptr);

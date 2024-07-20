@@ -27,6 +27,15 @@ public class BattleActionGame : ModuleRules
 			// Input
 			"InputCore",
 			"EnhancedInput",
+			// CommonGame
+			"CommonGame",
+			// UI
+			"CommonUI",
+			"UMG",
+			"UIExtension",
+			// Slate
+			"Slate",
+			"SlateCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
