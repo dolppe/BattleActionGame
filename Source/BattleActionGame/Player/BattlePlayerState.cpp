@@ -1,20 +1,37 @@
 #include "BattlePlayerState.h"
 
+#include "Abilities/GameplayAbilityTypes.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Character/BattlePawnData.h"
 #include "BattleActionGame/GameModes/BattleExperienceManagerComponent.h"
 #include "BattleActionGame/GameModes/BattleExperienceDefinition.h"
 #include "BattleActionGame/GameModes/BattleGameMode.h"
+#include "Components/GameFrameworkComponentManager.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattlePlayerState)
+
+const FName ABattlePlayerState::NAME_BattleAbilityReady("BattleAbilitiesReady");
 
 ABattlePlayerState::ABattlePlayerState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UBattleAbilitySystemComponent>(this, TEXT("AbilitySystemcomponent"));
+	
 }
 
 void ABattlePlayerState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	check(AbilitySystemComponent);
+	{
+		FGameplayAbilityActorInfo* ActorInfo = AbilitySystemComponent->AbilityActorInfo.Get();
+		check(ActorInfo->OwnerActor == this);
+		check(ActorInfo->OwnerActor == ActorInfo->AvatarActor);		
+	}
+	// 아직 Pawn이 안붙었기에 nullptr이긴 함. 초기화 느낌으로 nullptr로 초기화.
+	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
 	
 	AGameStateBase* GameState = GetWorld()->GetGameState();
 	check(GameState);
@@ -36,6 +53,17 @@ void ABattlePlayerState::SetPawnData(const UBattlePawnData* InPawnData)
 	check(!PawnData);
 	
 	PawnData = InPawnData;
+
+	for (UBattleAbilitySet* AbilitySet : PawnData->AbilitySets)
+	{
+		if (AbilitySet)
+		{
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+		}
+	}
+
+	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(this, NAME_BattleAbilityReady);
+	
 }
 
 void ABattlePlayerState::OnExperienceLoaded(const UBattleExperienceDefinition* CurrentExperience)
@@ -48,3 +76,29 @@ void ABattlePlayerState::OnExperienceLoaded(const UBattleExperienceDefinition* C
 		SetPawnData(NewPawnData);
 	}
 }
+
+UAbilitySystemComponent* ABattlePlayerState::GetAbilitySystemComponent() const
+{
+	return GetBattleAbilitySystemComponent();
+}
+
+void ABattlePlayerState::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTags.AddStack(Tag, StackCount);
+}
+
+void ABattlePlayerState::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTags.RemoveStack(Tag, StackCount);
+}
+
+int32 ABattlePlayerState::GetStatTagStack(FGameplayTag Tag)
+{
+	return StatTags.GetStackCount(Tag);
+}
+
+bool ABattlePlayerState::HasStatTag(FGameplayTag Tag) const
+{
+	return StatTags.ContainsTag(Tag);
+}
+

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GameplayAbilitySpecHandle.h"
 #include "Components/GameFrameworkInitStateInterface.h"
 #include "Components/PawnComponent.h"
 #include "InputActionValue.h"
@@ -60,6 +61,11 @@ protected:
 	TArray<FBattleMappableConfigPair> DefaultInputConfigs;
 	
 	bool bReadyToBindInputs;
+
+	UPROPERTY()
+	TSubclassOf<UBattleCameraMode> AbilityCameraMode;
+
+	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
 
 	
 };
