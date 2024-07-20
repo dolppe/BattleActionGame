@@ -3,6 +3,7 @@
 #include "BattlePawnExtensionComponent.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Camera/BattleCameraComponent.h"
 #include "BattleActionGame/Player/BattlePlayerController.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Components/GameFrameworkComponentManager.h"
@@ -163,7 +164,11 @@ void UBattleHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager*
 
 		if (ABattlePlayerController* BattlePC = GetController<ABattlePlayerController>())
 		{
-			
+			// 현재 Character에 Attach된 CameraComponent
+			if (UBattleCameraComponent* CameraComponent = UBattleCameraComponent::FindCameraComponent(Pawn))
+			{
+				CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
+			}
 		}
 		
 		if (bIsLocallyControlled && PawnData)
@@ -175,4 +180,22 @@ void UBattleHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager*
 	
 }
 
+TSubclassOf<UBattleCameraMode> UBattleHeroComponent::DetermineCameraMode() const
+{
+	
+	const APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn)
+	{
+		return nullptr;
+	}
 
+	if (UBattlePawnExtensionComponent* PawnExtComp = UBattlePawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+	{
+		if (const UBattlePawnData* PawnData = PawnExtComp->GetPawnData<UBattlePawnData>())
+		{
+			return PawnData->DefaultCameraMode;
+		}
+	}
+	
+	return nullptr;
+}

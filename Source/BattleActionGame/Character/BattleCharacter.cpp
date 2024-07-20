@@ -1,6 +1,7 @@
 #include "BattleCharacter.h"
 
 #include "BattlePawnExtensionComponent.h"
+#include "BattleActionGame/Camera/BattleCameraComponent.h"
 #include "Components/CapsuleComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCharacter)
@@ -24,6 +25,11 @@ ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
 	PawnExtComponent = CreateDefaultSubobject<UBattlePawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	{
 		
+	}
+	// CameraComponent 생성
+	{
+		CameraComponent = CreateDefaultSubobject<UBattleCameraComponent>(TEXT("CameraComponent"));
+		CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 	}
 	
 }

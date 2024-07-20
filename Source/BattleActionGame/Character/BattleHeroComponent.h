@@ -4,6 +4,9 @@
 
 #include "BattleHeroComponent.generated.h"
 
+class UBattleCameraMode;
+class FGameplayAbilitySpecHandle;
+
 UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
 class UBattleHeroComponent : public UPawnComponent, public IGameFrameworkInitStateInterface
 {
@@ -28,6 +31,10 @@ public:
 	virtual bool CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const final;
 	virtual void HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) final;
 
-	
+	// Camera
+	TSubclassOf<UBattleCameraMode> DetermineCameraMode() const;
+	void SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
+
+	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 	
 };

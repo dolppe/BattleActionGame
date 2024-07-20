@@ -4,6 +4,7 @@
 #include "Engine/DataAsset.h"
 #include "BattlePawnData.generated.h"
 
+class UBattleCameraMode;
 
 UCLASS()
 class UBattlePawnData : public UPrimaryDataAsset
@@ -15,6 +16,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Battle|Pawn")
 	TSubclassOf<APawn> PawnClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Battle|Camera")
+	TSubclassOf<UBattleCameraMode> DefaultCameraMode;
 
 };
 
