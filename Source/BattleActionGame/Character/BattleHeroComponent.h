@@ -1,11 +1,14 @@
 #pragma once
+
 #include "Components/GameFrameworkInitStateInterface.h"
 #include "Components/PawnComponent.h"
-
+#include "InputActionValue.h"
+#include "BattleActionGame/Input/BattleInputConfig.h"
 #include "BattleHeroComponent.generated.h"
 
 class UBattleCameraMode;
-class FGameplayAbilitySpecHandle;
+struct FGameplayAbilitySpecHandle;
+struct FBattleMappableConfigPair;
 
 UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
 class UBattleHeroComponent : public UPawnComponent, public IGameFrameworkInitStateInterface
@@ -36,5 +39,18 @@ public:
 	void SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
+
+	// Input
+	void InitilizePlayerInput(UInputComponent* PlayerInputComponent);
+	void Input_Move(const FInputActionValue& InputActionValue);
+	void Input_LookMouse(const FInputActionValue& InputActionValue);
+	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
+	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
+
+	
+protected:
+
+	UPROPERTY(EditAnywhere)
+	TArray<FBattleMappableConfigPair> DefaultInputConfigs;
 	
 };

@@ -35,16 +35,8 @@ public:
 	void SetupPlayerInputComponent();
 
 	void HandleControllerChanged();
-
-	
-
-
 	
 	UPROPERTY(EditInstanceOnly, Category= "Battle|Pawn")
 	TObjectPtr<const UBattlePawnData> PawnData;
-
-	// ASC의 Init, Uninit Delegate
-	FSimpleMulticastDelegate OnAbilitySystemInitialized;
-	FSimpleMulticastDelegate OnAbilitySystemUninitialized;
 	
 };

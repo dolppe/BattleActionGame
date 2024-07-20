@@ -24,6 +24,9 @@ public class BattleActionGame : ModuleRules
 			"GameplayAbilities",
 			// CommonUser
 			"CommonUser",
+			// Input
+			"InputCore",
+			"EnhancedInput",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

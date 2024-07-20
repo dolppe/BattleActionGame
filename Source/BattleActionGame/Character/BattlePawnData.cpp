@@ -7,4 +7,5 @@ UBattlePawnData::UBattlePawnData(const FObjectInitializer& ObjectInitializer)
 {
 	PawnClass = nullptr;
 	DefaultCameraMode = nullptr;
+	InputConfig = nullptr;
 }
