@@ -1,13 +1,17 @@
 #pragma once
 
+#include "AbilitySystemInterface.h"
+#include "BattleActionGame/System/BattleGameplayTagStack.h"
 #include "GameFramework/PlayerState.h"
 #include "BattlePlayerState.generated.h"
 
 class UBattlePawnData;
 class UBattleExperienceDefinition;
+class UBattleAbilitySystemComponent;
+
 
 UCLASS()
-class ABattlePlayerState : public APlayerState
+class ABattlePlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
@@ -21,9 +25,33 @@ public:
 	void SetPawnData(const UBattlePawnData* InPawnData);
 	void OnExperienceLoaded(const UBattleExperienceDefinition* CurrentExperience);
 
+	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const {return AbilitySystemComponent;}
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly,Category=Score)
+	void AddStatTagStack(FGameplayTag Tag,int32 StackCount);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly,Category=Score)
+	void RemoveStatTagStack(FGameplayTag Tag,int32 StackCount);
+
+	UFUNCTION(BlueprintCallable, Category=Score)
+	int32 GetStatTagStack(FGameplayTag Tag);
+
+	UFUNCTION(BlueprintCallable, Category=Score)
+	bool HasStatTag(FGameplayTag Tag) const;
+
+	static const FName NAME_BattleAbilityReady;
+	
 protected:
 
 	UPROPERTY()
 	TObjectPtr<const UBattlePawnData> PawnData;
+
+private:
 	
+	UPROPERTY(VisibleAnywhere, Category="Battle|PlayerState")
+	TObjectPtr<UBattleAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY()
+	FBattleGameplayTagStackContainer StatTags;
 };

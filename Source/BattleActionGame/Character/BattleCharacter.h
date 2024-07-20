@@ -1,4 +1,5 @@
 #pragma once
+#include "AbilitySystemInterface.h"
 #include "ModularCharacter.h"
 
 #include "BattleCharacter.generated.h"
@@ -7,16 +8,23 @@ class UBattlePawnExtensionComponent;
 class UBattleCameraComponent;
 
 UCLASS()
-class ABattleCharacter : public AModularCharacter
+class ABattleCharacter : public AModularCharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
 	ABattleCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	UFUNCTION(BlueprintCallable, Category="Battle|Character")
+	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) final;
 
 protected:
 
+	void OnAbilitySystemInitialized();
+	void OnAbilitySystemUninitialized();
+	
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 

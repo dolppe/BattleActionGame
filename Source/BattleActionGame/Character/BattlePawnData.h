@@ -6,6 +6,8 @@
 
 class UBattleCameraMode;
 class UBattleInputConfig;
+class UBattleAbilitySet;
+class UBattleAbilityTagRelationshipMapping;
 
 UCLASS()
 class UBattlePawnData : public UPrimaryDataAsset
@@ -22,6 +24,11 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Battle|InputConfig")
 	TObjectPtr<UBattleInputConfig> InputConfig;
-	
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Battle|Abilities")
+	TArray<TObjectPtr<UBattleAbilitySet>> AbilitySets;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Battle|Abilities")
+	TObjectPtr<UBattleAbilityTagRelationshipMapping> TagRelationshipMapping;
 };
 

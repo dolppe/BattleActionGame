@@ -2,6 +2,7 @@
 
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattlePawnExtensionComponent)
@@ -184,8 +185,98 @@ void UBattlePawnExtensionComponent::SetupPlayerInputComponent()
 
 void UBattlePawnExtensionComponent::HandleControllerChanged()
 {
+	if (AbilitySystemComponent && (AbilitySystemComponent->GetAvatarActor() == GetPawnChecked<APawn>()))
+	{
+		ensure(AbilitySystemComponent->AbilityActorInfo->OwnerActor == AbilitySystemComponent->GetOwnerActor());
+		if (AbilitySystemComponent->GetOwnerActor() == nullptr)
+		{
+			UnInitializeAbilitySystem();
+		}
+		else
+		{
+			AbilitySystemComponent->RefreshAbilityActorInfo();
+		}
+	}
+	
 	CheckDefaultInitialization();
 }
 
 
+void UBattlePawnExtensionComponent::InitializeAbilitySystem(UBattleAbilitySystemComponent* InASC, AActor* InOwnerActor)
+{
+	check (InASC && InOwnerActor);
+
+	if (AbilitySystemComponent == InASC)
+	{
+		return;
+	}
+	if (AbilitySystemComponent)
+	{
+		UnInitializeAbilitySystem();
+	}
+
+	APawn* Pawn = GetPawnChecked<APawn>();
+	AActor* ExistingAvatar = InASC->GetAvatarActor();
+	check(!ExistingAvatar);
+
+	AbilitySystemComponent = InASC;
+	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
+
+	if (ensure(PawnData))
+	{
+		InASC->SetTagRelationshipMapping(PawnData->TagRelationshipMapping);
+	}
+	
+	OnAbilitySystemInitialized.Broadcast();
+	
+}
+
+void UBattlePawnExtensionComponent::UnInitializeAbilitySystem()
+{
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
+
+	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
+	{
+		AbilitySystemComponent->ClearAbilityInput();
+		AbilitySystemComponent->RemoveAllGameplayCues();
+
+		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
+		{
+			AbilitySystemComponent->SetAvatarActor(nullptr);
+		}
+		else
+		{
+			AbilitySystemComponent->ClearActorInfo();
+		}
+		
+		OnAbilitySystemUninitialized.Broadcast();
+	}
+	
+	AbilitySystemComponent = nullptr;
+}
+
+void UBattlePawnExtensionComponent::OnAbilitySystemInitialized_RegisterAndCall(
+	FSimpleMulticastDelegate::FDelegate Delegate)
+{
+	if (!OnAbilitySystemInitialized.IsBoundToObject(Delegate.GetUObject()))
+	{
+		OnAbilitySystemInitialized.Add(Delegate);
+	}
+
+	if (AbilitySystemComponent)
+	{
+		Delegate.Execute();
+	}
+}
+
+void UBattlePawnExtensionComponent::OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate Delegate)
+{
+	if (!OnAbilitySystemUninitialized.IsBoundToObject(Delegate.GetUObject()))
+	{
+		OnAbilitySystemUninitialized.Add(Delegate);
+	}
+}
 

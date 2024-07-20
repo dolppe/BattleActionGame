@@ -1,6 +1,7 @@
 #include "BattleCharacter.h"
 
 #include "BattlePawnExtensionComponent.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
 #include "Components/CapsuleComponent.h"
 
@@ -24,7 +25,8 @@ ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
 	// PawnExtComponent 생성
 	PawnExtComponent = CreateDefaultSubobject<UBattlePawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	{
-		
+		PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
+		PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
 	}
 	// CameraComponent 생성
 	{
@@ -34,6 +36,32 @@ ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
 	
 }
 
+UBattleAbilitySystemComponent* ABattleCharacter::GetBattleAbilitySystemComponent() const
+{
+	return Cast<UBattleAbilitySystemComponent>(GetAbilitySystemComponent());
+}
+
+UAbilitySystemComponent* ABattleCharacter::GetAbilitySystemComponent() const
+{
+	return PawnExtComponent->GetAbilitySystemComponent();
+}
+
+void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	PawnExtComponent->SetupPlayerInputComponent();
+}
+
+void ABattleCharacter::OnAbilitySystemInitialized()
+{
+
+}
+
+void ABattleCharacter::OnAbilitySystemUninitialized()
+{
+
+}
 
 void ABattleCharacter::PossessedBy(AController* NewController)
 {

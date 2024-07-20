@@ -5,7 +5,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
+#include "BattleActionGame/Camera/BattleCameraMode.h"
 #include "BattleActionGame/Input/BattleInputComponent.h"
 #include "BattleActionGame/Input/BattleMappableConfigPair.h"
 #include "BattleActionGame/Player/BattlePlayerController.h"
@@ -209,6 +211,25 @@ TSubclassOf<UBattleCameraMode> UBattleHeroComponent::DetermineCameraMode() const
 	return nullptr;
 }
 
+void UBattleHeroComponent::SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode,
+	const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (CameraMode)
+	{
+		AbilityCameraMode = CameraMode;
+		AbilityCameraModeOwningSpecHandle = OwningSpecHandle;
+	}
+}
+
+void UBattleHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (AbilityCameraModeOwningSpecHandle == OwningSpecHandle)
+	{
+		AbilityCameraMode = nullptr;
+		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
+	}
+}
+
 
 void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComponent)
 {
@@ -346,7 +367,10 @@ void UBattleHeroComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 	{
 		if (const UBattlePawnExtensionComponent* PawnExtComp = UBattlePawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 		{
-
+			if (UBattleAbilitySystemComponent* BattleASC = PawnExtComp->GetAbilitySystemComponent())
+			{
+				BattleASC->AbilityInputTagPressed(InputTag);
+			}
 		}
 	}
 }
@@ -357,7 +381,10 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 	{
 		if (const UBattlePawnExtensionComponent* PawnExtComp = UBattlePawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 		{
-
+			if (UBattleAbilitySystemComponent* BattleASC = PawnExtComp->GetAbilitySystemComponent())
+			{
+				BattleASC->AbilityInputTagReleased(InputTag);
+			}
 		}
 	}
 }

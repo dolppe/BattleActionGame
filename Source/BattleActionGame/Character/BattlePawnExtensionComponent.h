@@ -5,6 +5,7 @@
 #include "BattlePawnData.h"
 #include "BattlePawnExtensionComponent.generated.h"
 
+class UBattleAbilitySystemComponent;
 
 UCLASS()
 class UBattlePawnExtensionComponent : public UPawnComponent, public IGameFrameworkInitStateInterface
@@ -35,8 +36,22 @@ public:
 	void SetupPlayerInputComponent();
 
 	void HandleControllerChanged();
+
+	void InitializeAbilitySystem(UBattleAbilitySystemComponent* InASC, AActor* InOwnerActor);
+	void UnInitializeAbilitySystem();
+	UBattleAbilitySystemComponent* GetAbilitySystemComponent() const {return AbilitySystemComponent;}
+
+	void OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate Delegate);
+	void OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate Delegate);
 	
 	UPROPERTY(EditInstanceOnly, Category= "Battle|Pawn")
 	TObjectPtr<const UBattlePawnData> PawnData;
+
+	UPROPERTY()
+	TObjectPtr<UBattleAbilitySystemComponent> AbilitySystemComponent;
+
+	// ASC의 Init, Uninit Delegate
+	FSimpleMulticastDelegate OnAbilitySystemInitialized;
+	FSimpleMulticastDelegate OnAbilitySystemUninitialized;
 	
 };
