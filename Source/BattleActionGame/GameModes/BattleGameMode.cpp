@@ -5,6 +5,7 @@
 #include "BattleWorldSettings.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "BattleActionGame/Character/BattlePawnData.h"
+#include "BattleActionGame/Character/BattlePawnExtensionComponent.h"
 #include "BattleActionGame/Player/BattlePlayerController.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Kismet/GameplayStatics.h"
@@ -63,7 +64,13 @@ APawn* ABattleGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* 
 	{
 		if (APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform,SpawnInfo))
 		{
-
+			if (UBattlePawnExtensionComponent* PawnExtComp = UBattlePawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn))
+			{
+				if (const UBattlePawnData* PawnData = GetPawnDataForController(NewPlayer))
+				{
+					PawnExtComp->SetPawnData(PawnData);
+				}
+			}
 			SpawnedPawn->FinishSpawning(SpawnTransform);
 			return SpawnedPawn;
 		}
@@ -167,6 +174,16 @@ bool ABattleGameMode::IsExperienceLoaded() const
 
 const UBattlePawnData* ABattleGameMode::GetPawnDataForController(const AController* InController) const
 {
+	if (InController)
+	{
+		if (const ABattlePlayerState* BattlePS = InController->GetPlayerState<ABattlePlayerState>())
+		{
+			if (const UBattlePawnData* PawnData = BattlePS->GetPawnData<UBattlePawnData>())
+			{
+				return PawnData;
+			}
+		}
+	}
 
 	check(GameState);
 	UBattleExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UBattleExperienceManagerComponent>();
