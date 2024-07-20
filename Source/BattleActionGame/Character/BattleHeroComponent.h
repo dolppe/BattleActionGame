@@ -22,6 +22,9 @@ public:
 	
 	static const FName NAME_ActorFeatureName;
 
+	// GameFrameworkComponentManager Extension Custom Event Name
+	static const FName NAME_BindInputsNow;
+
 	// PawnComponent Interface
 	virtual void OnRegister() final;
 	virtual void BeginPlay() final;
@@ -47,10 +50,16 @@ public:
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 
+	bool IsReadyToBindInputs() const;
+	void AdditionalInputConfig(const UBattleInputConfig* InputConfig);
+	void RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig);
 	
 protected:
 
 	UPROPERTY(EditAnywhere)
 	TArray<FBattleMappableConfigPair> DefaultInputConfigs;
+	
+	bool bReadyToBindInputs;
+
 	
 };
