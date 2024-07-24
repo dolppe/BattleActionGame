@@ -9,6 +9,7 @@ UBattleExperienceDefinition::UBattleExperienceDefinition(const FObjectInitialize
 {
 }
 
+#if WITH_EDITORONLY_DATA
 void UBattleExperienceDefinition::UpdateAssetBundleData()
 {
 	Super::UpdateAssetBundleData();
@@ -22,3 +23,4 @@ void UBattleExperienceDefinition::UpdateAssetBundleData()
 		}
 	}
 }
+#endif

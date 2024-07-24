@@ -10,8 +10,10 @@ FString UCommonSession_HosetSessionRequest::GetMapName() const
 	FAssetData MapAssetData;
 	if (UAssetManager::Get().GetPrimaryAssetData(MapID, MapAssetData))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Map Loading Not Error, %s "), *MapID.ToString());
 		return MapAssetData.PackageName.ToString();
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Map Loading Error, %s "), *MapID.ToString());
 	return FString();
 }
 
@@ -44,6 +46,8 @@ FString UCommonSession_HosetSessionRequest::ConstructTravelURL() const
 	return FString::Printf(TEXT("%s%s"), *GetMapName(), *CombinedExtraArgs);
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 void UCommonSessionSubsystem::HostSession(APlayerController* HostingPlayer, UCommonSession_HosetSessionRequest* Request)
 {
 	// 정말 로컬 호스트의 플레이어인지 확인.
@@ -56,3 +60,5 @@ void UCommonSessionSubsystem::HostSession(APlayerController* HostingPlayer, UCom
 	// Request에서 MapID와 ExtraArgs를 통해 URL을 생성하여 MapLoad 시작
 	GetWorld()->ServerTravel(Request->ConstructTravelURL());
 }
+
+PRAGMA_ENABLE_OPTIMIZATION

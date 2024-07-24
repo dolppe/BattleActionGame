@@ -11,6 +11,8 @@ UCommonGameInstance::UCommonGameInstance(const FObjectInitializer& ObjectInitial
 {
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 int32 UCommonGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId)
 {
 	// GameInstance에서 관리하는 Player 컨테이너에 새로운 Player를 추가 (ReturnVal은 새로 추가된 Player의 Index)
@@ -31,6 +33,8 @@ int32 UCommonGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUser
 
 	return ReturnVal;
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 bool UCommonGameInstance::RemoveLocalPlayer(ULocalPlayer* ExistingPlayer)
 {
