@@ -9,6 +9,9 @@ class BATTLEACTIONGAME_API UBattleUserFacingExperienceDefinition : public UPrima
 {
 	GENERATED_BODY()
 public:
+
+	UFUNCTION(BlueprintCallable, BlueprintPure=false)
+	UCommonSession_HosetSessionRequest* CreateHostingRequest() const;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Experience, meta=(AllowedTypes="Map"))
 	FPrimaryAssetId MapID;

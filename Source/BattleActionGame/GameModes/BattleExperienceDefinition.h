@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "BattleExperienceDefinition.generated.h"
 
@@ -7,7 +8,7 @@ class UGameFeatureAction;
 class UBattlePawnData;
 class UBattleExperienceActionSet;
 
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Const)
 class UBattleExperienceDefinition : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
@@ -31,3 +32,4 @@ public:
 	UPROPERTY(EditDefaultsOnly, Instanced, Category="Actions")
 	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 };
+
