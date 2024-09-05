@@ -22,3 +22,16 @@ void ACommonPlayerController::ReceivedPlayer()
 		}
 	}
 }
+
+void ACommonPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (PlayerState)
+	{
+		if (UCommonLocalPlayer* LocalPlayer = Cast<UCommonLocalPlayer>(Player))
+		{
+			LocalPlayer->OnPlayerStateSet.Broadcast(LocalPlayer, PlayerState);
+		}
+	}
+}
