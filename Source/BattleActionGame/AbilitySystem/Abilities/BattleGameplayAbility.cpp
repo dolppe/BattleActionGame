@@ -17,6 +17,10 @@
 UBattleGameplayAbility::UBattleGameplayAbility(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateNo;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ClientOrServer;
+	
 	ActivationPolicy = EBattleAbilityActivationPolicy::OnInputTriggered;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
@@ -80,7 +84,16 @@ void UBattleGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityAct
 
 		if (ASC && AvatarActor && !AvatarActor->GetTearOff() && (AvatarActor->GetLifeSpan() <= 0.0f))
 		{
-			ASC->TryActivateAbility(Spec.Handle);
+			const bool bIsLocalExecution = (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::LocalPredicted) || (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::LocalOnly);
+			const bool bIsServerExecution = (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::ServerOnly) || (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::ServerInitiated);
+
+			const bool bClientShouldActivate = ActorInfo->IsLocallyControlled() && bIsLocalExecution;
+			const bool bServerShouldActivate = ActorInfo->IsNetAuthority() && bIsServerExecution;
+
+			if (bClientShouldActivate || bServerShouldActivate)
+			{
+				ASC->TryActivateAbility(Spec.Handle);
+			}
 		}
 		
 	}

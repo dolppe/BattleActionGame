@@ -31,8 +31,11 @@ public:
 
 	// OnExperienceLoaded 델리게이트에 바인딩하거나 Experience가 로딩됐으면 바로 델리게이트를 실행시킴(Notify)
 	void CallOrRegister_OnExperienceLoaded(FOnBattleExperienceLoaded::FDelegate&& Delegate);
-	
+
+#if WITH_SERVER_CODE
 	void ServerSetCurrentExperience(FPrimaryAssetId ExperienceId);
+#endif
+	
 	void StartExperienceLoad();
 	void OnExperienceLoadComplete();
 	void OnGameFeaturePluginLoadComplete(const UE::GameFeatures::FResult& Result);
@@ -43,10 +46,13 @@ public:
 
 private:
 
+	UFUNCTION()
+	void OnRep_CurrentExperience();
+	
 	void OnActionDeactivationCompleted();
 	void OnAllActionsDeactivated();
 	
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentExperience)
 	TObjectPtr<const UBattleExperienceDefinition> CurrentExperience;
 	
 	// 로딩 상태 모니터링

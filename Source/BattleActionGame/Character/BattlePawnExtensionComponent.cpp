@@ -4,6 +4,8 @@
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "Net/UnrealNetwork.h"
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattlePawnExtensionComponent)
 
@@ -15,6 +17,15 @@ UBattlePawnExtensionComponent::UBattlePawnExtensionComponent(const FObjectInitia
 {
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 	PrimaryComponentTick.bCanEverTick = false;
+
+	SetIsReplicatedByDefault(true);
+}
+
+void UBattlePawnExtensionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UBattlePawnExtensionComponent, PawnData);
 }
 
 void UBattlePawnExtensionComponent::OnRegister()
@@ -36,6 +47,8 @@ void UBattlePawnExtensionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	BA_SUBLOG(LogBANetwork, Log, TEXT("%s"), TEXT("Begin"));
+	
 	// 해당 Actor의 원하는 FeatureComponent의 InitState 상태 변화에 델리게이트를 걸어두는 것 (변화되면 OnActorInitStateChanged가 호출)
 	// FeatureName에 NAME_None을 넣으면 Actor에 등록된 모든 FeatureComponent의 InitState를 관찰하겠다는 것.
 	BindOnActorInitStateChanged(NAME_None, FGameplayTag(),false);
@@ -80,11 +93,15 @@ void UBattlePawnExtensionComponent::OnActorInitStateChanged(const FActorInitStat
 	}
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 // InitState를 바꿀 수 있는지 체크하는 것.
 bool UBattlePawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager,
 	FGameplayTag CurrentState, FGameplayTag DesiredState) const
 {
 	check(Manager);
+
+	BA_SUBLOG(LogBANetwork, Log, TEXT("%s => %s"), *CurrentState.ToString(), *DesiredState.ToString());
 
 	APawn* Pawn = GetPawn<APawn>();
 	const FBattleGameplayTags& InitTags = FBattleGameplayTags::Get();
@@ -113,14 +130,21 @@ bool UBattlePawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentMa
 		// 초기에는는 컨트롤러 세팅이 안되어 있는게 맞음
 		// 아직 Possess가 안되어 있을 때 => bIsLocallyControlled가 ture가 되기 때문에 바로 DataAvailable로 변경됨.
 		// 이는 예외처리 같은 느낌으로 있는 코드인듯.
+		const bool bHasAuthority = Pawn->HasAuthority();
 		const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
-		if (bIsLocallyControlled)
+
+		if (bHasAuthority)
 		{
 			if (!GetController<AController>())
 			{
 				return false;
 			}
 		}
+		else if (GetOwnerRole() == ROLE_AutonomousProxy)
+		{
+			return true;
+		}
+		
 		return true;
 	}
 	//  InitState_DataAvailable -> InitState_DataInitialized
@@ -139,6 +163,8 @@ bool UBattlePawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentMa
 	// Current, Desired가 선형적으로 진행되지 않으면 false
 	return false;
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattlePawnExtensionComponent::CheckDefaultInitialization()
 {
@@ -278,5 +304,10 @@ void UBattlePawnExtensionComponent::OnAbilitySystemUninitialized_Register(FSimpl
 	{
 		OnAbilitySystemUninitialized.Add(Delegate);
 	}
+}
+
+void UBattlePawnExtensionComponent::OnRep_PawnData()
+{
+	CheckDefaultInitialization();
 }
 

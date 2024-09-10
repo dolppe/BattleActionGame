@@ -1,4 +1,4 @@
-#include "BattleAbilitySet.h"
+	#include "BattleAbilitySet.h"
 #include "Abilities/BattleGameplayAbility.h"
 #include "BattleAbilitySystemComponent.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAbilitySet)
@@ -13,6 +13,8 @@ void FBattleAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbili
 
 void FBattleAbilitySet_GrantedHandles::TakeFromAbilitySystem(UBattleAbilitySystemComponent* BattleASC)
 {
+	check(BattleASC);
+	
 	if (!BattleASC->IsOwnerActorAuthoritative())
 	{
 		return;
@@ -24,8 +26,10 @@ void FBattleAbilitySet_GrantedHandles::TakeFromAbilitySystem(UBattleAbilitySyste
 		{
 			BattleASC->ClearAbility(Handle);
 		}
-		
 	}
+
+
+	AbilitySpecHandles.Reset();	
 	
 }
 

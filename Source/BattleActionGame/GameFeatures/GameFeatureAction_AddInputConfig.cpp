@@ -1,6 +1,7 @@
 #include "GameFeatureAction_AddInputConfig.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlayerMappableInputConfig.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "BattleActionGame/Character/BattleHeroComponent.h"
 

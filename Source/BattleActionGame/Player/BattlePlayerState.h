@@ -44,7 +44,10 @@ public:
 	
 protected:
 
-	UPROPERTY()
+	UFUNCTION()
+	void OnRep_PawnData();
+
+	UPROPERTY(ReplicatedUsing = OnRep_PawnData)
 	TObjectPtr<const UBattlePawnData> PawnData;
 
 private:
@@ -52,6 +55,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category="Battle|PlayerState")
 	TObjectPtr<UBattleAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	FBattleGameplayTagStackContainer StatTags;
 };

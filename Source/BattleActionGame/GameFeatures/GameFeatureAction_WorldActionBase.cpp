@@ -4,6 +4,9 @@
 
 void UGameFeatureAction_WorldActionBase::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
+	GameInstanceStartHandles.FindOrAdd(Context) = FWorldDelegates::OnStartGameInstance.AddUObject(this, 
+		&UGameFeatureAction_WorldActionBase::HandleGameInstanceStart, FGameFeatureStateChangeContext(Context));
+	
 	for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
 	{
 		// 앞서, ExperienceManagerComponent에서 GameFeatureAction을 활성화하면서, Context에 World를 넣어줌.
@@ -14,6 +17,18 @@ void UGameFeatureAction_WorldActionBase::OnGameFeatureActivating(FGameFeatureAct
 			AddToWorld(WorldContext, Context);
 		}
 	}	
+}
+
+void UGameFeatureAction_WorldActionBase::HandleGameInstanceStart(UGameInstance* GameInstance,
+	FGameFeatureStateChangeContext ChangeContext)
+{
+	if (FWorldContext* WorldContext = GameInstance->GetWorldContext())
+	{
+		if (ChangeContext.ShouldApplyToWorldContext(*WorldContext))
+		{
+			AddToWorld(*WorldContext, ChangeContext);
+		}
+	}
 }
 
 

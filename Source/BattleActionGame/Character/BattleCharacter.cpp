@@ -1,5 +1,6 @@
 #include "BattleCharacter.h"
 
+#include "BattleCharacterMovementComponent.h"
 #include "BattlePawnExtensionComponent.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
@@ -8,10 +9,12 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCharacter)
 
 ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBattleCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.bStartWithTickEnabled = false;
+
+	NetCullDistanceSquared = 900000000.0f;
 	
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	check(CapsuleComp);
