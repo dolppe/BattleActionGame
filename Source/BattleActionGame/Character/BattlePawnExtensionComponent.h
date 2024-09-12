@@ -43,8 +43,11 @@ public:
 
 	void OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate Delegate);
 	void OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate Delegate);
+
+	UFUNCTION()
+	void OnRep_PawnData();
 	
-	UPROPERTY(EditInstanceOnly, Category= "Battle|Pawn")
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = OnRep_PawnData, Category= "Battle|Pawn")
 	TObjectPtr<const UBattlePawnData> PawnData;
 
 	UPROPERTY()

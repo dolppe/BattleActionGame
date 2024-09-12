@@ -18,7 +18,7 @@ public:
 	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) final;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 protected:
 

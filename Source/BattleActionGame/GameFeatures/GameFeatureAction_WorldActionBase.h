@@ -19,6 +19,11 @@ class UGameFeatureAction_WorldActionBase : public UGameFeatureAction
 public:
 	virtual void OnGameFeatureActivating(FGameFeatureActivatingContext& Context) override;
 
+	
+	void HandleGameInstanceStart(UGameInstance* GameInstance, FGameFeatureStateChangeContext ChangeContext);
 	virtual void AddToWorld(const FWorldContext& WorldContext, const FGameFeatureStateChangeContext& ChangeContext) PURE_VIRTUAL(UGameFeatureAction_WorldActionBase::AddToWorld,);
+
+private:
+	TMap<FGameFeatureStateChangeContext, FDelegateHandle> GameInstanceStartHandles;
 	
 };

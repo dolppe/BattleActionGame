@@ -127,7 +127,7 @@ public:
 	
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct UIEXTENSION_API FUIExtensionPointHandle
 {
 	GENERATED_BODY()
@@ -153,11 +153,15 @@ class UIEXTENSION_API UUIExtensionSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 public:
 
+	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "UI Extension")
 	void UnregisterExtension(const FUIExtensionHandle& ExtensionHandle);
+	
 	FUIExtensionHandle RegisterExtensionAsWidgetForContext(const FGameplayTag& ExtensionPointTag, UObject* ContextObject, TSubclassOf<UUserWidget> WidgetClass, int32 Priority);
 	FUIExtensionHandle RegisterExtensionAsData(const FGameplayTag& ExtensionPointTag, UObject* ContextObject, UObject* Data, int32 Priority);
 
+	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "UI Extension")
 	void UnregisterExtensionPoint(const FUIExtensionPointHandle& ExtensionPointHandle);
+	
 	FUIExtensionPointHandle RegisterExtensionPointForContext(const FGameplayTag& ExtensionPointTag, UObject* ContextObject, EUIExtensionPointMatch ExtensionPointTagMatchType, const TArray<UClass*>& AllowedDataClasses, FExtendExtensionPointDelegate ExtensionCallback);
 	FUIExtensionPointHandle RegisterExtensionPoint(const FGameplayTag& ExtensionPointTag, EUIExtensionPointMatch ExtensionPointTagMatchType, const TArray<UClass*>& AllowedDataClasses, FExtendExtensionPointDelegate ExtensionCallback);
 

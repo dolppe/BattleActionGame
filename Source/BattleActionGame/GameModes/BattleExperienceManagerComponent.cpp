@@ -6,12 +6,20 @@
 #include "GameFeaturesSubsystemSettings.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/System/BattleAssetManager.h"
+#include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleExperienceManagerComponent)
 
 UBattleExperienceManagerComponent::UBattleExperienceManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+}
+
+void UBattleExperienceManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UBattleExperienceManagerComponent, CurrentExperience);
 }
 
 void UBattleExperienceManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -88,6 +96,8 @@ void UBattleExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(
 	
 }
 
+
+#if WITH_SERVER_CODE
 void UBattleExperienceManagerComponent::ServerSetCurrentExperience(FPrimaryAssetId ExperienceId)
 {
 	// GameMode에서 넣은 Default Experience를 활용하여 만든 PrimaryAssetID를 활용하여 CDO를 가져옴.
@@ -111,7 +121,7 @@ void UBattleExperienceManagerComponent::ServerSetCurrentExperience(FPrimaryAsset
 
 	StartExperienceLoad();	
 }
-
+#endif
 
 void UBattleExperienceManagerComponent::StartExperienceLoad()
 {
@@ -297,6 +307,11 @@ const UBattleExperienceDefinition* UBattleExperienceManagerComponent::GetCurrent
 	check(CurrentExperience != nullptr);
 
 	return CurrentExperience;
+}
+
+void UBattleExperienceManagerComponent::OnRep_CurrentExperience()
+{
+	StartExperienceLoad();
 }
 
 void UBattleExperienceManagerComponent::OnActionDeactivationCompleted()

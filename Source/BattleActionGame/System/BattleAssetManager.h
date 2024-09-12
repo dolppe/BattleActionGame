@@ -24,6 +24,10 @@ public:
 
 	// 동기적인 정적 로딩
 	static UObject* SynchronousLoadAsset(const FSoftObjectPath& AssetPath);
+
+	void LoadMap();
+	void LoadMapComplete();
+	
 	
 	// BP Class / Object 등 에셋 정적 로딩
 	template<typename AssetType>

@@ -29,7 +29,6 @@ public:
 
 	// PawnData나 Experience의 DefaultPawnData를 리턴.
 	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
-
 	
 	virtual bool PlayerCanRestart_Implementation(APlayerController* Player) override;
 
@@ -47,4 +46,8 @@ public:
 	void OnExperienceLoaded(const UBattleExperienceDefinition* CurrentExperience);
 
 	virtual bool ControllerCanRestart(AController* Controller);
+
+	void TryMapLoad();
+	void GoToMap();
+		
 };

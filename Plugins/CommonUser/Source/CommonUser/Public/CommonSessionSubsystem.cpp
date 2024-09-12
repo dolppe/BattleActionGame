@@ -43,10 +43,8 @@ FString UCommonSession_HosetSessionRequest::ConstructTravelURL() const
 		}
 	}
 	
-	return FString::Printf(TEXT("%s%s"), *GetMapName(), *CombinedExtraArgs);
+	return FString::Printf(TEXT("%s%s%s"), *GetMapName(), *CombinedExtraArgs, TEXT("?bTraveled"));
 }
-
-PRAGMA_DISABLE_OPTIMIZATION
 
 void UCommonSessionSubsystem::HostSession(APlayerController* HostingPlayer, UCommonSession_HosetSessionRequest* Request)
 {
@@ -61,4 +59,3 @@ void UCommonSessionSubsystem::HostSession(APlayerController* HostingPlayer, UCom
 	GetWorld()->ServerTravel(Request->ConstructTravelURL());
 }
 
-PRAGMA_ENABLE_OPTIMIZATION

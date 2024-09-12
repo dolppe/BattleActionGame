@@ -1,5 +1,6 @@
 #include "BattleAssetManager.h"
 
+#include "AbilitySystemGlobals.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAssetManager)
 
@@ -58,42 +59,46 @@ UObject* UBattleAssetManager::SynchronousLoadAsset(const FSoftObjectPath& AssetP
 	}
 	return nullptr;
 }
-//
-// PRAGMA_DISABLE_OPTIMIZATION
-//
-// void UBattleAssetManager::CheckMap()
-// {
-// 	TArray<UObject*> ListTemp;
-// 	FPrimaryAssetType mapType(TEXT("Map"));
-//
-// 	if (GetPrimaryAssetObjectList(mapType, ListTemp))
-// 	{
-//
-// 		for (auto ListTempItem : ListTemp)
-// 		{
-// 			UWorld* Temp = Cast<UWorld>(ListTempItem);
-// 			UE_LOG(LogTemp, Warning, TEXT("MapList: %s"), *Temp->GetName());
-// 		}
-// 	}
-// 	else
-// 	{
-// 		UE_LOG(LogTemp, Warning, TEXT("MapList Load Error"));
-// 	}
-// 	FSoftObjectPath ActionGame(TEXT("/ActionCore/Maps/L_ActionGame.L_ActionGame"));
-// 	
-// 	FPrimaryAssetId ActionGameAssetId = GetPrimaryAssetIdForPath(ActionGame);
-// 	
-// 	FAssetData MapAssetData;
-// 	if (UAssetManager::Get().GetPrimaryAssetData(ActionGameAssetId, MapAssetData))
-// 	{
-// 		UE_LOG(LogTemp, Warning, TEXT("MapListActionGame: %s"), *MapAssetData.GetFullName());
-// 	}
-// 	else
-// 	{
-// 		UE_LOG(LogTemp, Warning, TEXT("MapListActionGame Error"));
-// 	}
-// 	
-// }
+
+void UBattleAssetManager::LoadMap()
+{
+	// TArray<FPrimaryAssetId> MapList;
+	// GetPrimaryAssetIdList(MapType, MapList);
+	//
+	// TArray<FSoftObjectPath> MapPath;
+	// GetPrimaryAssetPathList(MapType,MapPath);
+	//
+	// for (FSoftObjectPath MapPathItem : MapPath)
+	// {
+	// 	ULevel* Temp = CastChecked<ULevel>(SynchronousLoadAsset(MapPathItem));
+	// 	
+	// 	UE_LOG(LogTemp,Log,TEXT("%s"), *Temp->GetName());
+	// 	
+	// }
+	//
+	// FSoftObjectPath Path(TEXT("/Script/Engine.World'/Game/Maps/L_TestMap.L_TestMap'"));
+	//
+	// UObject* Temp = SynchronousLoadAsset(Path);
+	// 	
+	// for (FPrimaryAssetId MapItem : MapList)
+	// {
+	// 	UE_LOG(LogTemp,Log,TEXT("%s"), *MapItem.ToString());
+	// }
+	// const TArray<FName> Bundles;
+	// LoadPrimaryAssetsWithType(MapType, Bundles, FStreamableDelegate::CreateUObject(this, &ThisClass::LoadMapComplete));
+}
+
+void UBattleAssetManager::LoadMapComplete()
+{
+	int a = 5;
+
+	int b = 10;
+
+	UE_LOG(LogTemp,Log,TEXT("asdf"));
+
+
+	
+}
 
 
 
@@ -105,6 +110,11 @@ void UBattleAssetManager::StartInitialLoading()
 	// Lyra에서는 STARTUP_JOB 매크로를 활용하여 진행
 	// 이는 추후 로딩, 에셋 번들에서 사용되는 것으로 현재는 단순하게 호출함.
 	FBattleGameplayTags::InitializeNativeTags();
+
+	UAbilitySystemGlobals::Get().InitGlobalData();
+
+	LoadMap();
+	
 	//
 	// const TArray<FName> Bundles;
 	// FPrimaryAssetType mapType(TEXT("Map"));

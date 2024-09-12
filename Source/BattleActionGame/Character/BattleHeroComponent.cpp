@@ -92,6 +92,8 @@ bool UBattleHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Ma
 {
 	check(Manager);
 
+	BA_SUBLOG(LogBANetwork, Log, TEXT("%s => %s"), *CurrentState.ToString(), *DesiredState.ToString());
+
 	const FBattleGameplayTags& InitTags = FBattleGameplayTags::Get();
 	APawn* Pawn = GetPawn<APawn>();
 	ABattlePlayerState* BattlePS = GetPlayerState<ABattlePlayerState>();
@@ -113,6 +115,20 @@ bool UBattleHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Ma
 		if (!BattlePS)
 		{
 			return false;
+		}
+
+		if (Pawn->GetLocalRole() != ROLE_SimulatedProxy)
+		{
+			AController* Controller = GetController<AController>();
+
+			const bool bHasControllerPairedWithPS = (Controller != nullptr) && \
+				(Controller->PlayerState != nullptr) && \
+				(Controller->PlayerState->GetOwner() == Controller);
+
+			if (!bHasControllerPairedWithPS)
+			{
+				return false;
+			}
 		}
 
 		if (Pawn->IsLocallyControlled() && !Pawn->IsBotControlled())
@@ -167,7 +183,7 @@ void UBattleHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager*
 		{
 			PawnData = PawnExtensionComponent->GetPawnData<UBattlePawnData>();
 
-
+			PawnExtensionComponent->InitializeAbilitySystem(BattlePS->GetBattleAbilitySystemComponent(), BattlePS);
 		}
 
 		if (ABattlePlayerController* BattlePC = GetController<ABattlePlayerController>())
@@ -248,7 +264,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 	check(LP);
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-	check(Subsystem);
+	check(Subsystem); 
 
 	// EnhancedInputLocalPlayerSubsystem에 매핑 컨텍스트을 초기화 시켜줌.
 	Subsystem->ClearAllMappings();
@@ -300,6 +316,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 
 	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
 }
+
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {

@@ -8,6 +8,7 @@
 #include "BattleActionGame/GameModes/BattleExperienceDefinition.h"
 #include "BattleActionGame/GameModes/BattleGameMode.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattlePlayerState)
 
@@ -17,6 +18,10 @@ ABattlePlayerState::ABattlePlayerState(const FObjectInitializer& ObjectInitializ
 	: Super(ObjectInitializer)
 {
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UBattleAbilitySystemComponent>(this, TEXT("AbilitySystemcomponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	NetUpdateFrequency = 100.0f;
 	
 }
 
@@ -32,22 +37,29 @@ void ABattlePlayerState::PostInitializeComponents()
 	}
 	// 아직 Pawn이 안붙었기에 nullptr이긴 함. 초기화 느낌으로 nullptr로 초기화.
 	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
-	
-	AGameStateBase* GameState = GetWorld()->GetGameState();
-	check(GameState);
-	
-	UBattleExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UBattleExperienceManagerComponent>();
-	check(ExperienceManagerComponent);
 
-	// Experience가 로드되면 PawnData를 설정하기 위해 델리게이트 걸어둠.
-	ExperienceManagerComponent->CallOrRegister_OnExperienceLoaded(FOnBattleExperienceLoaded::FDelegate::CreateUObject(this, &ThisClass::OnExperienceLoaded));
-	
+	if (GetNetMode() != NM_Client)
+	{
+		AGameStateBase* GameState = GetWorld()->GetGameState();
+		check(GameState);
+		
+		UBattleExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UBattleExperienceManagerComponent>();
+		check(ExperienceManagerComponent);
+
+		// Experience가 로드되면 PawnData를 설정하기 위해 델리게이트 걸어둠.
+		ExperienceManagerComponent->CallOrRegister_OnExperienceLoaded(FOnBattleExperienceLoaded::FDelegate::CreateUObject(this, &ThisClass::OnExperienceLoaded));
+	}
 	
 }
 
 void ABattlePlayerState::SetPawnData(const UBattlePawnData* InPawnData)
 {
 	check(InPawnData);
+	
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
 
 	// PawnData가 두번 생성되는 것을 막음.
 	check(!PawnData);
@@ -63,7 +75,8 @@ void ABattlePlayerState::SetPawnData(const UBattlePawnData* InPawnData)
 	}
 
 	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(this, NAME_BattleAbilityReady);
-	
+
+	ForceNetUpdate();
 }
 
 void ABattlePlayerState::OnExperienceLoaded(const UBattleExperienceDefinition* CurrentExperience)
@@ -75,6 +88,18 @@ void ABattlePlayerState::OnExperienceLoaded(const UBattleExperienceDefinition* C
 
 		SetPawnData(NewPawnData);
 	}
+}
+
+void ABattlePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	FDoRepLifetimeParams SharedParams;
+	SharedParams.bIsPushBased = true;
+
+	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, PawnData, SharedParams);
+
+	DOREPLIFETIME(ThisClass, StatTags);
 }
 
 UAbilitySystemComponent* ABattlePlayerState::GetAbilitySystemComponent() const
@@ -100,5 +125,9 @@ int32 ABattlePlayerState::GetStatTagStack(FGameplayTag Tag)
 bool ABattlePlayerState::HasStatTag(FGameplayTag Tag) const
 {
 	return StatTags.ContainsTag(Tag);
+}
+
+void ABattlePlayerState::OnRep_PawnData()
+{
 }
 
