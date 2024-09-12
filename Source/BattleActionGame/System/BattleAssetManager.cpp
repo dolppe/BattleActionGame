@@ -60,6 +60,46 @@ UObject* UBattleAssetManager::SynchronousLoadAsset(const FSoftObjectPath& AssetP
 	return nullptr;
 }
 
+void UBattleAssetManager::LoadMap()
+{
+	// TArray<FPrimaryAssetId> MapList;
+	// GetPrimaryAssetIdList(MapType, MapList);
+	//
+	// TArray<FSoftObjectPath> MapPath;
+	// GetPrimaryAssetPathList(MapType,MapPath);
+	//
+	// for (FSoftObjectPath MapPathItem : MapPath)
+	// {
+	// 	ULevel* Temp = CastChecked<ULevel>(SynchronousLoadAsset(MapPathItem));
+	// 	
+	// 	UE_LOG(LogTemp,Log,TEXT("%s"), *Temp->GetName());
+	// 	
+	// }
+	//
+	// FSoftObjectPath Path(TEXT("/Script/Engine.World'/Game/Maps/L_TestMap.L_TestMap'"));
+	//
+	// UObject* Temp = SynchronousLoadAsset(Path);
+	// 	
+	// for (FPrimaryAssetId MapItem : MapList)
+	// {
+	// 	UE_LOG(LogTemp,Log,TEXT("%s"), *MapItem.ToString());
+	// }
+	// const TArray<FName> Bundles;
+	// LoadPrimaryAssetsWithType(MapType, Bundles, FStreamableDelegate::CreateUObject(this, &ThisClass::LoadMapComplete));
+}
+
+void UBattleAssetManager::LoadMapComplete()
+{
+	int a = 5;
+
+	int b = 10;
+
+	UE_LOG(LogTemp,Log,TEXT("asdf"));
+
+
+	
+}
+
 
 
 void UBattleAssetManager::StartInitialLoading()
@@ -72,6 +112,9 @@ void UBattleAssetManager::StartInitialLoading()
 	FBattleGameplayTags::InitializeNativeTags();
 
 	UAbilitySystemGlobals::Get().InitGlobalData();
+
+	LoadMap();
+	
 	//
 	// const TArray<FName> Bundles;
 	// FPrimaryAssetType mapType(TEXT("Map"));

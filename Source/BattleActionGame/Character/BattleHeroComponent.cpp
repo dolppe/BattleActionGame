@@ -317,7 +317,6 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {

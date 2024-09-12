@@ -100,9 +100,6 @@ void UBattleGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityAct
 	
 }
 
-
-PRAGMA_DISABLE_OPTIMIZATION
-
 void UBattleGameplayAbility::SetCameraMode(TSubclassOf<UBattleCameraMode> CameraMode)
 {
 	if (UBattleHeroComponent* HeroComponent = GetHeroComponentFromActorInfo())
@@ -123,8 +120,6 @@ void UBattleGameplayAbility::ClearCameraMode()
 		ActiveCameraMode = nullptr;
 	}
 }
-
-PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattleGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {

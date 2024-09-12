@@ -93,8 +93,6 @@ void UBattlePawnExtensionComponent::OnActorInitStateChanged(const FActorInitStat
 	}
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-
 // InitState를 바꿀 수 있는지 체크하는 것.
 bool UBattlePawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager,
 	FGameplayTag CurrentState, FGameplayTag DesiredState) const
@@ -163,8 +161,6 @@ bool UBattlePawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentMa
 	// Current, Desired가 선형적으로 진행되지 않으면 false
 	return false;
 }
-
-PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattlePawnExtensionComponent::CheckDefaultInitialization()
 {
@@ -243,7 +239,6 @@ void UBattlePawnExtensionComponent::InitializeAbilitySystem(UBattleAbilitySystem
 
 	APawn* Pawn = GetPawnChecked<APawn>();
 	AActor* ExistingAvatar = InASC->GetAvatarActor();
-	check(!ExistingAvatar);
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
