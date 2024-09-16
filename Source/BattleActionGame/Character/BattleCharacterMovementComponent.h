@@ -13,6 +13,8 @@ public:
 	UBattleCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
 
 	virtual void PerformMovement(float DeltaTime) override;
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	
 };

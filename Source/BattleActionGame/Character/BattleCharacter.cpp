@@ -21,7 +21,7 @@ ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
 	CapsuleComp->InitCapsuleSize(40.0f, 90.0f);
 	
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = true;
+	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 
