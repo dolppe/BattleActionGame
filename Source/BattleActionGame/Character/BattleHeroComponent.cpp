@@ -317,38 +317,21 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
 }
 
-
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
 	APawn* Pawn = GetPawn<APawn>();
 	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
 
-	const FVector2D Value = InputActionValue.Get<FVector2D>();
-	const FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
+	FVector2D MovementVector = InputActionValue.Get<FVector2D>();
 
-	if (Controller)
-	{
-		if (Value.X != 0.0f)
-		{
-			// Left/Right -> x값에 들어있음.
-			// MovementDirection은 현재 카메라의 RightVector를 의미함.
-			// 월드 스페이스로의 변환을 의미함.
-			// 캐릭터의 오른쪽 왼쪽을 구분하려면 카메라를 기준으로 월드 스페이스를 구하고, 해당 카메라의 우측 벡터를 가져오면됨.
-			// 로컬 -> 월드로 전환하는 느낌.
-			const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0,Rotation.Yaw,0);
 
-			Pawn->AddMovementInput(MovementDirection, Value.X);
-		}
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		if (Value.Y != 0.0f)
-		{
-			// Foward를 적용하기 위해 Swizzle를 진행했음 (IMC)
-			
-			const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
-
-			Pawn->AddMovementInput(MovementDirection, Value.Y);
-		}
-	}
+	Pawn->AddMovementInput(ForwardDirection, MovementVector.X);
+	Pawn->AddMovementInput(RightDirection, MovementVector.Y);
 	
 }
 

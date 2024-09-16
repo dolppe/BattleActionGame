@@ -4,6 +4,7 @@
 #include "NativeGameplayTags.h"
 #include "Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Animation/BattleAnimInstance.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAbilitySystemComponent)
 
@@ -91,6 +92,11 @@ void UBattleAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 			{
 				BattleAbilityCDO->OnPawnAvatarSet();
 			}
+		}
+
+		if (UBattleAnimInstance* LyraAnimInst = Cast<UBattleAnimInstance>(ActorInfo->GetAnimInstance()))
+		{
+			LyraAnimInst->InitializeWithAbilitySystem(this);
 		}
 
 		TryActivateAbilitiesOnSpawn();
