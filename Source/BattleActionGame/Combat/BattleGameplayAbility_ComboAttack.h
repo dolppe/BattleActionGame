@@ -19,6 +19,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCNotifyHit(const FHitResult& HitResult, float HitCheckTime);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 protected:
 	
 	FName GetNextSection();
@@ -26,13 +28,18 @@ protected:
 	void CheckComboInput();
 	void AllowInput();
 
-
-
+	UFUNCTION(Server, Reliable)
+	void ServerRPCMontageSectionChanged();
+	
+	UFUNCTION()
+	void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
 	UFUNCTION()
 	void OnCompleted();
 	UFUNCTION()
 	void OnInterrupted();
-	
+
+	UFUNCTION()
+	void OnRep_AlreadyHitActors();
 protected:
 
 	// 0 => 일반공격, 1 => 강공격
@@ -45,12 +52,16 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAnimMontage> CurrentComboMontage;
 
+	UPROPERTY(ReplicatedUsing=OnRep_AlreadyHitActors)
+	TArray<TObjectPtr<AActor>> AlreadyHitActors;
+	
 	uint8 CurrentComboIndex = 0;
 	FTimerHandle ComboTimerHandle;
 	FTimerHandle ComboAllowedTimerHandle;
 	bool bAllowedInput;
 	bool bHasNextComboInput;
 
+	float AcceptHitDistance = 300.f;
 
 	
 };

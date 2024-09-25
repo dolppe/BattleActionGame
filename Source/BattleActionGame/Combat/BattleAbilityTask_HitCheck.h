@@ -3,6 +3,8 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "BattleAbilityTask_HitCheck.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHitCheckDelegate, const FHitResult, HitResult,const float, AttackTime);
+
 UCLASS()
 class UBattleAbilityTask_HitCheck : public UAbilityTask
 {
@@ -18,5 +20,9 @@ public:
 	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 	virtual void TickTask(float DeltaTime) override;
+
+public:
+	UPROPERTY()
+	FHitCheckDelegate OnHitChecked;
 	
 };

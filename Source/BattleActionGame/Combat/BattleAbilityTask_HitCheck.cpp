@@ -1,8 +1,11 @@
 #include "BattleAbilityTask_HitCheck.h"
 
 #include "AbilitySystemComponent.h"
+#include "BattleGameplayAbility_ComboAttack.h"
+#include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/GameStateBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAbilityTask_HitCheck)
 
@@ -55,7 +58,11 @@ void UBattleAbilityTask_HitCheck::TickTask(float DeltaTime)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Hit %s"),*HitResult.Component->GetName());
 		HitColor = FColor::Green;
-		if (HitResult.GetComponent()->GetCollisionObjectType() == ECollisionCha)
+		if (HitResult.GetActor()->IsA(ABattleEnemyCharacter::StaticClass()))
+		{
+			UE_LOG(LogTemp, Log, TEXT("Enemy Hit %s"), *HitResult.GetActor()->GetName());
+			OnHitChecked.Broadcast(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
+		}
 	}
 
 
