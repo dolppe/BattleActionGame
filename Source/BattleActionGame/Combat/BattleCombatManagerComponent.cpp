@@ -9,3 +9,21 @@ UBattleCombatManagerComponent::UBattleCombatManagerComponent(const FObjectInitia
 {
 
 }
+
+int UBattleCombatManagerComponent::GetCurrentComboIndex()
+{
+	if (CurrentCombo == nullptr)
+	{
+		return 1;
+	}
+	else
+	{
+		return CurrentCombo->GetComboIndex();
+	}
+	
+}
+
+void UBattleCombatManagerComponent::SetComboGA(UBattleGameplayAbility_ComboAttack* InComboAttack)
+{
+	CurrentCombo = InComboAttack;		
+}

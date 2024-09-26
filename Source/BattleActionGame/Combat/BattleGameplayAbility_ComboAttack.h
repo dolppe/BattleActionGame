@@ -4,6 +4,8 @@
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleGameplayAbility_ComboAttack.generated.h"
 
+class UBattleCombatManagerComponent;
+
 UCLASS()
 class UBattleGameplayAbility_ComboAttack : public UBattleGameplayAbility
 {
@@ -20,6 +22,11 @@ public:
 	void ServerRPCNotifyHit(const FHitResult& HitResult, float HitCheckTime);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	int GetComboIndex() const
+	{
+		return CurrentComboIndex;
+	}
 	
 protected:
 	
@@ -29,7 +36,7 @@ protected:
 	void AllowInput();
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPCMontageSectionChanged();
+	void ServerRPCMontageSectionChanged(uint8 InCurrentComboIndex);
 	
 	UFUNCTION()
 	void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
@@ -40,6 +47,10 @@ protected:
 
 	UFUNCTION()
 	void OnRep_AlreadyHitActors();
+
+	UFUNCTION()
+	void OnRep_HasNextComboInput();
+	
 protected:
 
 	// 0 => 일반공격, 1 => 강공격
@@ -59,9 +70,11 @@ protected:
 	FTimerHandle ComboTimerHandle;
 	FTimerHandle ComboAllowedTimerHandle;
 	bool bAllowedInput;
+	UPROPERTY(ReplicatedUsing=OnRep_HasNextComboInput)
 	bool bHasNextComboInput;
 
 	float AcceptHitDistance = 300.f;
 
+	TObjectPtr<UBattleCombatManagerComponent> CurrentCombatManager;
 	
 };
