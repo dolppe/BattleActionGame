@@ -92,8 +92,6 @@ bool UBattleHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Ma
 {
 	check(Manager);
 
-	BA_SUBLOG(LogBANetwork, Log, TEXT("%s => %s"), *CurrentState.ToString(), *DesiredState.ToString());
-
 	const FBattleGameplayTags& InitTags = FBattleGameplayTags::Get();
 	APawn* Pawn = GetPawn<APawn>();
 	ABattlePlayerState* BattlePS = GetPlayerState<ABattlePlayerState>();

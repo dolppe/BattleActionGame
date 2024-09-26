@@ -19,6 +19,8 @@ public:
 
 	virtual void InitializeWithAbilitySystem(UAbilitySystemComponent* ASC);
 
+	
+
 protected:
 
 	virtual void NativeInitializeAnimation() override;

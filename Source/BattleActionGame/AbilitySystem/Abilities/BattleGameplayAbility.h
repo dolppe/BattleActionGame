@@ -55,6 +55,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Battle|Ability")
 	void ClearCameraMode();
+
+	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
 

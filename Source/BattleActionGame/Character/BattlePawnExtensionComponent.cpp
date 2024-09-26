@@ -46,8 +46,6 @@ void UBattlePawnExtensionComponent::OnRegister()
 void UBattlePawnExtensionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	BA_SUBLOG(LogBANetwork, Log, TEXT("%s"), TEXT("Begin"));
 	
 	// 해당 Actor의 원하는 FeatureComponent의 InitState 상태 변화에 델리게이트를 걸어두는 것 (변화되면 OnActorInitStateChanged가 호출)
 	// FeatureName에 NAME_None을 넣으면 Actor에 등록된 모든 FeatureComponent의 InitState를 관찰하겠다는 것.
@@ -98,8 +96,6 @@ bool UBattlePawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentMa
 	FGameplayTag CurrentState, FGameplayTag DesiredState) const
 {
 	check(Manager);
-
-	BA_SUBLOG(LogBANetwork, Log, TEXT("%s => %s"), *CurrentState.ToString(), *DesiredState.ToString());
 
 	APawn* Pawn = GetPawn<APawn>();
 	const FBattleGameplayTags& InitTags = FBattleGameplayTags::Get();

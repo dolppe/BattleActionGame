@@ -18,6 +18,4 @@ void UBattleCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTic
 	FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	UE_LOG(LogBattle, Log, TEXT("%s"), *Velocity.ToString());
 }
