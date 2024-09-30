@@ -1,6 +1,7 @@
 #include "BattleCharacter.h"
 
 #include "BattleCharacterMovementComponent.h"
+#include "BattleHealthComponent.h"
 #include "BattlePawnExtensionComponent.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
@@ -36,6 +37,9 @@ ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
 		CameraComponent = CreateDefaultSubobject<UBattleCameraComponent>(TEXT("CameraComponent"));
 		CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 	}
+	{
+		HealthComponent = CreateDefaultSubobject<UBattleHealthComponent>(TEXT("HealthComponent"));
+	}
 	
 }
 
@@ -58,7 +62,10 @@ void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void ABattleCharacter::OnAbilitySystemInitialized()
 {
+	UBattleAbilitySystemComponent* ASC = GetBattleAbilitySystemComponent();
+	check(ASC);
 
+	HealthComponent->InitializeWithAbilitySystem(ASC);
 }
 
 void ABattleCharacter::OnAbilitySystemUninitialized()

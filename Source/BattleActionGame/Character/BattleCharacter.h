@@ -4,6 +4,7 @@
 
 #include "BattleCharacter.generated.h"
 
+class UBattleHealthComponent;
 class UBattlePawnExtensionComponent;
 class UBattleCameraComponent;
 
@@ -36,5 +37,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleCameraComponent> CameraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBattleHealthComponent> HealthComponent;
 	
 };
