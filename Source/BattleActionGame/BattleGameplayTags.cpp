@@ -32,5 +32,13 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	*/
 	AddTag(InputTag_Move, "InputTag.Move", "");
 	AddTag(InputTag_Look_Mouse, "InputTag.Look.Mouse", "");
+
+	/*
+ *	Status
+ */
+
+	AddTag(Status_Death, "Status.Death", "");
+	AddTag(Status_Death_Dying, "Status.Death.Dying", "");
+	AddTag(Status_Death_Dead, "Status.Death.Dead", "");
 	
 }

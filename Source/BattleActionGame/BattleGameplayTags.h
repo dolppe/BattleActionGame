@@ -31,6 +31,14 @@ public:
 	
 	FGameplayTag InputTag_Move;
 	FGameplayTag InputTag_Look_Mouse;
+
+	/*
+	 *	Status
+	 */
+
+	FGameplayTag Status_Death;
+	FGameplayTag Status_Death_Dying;
+	FGameplayTag Status_Death_Dead;
 	
 
 protected:
