@@ -3,6 +3,8 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
+#include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
+#include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
 #include "BattleActionGame/Character/BattlePawnData.h"
 #include "BattleActionGame/GameModes/BattleExperienceManagerComponent.h"
 #include "BattleActionGame/GameModes/BattleExperienceDefinition.h"
@@ -20,6 +22,9 @@ ABattlePlayerState::ABattlePlayerState(const FObjectInitializer& ObjectInitializ
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UBattleAbilitySystemComponent>(this, TEXT("AbilitySystemcomponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	CreateDefaultSubobject<UBattleHealthSet>(TEXT("HealthSet"));
+	CreateDefaultSubobject<UBattleCombatSet>(TEXT("CombatSet"));
 
 	NetUpdateFrequency = 100.0f;
 	

@@ -35,6 +35,11 @@ protected:
 	void CheckComboInput();
 	void AllowInput();
 
+	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
+
 	UFUNCTION(Server, Reliable)
 	void ServerRPCMontageSectionChanged(uint8 InCurrentComboIndex);
 	

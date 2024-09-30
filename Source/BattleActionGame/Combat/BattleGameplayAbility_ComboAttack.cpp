@@ -167,6 +167,13 @@ void UBattleGameplayAbility_ComboAttack::AllowInput()
 	bAllowedInput = true;
 }
 
+void UBattleGameplayAbility_ComboAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
+	FGameplayTag ApplicationTag)
+{
+	// ServerOnly
+	OnTargetDataReady(InData);
+}
+
 void UBattleGameplayAbility_ComboAttack::ServerRPCMontageSectionChanged_Implementation(uint8 InCurrentComboIndex)
 {
 	AlreadyHitActors.Reset();
@@ -193,6 +200,13 @@ void UBattleGameplayAbility_ComboAttack::ServerRPCNotifyHit_Implementation(const
 			const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
 			if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
 			{
+				FGameplayAbilityTargetDataHandle TargetData;
+				FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+				NewTargetData->HitResult = HitResult;
+				TargetData.Add(NewTargetData);
+				
+				OnTargetDataReadyCallback(TargetData, FGameplayTag());
+				
 				AlreadyHitActors.Add(HitActor);
 				UE_LOG(LogTemp, Log, TEXT("Hit Success => Damage"));
 			}
