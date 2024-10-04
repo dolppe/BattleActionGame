@@ -1,7 +1,11 @@
 #pragma once
 
 #include "AIController.h"
+#include "Engine/EngineTypes.h"
+#include "UObject/UObjectGlobals.h"
 #include "ModularAIController.generated.h"
+
+class UObject;
 
 UCLASS(Blueprintable)
 class MODULARGAMEPLAYACTORS_API AModularAIController : public AAIController

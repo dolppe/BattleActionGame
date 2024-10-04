@@ -35,7 +35,9 @@ public class BattleActionGame : ModuleRules
 			"UIExtension",
 			// Slate
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+			// AI
+			"AIModule",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
