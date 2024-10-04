@@ -198,6 +198,7 @@ void UBattleGameplayAbility_ComboAttack::ServerRPCNotifyHit_Implementation(const
 			const FVector HitLocation = HitResult.Location;
 			const FBox HitBox = HitActor->GetComponentsBoundingBox();
 			const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
+			UE_LOG(LogTemp, Log, TEXT("DistSquared => %f"), FVector::DistSquared(HitLocation, ActorBoxCenter));
 			if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
 			{
 				FGameplayAbilityTargetDataHandle TargetData;

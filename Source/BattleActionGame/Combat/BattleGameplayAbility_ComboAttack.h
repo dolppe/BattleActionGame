@@ -78,7 +78,7 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_HasNextComboInput)
 	bool bHasNextComboInput;
 
-	float AcceptHitDistance = 300.f;
+	float AcceptHitDistance = 1000.f;
 
 	TObjectPtr<UBattleCombatManagerComponent> CurrentCombatManager;
 	

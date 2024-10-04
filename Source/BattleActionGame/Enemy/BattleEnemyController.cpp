@@ -9,6 +9,7 @@ ABattleEnemyController::ABattleEnemyController(const FObjectInitializer& ObjectI
 {
 	bWantsPlayerState = false;
 	bStopAILogicOnUnposses = false;
+	
 }
 
 void ABattleEnemyController::ServerRestartController()
