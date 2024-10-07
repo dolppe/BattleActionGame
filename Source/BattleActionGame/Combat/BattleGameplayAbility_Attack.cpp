@@ -40,7 +40,7 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 		HitCheck->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_Attack::SelectHitCheck);
 		HitCheck->ReadyForActivation();
 	}
-	else if (HasAuthority(&ActivationInfo))
+	else if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
@@ -55,7 +55,7 @@ void UBattleGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle 
 {
 	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
 	
-	if (Character->IsLocallyControlled())
+	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		// 테스크 실행
 		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
@@ -65,7 +65,6 @@ void UBattleGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle 
 		// 몽타주 멀티캐스트 필요
 		UE_LOG(LogTemp, Log, TEXT("ServerEndAbility"));
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		AlreadyHitActors.Reset();
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -74,60 +73,43 @@ void UBattleGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle 
 void UBattleGameplayAbility_Attack::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UBattleGameplayAbility_Attack, AlreadyHitActors);
 }
+
 
 void UBattleGameplayAbility_Attack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime)
 {
-	AActor* HitActor = HitResult.GetActor();
-	if (IsValid(HitActor))
-	{
-		if (!AlreadyHitActors.Contains(HitActor))
-		{
-			const FVector HitLocation = HitResult.Location;
-			const FBox HitBox = HitActor->GetComponentsBoundingBox();
-			const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
-			if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
-			{
-				AlreadyHitActors.Add(HitActor);
-				UE_LOG(LogTemp, Log, TEXT("Hit Success => Damage"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Hit Rejected"));
-			}
-		}
-	}
+	Super::ServerRPCNotifyHit_Implementation(HitResult, HitCheckTime);
 }
 
-bool UBattleGameplayAbility_Attack::ServerRPCNotifyHit_Validate(const FHitResult& HitResult, float HitCheckTime)
+
+void UBattleGameplayAbility_Attack::AttackHitConfirm(const FHitResult& HitResult)
 {
-	// HitCheckTime을 통해서 Validate
-	return true;
+	Super::AttackHitConfirm(HitResult);
+}
+
+void UBattleGameplayAbility_Attack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
+                                                              FGameplayTag ApplicationTag)
+{
+	if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		OnTargetDataReady(InData);
+	}
 }
 
 void UBattleGameplayAbility_Attack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
 {
-	if (!AlreadyHitActors.Contains(HitResult.GetActor()))
-	{
-		ServerRPCNotifyHit(HitResult, AttackTime);
-	}	
+	Super::SelectHitCheck(HitResult, AttackTime);
 }
 
 void UBattleGameplayAbility_Attack::OnCompleted()
 {
-	UE_LOG(LogTemp, Log, TEXT("MontageEnd"));
-	bool bReplicatedEndAbility = true;
-	bool bWasCancelled = false;
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+	Super::OnCompleted();
+	
 }
 
 void UBattleGameplayAbility_Attack::OnInterrupted()
 {
-	bool bReplicatedEndAbility = true;
-	bool bWasCancelled = true;
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+	Super::OnInterrupted();
 }
 
 void UBattleGameplayAbility_Attack::OnRep_AlreadyHitActors()
