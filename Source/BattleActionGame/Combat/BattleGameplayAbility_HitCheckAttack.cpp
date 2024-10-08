@@ -1,4 +1,10 @@
 #include "BattleGameplayAbility_HitCheckAttack.h"
+
+#include "BattleCombatManagerComponent.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_HitCheckAttack)
 
 UBattleGameplayAbility_HitCheckAttack::UBattleGameplayAbility_HitCheckAttack(
@@ -12,6 +18,34 @@ void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbili
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
+	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
+
+	CurrentAttackData = CurrentCombatManager->GetAttackData(AttackMode);
+	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(AttackMode);
+
+	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, 1);
+
+	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 1.0f, MontageSectionName);
+	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_HitCheckAttack::OnCompleted);
+	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_HitCheckAttack::OnInterrupted);
+	PlayAttackMontage->ReadyForActivation();
+
+	if (Character->IsLocallyControlled())
+	{
+		UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
+		AbilitySystemComponent
+		
+	}
+	else if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
+		AlreadyHitActors.Reset();
+	}
+	
+	
 }
 
 void UBattleGameplayAbility_HitCheckAttack::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -19,7 +53,7 @@ void UBattleGameplayAbility_HitCheckAttack::EndAbility(const FGameplayAbilitySpe
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
+	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{

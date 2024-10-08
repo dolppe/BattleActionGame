@@ -1,14 +1,14 @@
 #pragma once
 
 #include "AbilitySystemInterface.h"
-#include "ModularCharacter.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleEnemyCharacter.generated.h"
 
 class UBattleHealthComponent;
 class UBattleAbilitySystemComponent;
 
 UCLASS()
-class ABattleEnemyCharacter : public AModularCharacter, public IAbilitySystemInterface
+class ABattleEnemyCharacter : public ABattleCharacterBase
 {
 	GENERATED_BODY()
 public:
@@ -16,7 +16,7 @@ public:
 	ABattleEnemyCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const;
+	virtual UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const override;
 
 	virtual void PostInitializeComponents() override;
 
@@ -24,10 +24,6 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UBattleAbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY()
-	TObjectPtr<UBattleHealthComponent> HealthComponent;
-	
 	
 	
 };

@@ -3,7 +3,7 @@
 #include "BattleAbilityTask_HitCheck.h"
 #include "BattleCombatManagerComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "BattleActionGame/Character/BattleCharacter.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -20,7 +20,7 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
+	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
 	CurrentAttackData = CurrentCombatManager->GetAttackData(AttackMode);
@@ -53,7 +53,7 @@ void UBattleGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle 
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
+	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{

@@ -4,7 +4,7 @@
 #include "BattleAbilityTask_HitCheck.h"
 #include "BattleCombatManagerComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "BattleActionGame/Character/BattleCharacter.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -25,7 +25,7 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	bAllowedInput = false;
 	bHasNextComboInput = false;
 
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
+	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
 	CurrentAttackData = CurrentCombatManager->GetComboData(AttackMode);
@@ -73,8 +73,6 @@ void UBattleGameplayAbility_ComboAttack::InputPressed(const FGameplayAbilitySpec
 		return;
 	}
 
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
-
 	if (bAllowedInput && !bHasNextComboInput)
 	{
 		bHasNextComboInput = true;
@@ -86,7 +84,7 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
+	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	
 	if (Character->IsLocallyControlled())
 	{
