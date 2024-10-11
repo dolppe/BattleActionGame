@@ -50,7 +50,7 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_AlreadyHitActors)
 	TArray<TObjectPtr<AActor>> AlreadyHitActors;
 
-	float AcceptHitDistance = 1000.f;
+	float AcceptHitDistance = 1500.f;
 	
 	
 };

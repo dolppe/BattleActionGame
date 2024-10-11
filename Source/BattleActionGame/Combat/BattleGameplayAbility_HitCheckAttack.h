@@ -1,8 +1,13 @@
 #pragma once
 
 #include "BattleGameplayAbility_Attack_Parent.h"
+#include "GameplayMessageSubsystem.h"
+#include "GameplayTagContainer.h"
 #include "BattleGameplayAbility_HitCheckAttack.generated.h"
 
+
+struct FBattleVerbMessage;
+struct FGameplayMessageListenerHandle;
 
 UCLASS()
 class UBattleGameplayAbility_HitCheckAttack : public UBattleGameplayAbility_Attack_Parent
@@ -36,7 +41,11 @@ protected:
 
 	virtual void OnRep_AlreadyHitActors() override;
 
+	void AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification);
+
 	
-	
+private:
+
+	FGameplayMessageListenerHandle ListenerHandle;
 	
 };

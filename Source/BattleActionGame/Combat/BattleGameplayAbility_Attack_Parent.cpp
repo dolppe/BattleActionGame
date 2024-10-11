@@ -54,6 +54,7 @@ void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(con
 			const FVector HitLocation = HitResult.Location;
 			const FBox HitBox = HitActor->GetComponentsBoundingBox();
 			const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
+			
 			if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
 			{
 				AttackHitConfirm(HitResult);
@@ -61,7 +62,7 @@ void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(con
 			}
 			else
 			{
-				UE_LOG(LogTemp, Log, TEXT("Hit Rejected"));
+				UE_LOG(LogTemp, Log, TEXT("Hit Rejected, %f <= %f"), FVector::DistSquared(HitLocation, ActorBoxCenter), AcceptHitDistance * AcceptHitDistance);
 			}
 		}
 	}

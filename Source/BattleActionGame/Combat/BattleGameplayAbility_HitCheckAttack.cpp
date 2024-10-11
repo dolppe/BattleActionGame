@@ -1,9 +1,14 @@
 #include "BattleGameplayAbility_HitCheckAttack.h"
 
 #include "BattleCombatManagerComponent.h"
+#include "GameplayMessageSubsystem.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "BattleActionGame/Messages/BattleVerbMessage.h"
+#include "BattleActionGame/Physics/BattleCollisionChannels.h"
+#include "GameFramework/GameStateBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_HitCheckAttack)
 
@@ -35,7 +40,10 @@ void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbili
 	if (Character->IsLocallyControlled())
 	{
 		UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
-		AbilitySystemComponent
+
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+		ListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event, this, &UBattleGameplayAbility_HitCheckAttack::AttackEvent);
 		
 	}
 	else if (GetWorld()->GetNetMode() != NM_Client)
@@ -59,6 +67,9 @@ void UBattleGameplayAbility_HitCheckAttack::EndAbility(const FGameplayAbilitySpe
 	{
 		// 테스크 실행
 		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+		MessageSystem.UnregisterListener(ListenerHandle);
 	}
 	else
 	{
@@ -113,4 +124,56 @@ void UBattleGameplayAbility_HitCheckAttack::OnInterrupted()
 
 void UBattleGameplayAbility_HitCheckAttack::OnRep_AlreadyHitActors()
 {
+}
+
+void UBattleGameplayAbility_HitCheckAttack::AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+{
+	if (Notification.Target == GetAvatarActorFromActorInfo())
+	{
+		// Trace해서 처리 후 SelectHitCheck에 전송
+		TArray<FHitResult> HitResults;
+
+		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
+		USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
+		
+		const FRotator Rotation = CharacterBase->GetActorRotation();
+		const FRotator YawRotation(0,Rotation.Yaw,0);
+
+		FCollisionQueryParams Temp;
+		
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		FVector Start = SkeletalMesh->GetSocketLocation(*CurrentAttackData->StartSocketName);
+		FVector End = Start + ForwardDirection*CurrentAttackData->AttackRange;
+
+		float Radius = CurrentAttackData->AttackSweep;
+		
+		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, Battle_TraceChannel_Weapon, FCollisionShape::MakeSphere(Radius),Temp);
+		
+		FColor HitColor = FColor::Red; 
+	
+		for (FHitResult HitResult : HitResults)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Hit %s"),*HitResult.Component->GetName());
+			HitColor = FColor::Green;
+			if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
+			{
+				UE_LOG(LogTemp, Log, TEXT("Enemy Hit %s"), *HitResult.GetActor()->GetName());
+				SelectHitCheck(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
+			}
+		}
+
+#if 1
+	
+		FVector TraceVector = End - Start;
+		FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
+		float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
+		FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
+		//	DrawDebugLine(GetWorld(), Start, End, HitColor, false, 10.f, 0, 0);
+		DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, HitColor,false, 10.f);
+#endif
+		
+		
+	}
+	
 }
