@@ -40,7 +40,7 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 		HitCheck->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_Attack::SelectHitCheck);
 		HitCheck->ReadyForActivation();
 	}
-	else if (GetWorld()->GetNetMode() != NM_Client)
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
@@ -55,12 +55,12 @@ void UBattleGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle 
 {
 	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	
-	if (GetWorld()->GetNetMode() == NM_Client)
+	if (Character->IsLocallyControlled())
 	{
 		// 테스크 실행
 		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
 	}
-	else
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
 		UE_LOG(LogTemp, Log, TEXT("ServerEndAbility"));

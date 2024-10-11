@@ -52,7 +52,7 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 
 		UE_LOG(LogTemp, Log, TEXT("Client: %s"),*Character->GetAbilitySystemComponent()->GetAnimatingAbility()->GetName());
 	}
-	else if (HasAuthority(&ActivationInfo))
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
@@ -91,7 +91,7 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 		// 테스크 실행
 		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
 	}
-	else
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
 		UE_LOG(LogTemp, Log, TEXT("ServerEndAbility"));

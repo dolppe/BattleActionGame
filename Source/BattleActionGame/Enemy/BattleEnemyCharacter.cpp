@@ -1,6 +1,8 @@
 #include "BattleEnemyCharacter.h"
 
 #include "BattleEnemyController.h"
+#include "BattleEnemyData.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
@@ -44,5 +46,16 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 
+	if (EnemyData)
+	{
+		for (UBattleAbilitySet* AbilitySet : EnemyData->AbilitySets)
+		{
+			if (AbilitySet)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			}
+		}
+	}
+	
 	
 }

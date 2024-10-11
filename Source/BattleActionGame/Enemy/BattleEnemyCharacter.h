@@ -4,6 +4,7 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleEnemyCharacter.generated.h"
 
+class UBattleEnemyData;
 class UBattleHealthComponent;
 class UBattleAbilitySystemComponent;
 
@@ -24,6 +25,9 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UBattleAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UBattleEnemyData> EnemyData;
 	
 	
 };
