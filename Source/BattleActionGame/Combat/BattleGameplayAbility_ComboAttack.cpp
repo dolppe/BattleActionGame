@@ -4,7 +4,7 @@
 #include "BattleAbilityTask_HitCheck.h"
 #include "BattleCombatManagerComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "BattleActionGame/Character/BattleCharacter.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -13,7 +13,6 @@
 UBattleGameplayAbility_ComboAttack::UBattleGameplayAbility_ComboAttack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 }
 
 void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -26,15 +25,15 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	bAllowedInput = false;
 	bHasNextComboInput = false;
 
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
+	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentComboData = CurrentCombatManager->GetComboData(AttackMode);
-	CurrentComboMontage = CurrentCombatManager->GetComboMontage(AttackMode);
+	CurrentAttackData = CurrentCombatManager->GetComboData(AttackMode);
+	CurrentAttackMontage = CurrentCombatManager->GetComboMontage(AttackMode);
 
 	FName MontageSectionName = GetNextSection();
 
-	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentComboMontage, 1.0f, MontageSectionName);
+	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 1.0f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::OnCompleted);
 	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::OnInterrupted);
 	PlayAttackMontage->ReadyForActivation();
@@ -53,7 +52,7 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 
 		UE_LOG(LogTemp, Log, TEXT("Client: %s"),*Character->GetAbilitySystemComponent()->GetAnimatingAbility()->GetName());
 	}
-	else if (HasAuthority(&ActivationInfo))
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
@@ -69,14 +68,12 @@ void UBattleGameplayAbility_ComboAttack::InputPressed(const FGameplayAbilitySpec
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 
-	if (CurrentComboData->MaxComboCount <= CurrentComboIndex)
+	if (CurrentAttackData->MaxComboCount <= CurrentComboIndex)
 	{
 		return;
 	}
 
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
-
-	if (bAllowedInput)
+	if (bAllowedInput && !bHasNextComboInput)
 	{
 		bHasNextComboInput = true;
 		UE_LOG(LogTemp, Log, TEXT("InputPressed"));
@@ -87,19 +84,18 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	ABattleCharacter* Character = Cast<ABattleCharacter>(ActorInfo->AvatarActor);
+	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	
 	if (Character->IsLocallyControlled())
 	{
 		// 테스크 실행
 		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
 	}
-	else
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
 		UE_LOG(LogTemp, Log, TEXT("ServerEndAbility"));
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		AlreadyHitActors.Reset();
 		CurrentCombatManager->SetComboGA(nullptr);
 	}
 
@@ -111,25 +107,25 @@ void UBattleGameplayAbility_ComboAttack::GetLifetimeReplicatedProps(TArray<FLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UBattleGameplayAbility_ComboAttack, AlreadyHitActors);
+	DOREPLIFETIME(UBattleGameplayAbility_ComboAttack, bHasNextComboInput);
 }
 
 FName UBattleGameplayAbility_ComboAttack::GetNextSection()
 {
-	CurrentComboIndex = FMath::Clamp(CurrentComboIndex+1,1,CurrentComboData->MaxComboCount);
-	FName NextSection = *FString::Printf(TEXT("%s%d"), *CurrentComboData->MontageSectionName, CurrentComboIndex);
+	CurrentComboIndex = FMath::Clamp(CurrentComboIndex+1,1,CurrentAttackData->MaxComboCount);
+	FName NextSection = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, CurrentComboIndex);
 	UE_LOG(LogTemp, Log, TEXT("%s"), *NextSection.ToString());
 	return NextSection;
 }
 
 void UBattleGameplayAbility_ComboAttack::StartComboTimer(FName MontageSectionName)
 {
-	ensure(CurrentComboData->AllowInputFrameCount.IsValidIndex(CurrentComboIndex-1));
+	ensure(CurrentAttackData->AllowInputFrameCount.IsValidIndex(CurrentComboIndex-1));
 
-	const float CurrentMontageSectionLength = CurrentComboMontage->GetSectionLength(CurrentComboMontage->GetSectionIndex(MontageSectionName));
+	const float CurrentMontageSectionLength = CurrentAttackMontage->GetSectionLength(CurrentAttackMontage->GetSectionIndex(MontageSectionName));
 
 	float ComboInputCheckTime = CurrentMontageSectionLength*0.7;
-	const float AllowedInputTimeRate = CurrentComboData->AllowInputFrameCount[CurrentComboIndex-1] / CurrentComboData->FrameRate;
+	const float AllowedInputTimeRate = CurrentAttackData->AllowInputFrameCount[CurrentComboIndex-1] / CurrentAttackData->FrameRate;
 	float AllowedInputTime = CurrentMontageSectionLength * AllowedInputTimeRate;
 
 	UE_LOG(LogTemp, Log, TEXT("MontageLength: %f"), CurrentMontageSectionLength);
@@ -171,7 +167,10 @@ void UBattleGameplayAbility_ComboAttack::OnTargetDataReadyCallback(const FGamepl
 	FGameplayTag ApplicationTag)
 {
 	// ServerOnly
-	OnTargetDataReady(InData);
+	if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		OnTargetDataReady(InData);
+	}
 }
 
 void UBattleGameplayAbility_ComboAttack::ServerRPCMontageSectionChanged_Implementation(uint8 InCurrentComboIndex)
@@ -182,48 +181,17 @@ void UBattleGameplayAbility_ComboAttack::ServerRPCMontageSectionChanged_Implemen
 
 void UBattleGameplayAbility_ComboAttack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
 {
-	if (!AlreadyHitActors.Contains(HitResult.GetActor()))
-	{
-		ServerRPCNotifyHit(HitResult, AttackTime);
-	}	
+	Super::SelectHitCheck(HitResult, AttackTime);
 }
 
 void UBattleGameplayAbility_ComboAttack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime)
 {
-	AActor* HitActor = HitResult.GetActor();
-	if (IsValid(HitActor))
-	{
-		if (!AlreadyHitActors.Contains(HitActor))
-		{
-			const FVector HitLocation = HitResult.Location;
-			const FBox HitBox = HitActor->GetComponentsBoundingBox();
-			const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
-			UE_LOG(LogTemp, Log, TEXT("DistSquared => %f"), FVector::DistSquared(HitLocation, ActorBoxCenter));
-			if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
-			{
-				FGameplayAbilityTargetDataHandle TargetData;
-				FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
-				NewTargetData->HitResult = HitResult;
-				TargetData.Add(NewTargetData);
-				
-				OnTargetDataReadyCallback(TargetData, FGameplayTag());
-				
-				AlreadyHitActors.Add(HitActor);
-				UE_LOG(LogTemp, Log, TEXT("Hit Success => Damage"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Hit Rejected"));
-			}
-		}
-	}
-
+	Super::ServerRPCNotifyHit_Implementation(HitResult, HitCheckTime);
 }
 
-bool UBattleGameplayAbility_ComboAttack::ServerRPCNotifyHit_Validate(const FHitResult& HitResult, float HitCheckTime)
+void UBattleGameplayAbility_ComboAttack::AttackHitConfirm(const FHitResult& HitResult)
 {
-	// HitCheckTime을 통해서 Validate
-	return true;
+	Super::AttackHitConfirm(HitResult);
 }
 
 void UBattleGameplayAbility_ComboAttack::OnCompleted()
@@ -233,19 +201,13 @@ void UBattleGameplayAbility_ComboAttack::OnCompleted()
 		UE_LOG(LogTemp, Log, TEXT("MontageEnd | bHasNextComboInput => true"));
 		return;
 	}
-	
-	UE_LOG(LogTemp, Log, TEXT("MontageEnd"));
-	bool bReplicatedEndAbility = true;
-	bool bWasCancelled = false;
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
-}
+
+	Super::OnCompleted();
+	}
 
 void UBattleGameplayAbility_ComboAttack::OnInterrupted()
 {
-
-	bool bReplicatedEndAbility = true;
-	bool bWasCancelled = true;
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+	Super::OnInterrupted();
 }
 
 void UBattleGameplayAbility_ComboAttack::OnRep_AlreadyHitActors()

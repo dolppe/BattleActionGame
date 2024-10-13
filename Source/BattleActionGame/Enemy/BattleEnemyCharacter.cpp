@@ -1,15 +1,18 @@
 #include "BattleEnemyCharacter.h"
 
 #include "BattleEnemyController.h"
+#include "BattleEnemyData.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
+#include "BattleActionGame/Character/BattleCharacterMovementComponent.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleEnemyCharacter)
 
 ABattleEnemyCharacter::ABattleEnemyCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UBattleCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	AIControllerClass = ABattleEnemyController::StaticClass();
 	
@@ -43,5 +46,16 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 
+	if (EnemyData)
+	{
+		for (UBattleAbilitySet* AbilitySet : EnemyData->AbilitySets)
+		{
+			if (AbilitySet)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			}
+		}
+	}
+	
 	
 }

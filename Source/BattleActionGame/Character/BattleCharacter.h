@@ -1,6 +1,7 @@
 #pragma once
+
 #include "AbilitySystemInterface.h"
-#include "ModularCharacter.h"
+#include "BattleCharacterBase.h"
 
 #include "BattleCharacter.generated.h"
 
@@ -9,14 +10,13 @@ class UBattlePawnExtensionComponent;
 class UBattleCameraComponent;
 
 UCLASS()
-class ABattleCharacter : public AModularCharacter, public IAbilitySystemInterface
+class ABattleCharacter : public ABattleCharacterBase
 {
 	GENERATED_BODY()
 public:
 	ABattleCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	UFUNCTION(BlueprintCallable, Category="Battle|Character")
-	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const;
+	
+	virtual UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -38,7 +38,5 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleCameraComponent> CameraComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UBattleHealthComponent> HealthComponent;
 	
 };

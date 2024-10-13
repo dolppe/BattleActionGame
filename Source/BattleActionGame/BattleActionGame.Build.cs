@@ -38,6 +38,8 @@ public class BattleActionGame : ModuleRules
 			"SlateCore",
 			// AI
 			"AIModule",
+			// MessageSystem
+			"GameplayMessageRuntime",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

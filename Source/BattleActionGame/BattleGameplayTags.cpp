@@ -34,11 +34,18 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(InputTag_Look_Mouse, "InputTag.Look.Mouse", "");
 
 	/*
- *	Status
- */
+	 *	Status
+	*/
 
 	AddTag(Status_Death, "Status.Death", "");
 	AddTag(Status_Death_Dying, "Status.Death.Dying", "");
 	AddTag(Status_Death_Dead, "Status.Death.Dead", "");
+
+	/*
+	 *	Comboat
+	 */
+
+	AddTag(Combat_Attack_Event, "Combat.Attack.Event", "");
+
 	
 }

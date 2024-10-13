@@ -22,6 +22,19 @@ public:
 
 	UPROPERTY(EditAnywhere, Category=Combo)
 	TArray<float> AllowInputFrameCount;
+
+	UPROPERTY(EditAnywhere, Category=Combo)
+	FString StartSocketName;
+
+	UPROPERTY(EditAnywhere, Category=Combo)
+	FString EndSocketName;
+
+	UPROPERTY(EditAnywhere, Category=Combo)
+	float AttackRange;
+
+	UPROPERTY(EditAnywhere, Category=Combo)
+	float AttackSweep;
+	
 	
 };
 
