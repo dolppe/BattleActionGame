@@ -1,7 +1,7 @@
 #include "BattleUtilityAction.h"
 
-#include "BattleUtilityAIData.h"
-#include "BattleUtilityAxis.h"
+#include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAIData.h"
+#include "BattleActionGame/Enemy/UtilityAI/Axis/BattleUtilityAxis.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction)
 

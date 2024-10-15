@@ -2,6 +2,7 @@
 
 #include "BattleUtilityAxis.generated.h"
 
+enum class EBattleConsiderType : uint8;
 enum class EAxisFunction : uint8;
 
 UCLASS()
@@ -21,17 +22,19 @@ public:
 	{
 		CurveMapping = InCurveMapping;
 	}
-	virtual void SetConsiderFactor(FName InConsiderFactor)
+	virtual void SetConsiderFactor(EBattleConsiderType InAxisType)
 	{
-		ConsiderFactor = InConsiderFactor;
+		AxisType = InAxisType;
 	}
 
 	virtual float CalcValue(float InValue);
 	
-	virtual FName GetConsiderFactor()
+	virtual EBattleConsiderType GetConsiderFactor()
 	{
-		return ConsiderFactor;
+		return AxisType;
 	}
+
+	virtual float GetValue();
 	
 
 protected:
@@ -42,6 +45,6 @@ protected:
 	TObjectPtr<UCurveFloat> CurveMapping;
 
 	UPROPERTY()
-	FName ConsiderFactor;
+	EBattleConsiderType AxisType;
 	
 };

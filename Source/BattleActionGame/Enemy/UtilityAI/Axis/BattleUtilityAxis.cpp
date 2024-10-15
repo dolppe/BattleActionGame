@@ -11,3 +11,7 @@ float UBattleUtilityAxis::CalcValue(float InValue)
 	
 	return ApplyValue * Weight;
 }
+
+float UBattleUtilityAxis::GetValue()
+{
+}

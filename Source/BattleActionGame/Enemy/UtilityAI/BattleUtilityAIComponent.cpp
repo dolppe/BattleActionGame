@@ -1,6 +1,6 @@
 #include "BattleUtilityAIComponent.h"
 
-#include "BattleUtilityAction.h"
+#include "BattleActionGame/Enemy/UtilityAI/Actions/BattleUtilityAction.h"
 #include "BattleUtilityAIData.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAIComponent)
@@ -25,6 +25,7 @@ void UBattleUtilityAIComponent::BeginPlay()
 
 		InstancedActions.Add(NewAction);
 	}
+	
 	
 	CollectConsiderFactors();
 

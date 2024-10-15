@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BattleUtilityAIComponent.h"
+#include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAIComponent.h"
 #include "BattleUtilityAction.generated.h"
 
 struct FConsiderationFactors;

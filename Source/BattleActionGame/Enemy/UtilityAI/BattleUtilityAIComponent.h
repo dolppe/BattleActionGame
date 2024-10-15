@@ -3,6 +3,7 @@
 #include "Components/PawnComponent.h"
 #include "BattleUtilityAIComponent.generated.h"
 
+enum class EBattleConsiderType : uint8;
 class UBattleUtilityAIData;
 class UBattleUtilityAction;
 
@@ -11,7 +12,7 @@ struct FConsiderationFactors
 {
 	GENERATED_BODY()
 
-	TMap<FName, float> Factors;
+	TMap<EBattleConsiderType, float> Factors;
 	
 };
 

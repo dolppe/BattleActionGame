@@ -6,6 +6,15 @@
 class UBattleUtilityAction;
 class UBattleUtilityAxis;
 
+UENUM(BlueprintType)
+enum class EBattleConsiderType : uint8
+{
+	Target,
+	TargetDistance,
+	TargetHp,
+	MyHp,	
+};
+
 USTRUCT(BlueprintType)
 struct FAxisConfig
 {
@@ -42,6 +51,9 @@ class UBattleUtilityAIData : public UDataAsset
 {
 	GENERATED_BODY()
 public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UtilityAI")
+	TArray<EBattleConsiderType> Consider;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UtilityAI")
 	TArray<FActionConfig> ActionConfigs;
