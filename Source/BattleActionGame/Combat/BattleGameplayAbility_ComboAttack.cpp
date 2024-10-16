@@ -28,7 +28,7 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentAttackData = CurrentCombatManager->GetComboData(AttackMode);
+	CurrentComboAttackData = CurrentCombatManager->GetComboData(AttackMode);
 	CurrentAttackMontage = CurrentCombatManager->GetComboMontage(AttackMode);
 
 	FName MontageSectionName = GetNextSection();
@@ -47,6 +47,7 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 		UE_LOG(LogTemp, Log, TEXT("ClientAttackStart"));
 		StartComboTimer(MontageSectionName);
 		UBattleAbilityTask_HitCheck* HitCheck = UBattleAbilityTask_HitCheck::CreateTask(this);
+		HitCheck->SetHitCheckData(CurrentComboAttackData->StartSocketName, CurrentComboAttackData->EndSocketName, CurrentComboAttackData->AttackRadius, CurrentComboAttackData->CollisionChannel);
 		HitCheck->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::SelectHitCheck);
 		HitCheck->ReadyForActivation();
 
@@ -68,7 +69,7 @@ void UBattleGameplayAbility_ComboAttack::InputPressed(const FGameplayAbilitySpec
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 
-	if (CurrentAttackData->MaxComboCount <= CurrentComboIndex)
+	if (CurrentComboAttackData->MaxComboCount <= CurrentComboIndex)
 	{
 		return;
 	}
@@ -112,20 +113,21 @@ void UBattleGameplayAbility_ComboAttack::GetLifetimeReplicatedProps(TArray<FLife
 
 FName UBattleGameplayAbility_ComboAttack::GetNextSection()
 {
-	CurrentComboIndex = FMath::Clamp(CurrentComboIndex+1,1,CurrentAttackData->MaxComboCount);
-	FName NextSection = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, CurrentComboIndex);
+	AttackRate = CurrentComboAttackData->AttackRate[CurrentComboIndex];
+	CurrentComboIndex = FMath::Clamp(CurrentComboIndex+1,1,CurrentComboAttackData->MaxComboCount);
+	FName NextSection = *FString::Printf(TEXT("%s%d"), *CurrentComboAttackData->MontageSectionName, CurrentComboIndex);
 	UE_LOG(LogTemp, Log, TEXT("%s"), *NextSection.ToString());
 	return NextSection;
 }
 
 void UBattleGameplayAbility_ComboAttack::StartComboTimer(FName MontageSectionName)
 {
-	ensure(CurrentAttackData->AllowInputFrameCount.IsValidIndex(CurrentComboIndex-1));
+	ensure(CurrentComboAttackData->AllowInputFrameCount.IsValidIndex(CurrentComboIndex-1));
 
 	const float CurrentMontageSectionLength = CurrentAttackMontage->GetSectionLength(CurrentAttackMontage->GetSectionIndex(MontageSectionName));
 
 	float ComboInputCheckTime = CurrentMontageSectionLength*0.7;
-	const float AllowedInputTimeRate = CurrentAttackData->AllowInputFrameCount[CurrentComboIndex-1] / CurrentAttackData->FrameRate;
+	const float AllowedInputTimeRate = CurrentComboAttackData->AllowInputFrameCount[CurrentComboIndex-1] / CurrentComboAttackData->FrameRate;
 	float AllowedInputTime = CurrentMontageSectionLength * AllowedInputTimeRate;
 
 	UE_LOG(LogTemp, Log, TEXT("MontageLength: %f"), CurrentMontageSectionLength);
@@ -166,6 +168,8 @@ void UBattleGameplayAbility_ComboAttack::AllowInput()
 void UBattleGameplayAbility_ComboAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
 	FGameplayTag ApplicationTag)
 {
+	Super::OnTargetDataReadyCallback(InData, ApplicationTag);
+	
 	// ServerOnly
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{

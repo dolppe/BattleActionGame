@@ -44,7 +44,14 @@ public:
 	 * Combat
 	 */
 
-	FGameplayTag Combat_Attack_Event; 
+	FGameplayTag Combat_Attack_Event;
+
+	/*
+	 * GameplayEffectData
+	 */
+	
+	FGameplayTag GameplayEffect_Data_AttackRate;
+	
 
 protected:
 

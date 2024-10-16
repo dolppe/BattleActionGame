@@ -3,8 +3,9 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 #include "BattleGameplayAbility_ComboAttack.generated.h"
 
+struct FComboAttack;
 class UBattleCombatManagerComponent;
-class UBattleComboData;
+class UBattleCombatData;
 
 UCLASS()
 class UBattleGameplayAbility_ComboAttack : public UBattleGameplayAbility_Attack_Parent
@@ -64,5 +65,6 @@ protected:
 	bool bHasNextComboInput;
 
 	TObjectPtr<UBattleCombatManagerComponent> CurrentCombatManager;
+	TObjectPtr<FComboAttack> CurrentComboAttackData;
 	
 };

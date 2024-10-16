@@ -27,10 +27,12 @@ void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbili
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentAttackData = CurrentCombatManager->GetAttackData(AttackMode);
-	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(AttackMode);
+	CurrentHitCheckData = CurrentCombatManager->GetHitCheckAttackData(AttackMode);
+	CurrentAttackMontage = CurrentCombatManager->GetHitCheckAttackMontage(AttackMode);
 
-	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, 1);
+	AttackRate = CurrentHitCheckData->AttackRate;
+
+	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentHitCheckData->MontageSectionName, 1);
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 1.0f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_HitCheckAttack::OnCompleted);
@@ -101,6 +103,8 @@ void UBattleGameplayAbility_HitCheckAttack::AttackHitConfirm(const FHitResult& H
 void UBattleGameplayAbility_HitCheckAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
 	FGameplayTag ApplicationTag)
 {
+	Super::OnTargetDataReadyCallback(InData, ApplicationTag);
+	
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		OnTargetDataReady(InData);
@@ -143,12 +147,12 @@ void UBattleGameplayAbility_HitCheckAttack::AttackEvent(FGameplayTag Channel, co
 		
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		FVector Start = SkeletalMesh->GetSocketLocation(*CurrentAttackData->StartSocketName);
-		FVector End = Start + ForwardDirection*CurrentAttackData->AttackRange;
+		FVector Start = SkeletalMesh->GetSocketLocation(*CurrentHitCheckData->StartSocketName);
+		FVector End = Start + ForwardDirection*CurrentHitCheckData->AttackRange;
 
-		float Radius = CurrentAttackData->AttackSweep;
+		float Radius = CurrentHitCheckData->AttackRadius;
 		
-		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, Battle_TraceChannel_Weapon, FCollisionShape::MakeSphere(Radius),Temp);
+		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CurrentHitCheckData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
 		
 		FColor HitColor = FColor::Red; 
 	

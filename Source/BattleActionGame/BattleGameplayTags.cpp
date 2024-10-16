@@ -47,5 +47,11 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(Combat_Attack_Event, "Combat.Attack.Event", "");
 
+	/*
+	 * GameplayEffectData
+	 */
+
+	AddTag(GameplayEffect_Data_AttackRate, "GameplayEffect.Data.AttackRate", "");
+	
 	
 }
