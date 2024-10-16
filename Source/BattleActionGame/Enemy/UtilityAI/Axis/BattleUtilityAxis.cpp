@@ -14,4 +14,5 @@ float UBattleUtilityAxis::CalcValue(float InValue)
 
 float UBattleUtilityAxis::GetValue()
 {
+	return 0.0f;
 }
