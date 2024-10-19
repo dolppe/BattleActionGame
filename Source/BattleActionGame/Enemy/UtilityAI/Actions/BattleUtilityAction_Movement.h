@@ -4,13 +4,13 @@
 #include "BattleUtilityAction_Movement.generated.h"
 
 UCLASS()
-class UBattleUtilityAction_Move : public UBattleUtilityAction
+class UBattleUtilityAction_MoveToTarget : public UBattleUtilityAction
 {
 	GENERATED_BODY()
 
 public:
 
-	UBattleUtilityAction_Move();
+	UBattleUtilityAction_MoveToTarget();
 
 	/*
 	 * UtilityAction
@@ -24,7 +24,13 @@ public:
 
 	
 protected:
-	
+
+
+	TObjectPtr<ABattleCharacterBase> SelectedTarget;
+
+	TObjectPtr<ABattleCharacterBase> MyCharacter;
+
+	bool bStartMovement;
 
 	
 };

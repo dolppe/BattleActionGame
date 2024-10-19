@@ -13,17 +13,25 @@ class UBattleUtilityAction;
 UENUM(BlueprintType)
 enum class EBattleConsiderType : uint8
 {
+	// Single
 	MyHp UMETA(DisplayName = "MyHp"),
 	HasTarget UMETA(DisplayName = "HasTarget"),
+	MyCombatPotential UMETA(DisplayName = "MyCombatPotential"),
+
+	// Array
 	TargetDistanceNearly UMETA(DisplayName = "TargetDistanceNearly"),
 	TargetHp UMETA(DisplayName = "TargetHp"),
+	TargetPriority UMETA(DisplayName = "TargetPriority"),
+	TargetWeakness UMETA(DisplayName = "TargetWeakness")
+	
 };
 
 UENUM(BlueprintType)
 enum class EAxisType : uint8
 {
+	None,
 	Single,
-	Array
+	Target,
 };
 
 DECLARE_ENUM_TO_STRING(EBattleConsiderType);
@@ -46,10 +54,13 @@ public:
 
 	TArray<float> GetTargetDistanceNearly();
 	TArray<float> GetTargetHp();
+	TArray<float> GetTargetPriority();
+	TArray<float> GetTargetWeakness();
 
 	// Axis
 	float GetMyHp();
 	float GetTarget();
+	float GetMyCombatPotential();
 
 	TFunction<float()> GetConsiderFunction(EBattleConsiderType ConsiderType);
 	TFunction<TArray<float>()> GetArrayConsiderFunction(EBattleConsiderType ConsiderType);
@@ -57,6 +68,7 @@ public:
 	EAxisType GetAxisType(EBattleConsiderType ConsiderType);
 	
 	void InitConsiderFunction(const UBattleUtilityAIData* UtilityAIData);
+	void ClearConsiderFactors();
 
 
 	/*
@@ -65,6 +77,8 @@ public:
 
 	void GetConsiderListData();
 	void SearchNearActors();
+
+	AActor* GetTargetPtr(EAxisType InAxisType, int Index) const;
 	
 public:
 
@@ -82,8 +96,6 @@ public:
 	TArray<float> TargetHps;
 
 	float MyHp;
-
-
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;
@@ -126,6 +138,8 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<const UBattleUtilityAIData> UtilityAIData;
+
+	UPROPERTY()
 	TArray<TObjectPtr<UBattleUtilityAction>> InstancedActions;
 
 	UPROPERTY()

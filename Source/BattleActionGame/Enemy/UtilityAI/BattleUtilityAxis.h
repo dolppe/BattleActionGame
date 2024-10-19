@@ -29,6 +29,11 @@ public:
 		return AxisType;
 	}
 
+	virtual void SetAxisType(EAxisType InAxisType)
+	{
+		AxisType = InAxisType;
+	}
+
 	virtual void SetAIComponent(UBattleUtilityAIComponent* InAIComponent)
 	{
 		CachedAIComponent = InAIComponent;
@@ -77,6 +82,5 @@ public:
 	TArray<float> GetArrayValue();
 
 protected:
-	EAxisType AxisType;
 	
 };

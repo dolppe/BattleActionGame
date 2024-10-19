@@ -27,11 +27,7 @@ public:
 	
 protected:
 
-	float BestScore = 0.0f;
-
-	UPROPERTY()
-	ABattleCharacterBase* BestTarget = nullptr;
-
+	bool bSelected = false; 
 	
 };
 

@@ -1,9 +1,14 @@
 #include "CalcFunctions.h"
+
+#include "BattleActionGame/BattleLogChannels.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(CalcFunctions)
 
 UCalcFunctions::UCalcFunctions()
 {
 }
+
+PRAGMA_DISABLE_OPTIMIZATION
 
 float UCalcFunctions::LinearFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal)
 {
@@ -36,8 +41,12 @@ float UCalcFunctions::LogisticFunction(float X, float Slope, float Exponent, flo
 
 float UCalcFunctions::LogitFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal)
 {
+	if (Exponent - (X-Horizontal) == 0)
+	{
+		UE_LOG(LogBattle, Warning, TEXT("LogitFunction Setting Error"));
+		return 0.0f;
+	}
 	float ShiftedX = X - Horizontal;
-	ShiftedX = std::max(0.001f, std::min(ShiftedX, Exponent - 0.001f));
 	
 	float Result = Slope * std::log(ShiftedX / (Exponent - ShiftedX)) + Vertical;
 	
@@ -64,3 +73,5 @@ float UCalcFunctions::CalcValueWithFunction(EAxisFunction FunctionType, float X,
 	return 0.0f;
 }
 
+
+PRAGMA_ENABLE_OPTIMIZATION

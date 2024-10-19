@@ -39,6 +39,8 @@ public:
 	FGameplayTag Status_Death;
 	FGameplayTag Status_Death_Dying;
 	FGameplayTag Status_Death_Dead;
+	FGameplayTag Status_Attack_Attacking;
+
 
 	/*
 	 * Combat

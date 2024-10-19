@@ -3,6 +3,7 @@
 #include "BattleActionGame/Enemy/UtilityAI/Actions/BattleUtilityAction.h"
 #include "BattleUtilityAIData.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Character/BattleCharacter.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
@@ -28,6 +29,16 @@ float UConsiderationFactors::GetTarget()
 	}
 }
 
+float UConsiderationFactors::GetMyCombatPotential()
+{
+	// 전투 가능한 상태인지 0 => 전투 불가능 도주해야함, 1 => 전투 가능
+	// 내 Hp
+	// 추후에 궁극기 유무, 나한테 디버프 있는지, 주변의 적 수,
+	
+	return MyHp;
+	
+}
+
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
 {
 	// 1 => 엄청 멈, 0 => 가까움
@@ -37,6 +48,52 @@ TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
 TArray<float> UConsiderationFactors::GetTargetHp()
 {
 	return TargetHps;
+}
+
+TArray<float> UConsiderationFactors::GetTargetPriority()
+{
+	// 0 => 중요치 않음, 1 => 중요함
+	// Character면 높게, NPC면 낮게
+	// Distance가 멀면 낮게, 가까우면 높게
+	// 추후에는 데미지를 얼마나 넣었는지 같은 AI 입장에서 거슬리는 것들 (뭉쳐있는것도)
+
+	TArray<float> ResultArray;
+	
+	for (int Idx =0; Idx<TargetActors.Num();Idx++)
+	{
+		float Result = 1.0f;
+
+		if (!TargetActors[Idx].IsA(ABattleCharacter::StaticClass()))
+		{
+			Result *= 0.5f;
+		}
+		
+		Result *= (1 - TargetDistances[Idx]);
+
+		ResultArray.Add(Result);
+	}
+
+	return ResultArray;
+}
+
+TArray<float> UConsiderationFactors::GetTargetWeakness()
+{
+	// WeakNess 0 => 건강함, 1 => 약해진 상태
+	// Hp가 얼마나 없는지, Distance는 얼마나 가까운지
+	// 추후 상태이상에 걸렸는지, Enemy가 주변에 있는지
+	// 
+	TArray<float> ResultArray;
+
+	for (int Idx =0; Idx<TargetActors.Num();Idx++)
+	{
+		float Result = 1.0f;
+		Result *= (1 - TargetHps[Idx]);
+		Result *= (1 - TargetDistances[Idx]);
+
+		ResultArray.Add(Result);
+	}
+	
+	return ResultArray;
 }
 
 float UConsiderationFactors::GetMyHp()
@@ -58,6 +115,12 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 		return [this]() -> float
 		{
 			return GetMyHp();
+		};
+		break;
+	case EBattleConsiderType::MyCombatPotential:
+		return [this]() -> float
+		{
+			return GetMyCombatPotential();
 		};
 		break;
 	default:
@@ -84,6 +147,18 @@ TFunction<TArray<float>()> UConsiderationFactors::GetArrayConsiderFunction(EBatt
 			return GetTargetHp();
 		};
 		break;
+	case EBattleConsiderType::TargetPriority:
+		return [this]() -> TArray<float>
+		{
+			return GetTargetPriority();
+		};
+		break;
+	case EBattleConsiderType::TargetWeakness:
+		return [this]() -> TArray<float>
+		{
+			return GetTargetWeakness();
+		};
+		break;
 	default:
 		return [this]() -> TArray<float>
 		{
@@ -98,9 +173,12 @@ EAxisType UConsiderationFactors::GetAxisType(EBattleConsiderType ConsiderType)
 	{
 	case EBattleConsiderType::TargetHp:
 	case EBattleConsiderType::TargetDistanceNearly:
-		return EAxisType::Array;
+	case EBattleConsiderType::TargetPriority:
+	case EBattleConsiderType::TargetWeakness:
+		return EAxisType::Target;
 	case EBattleConsiderType::HasTarget:
 	case EBattleConsiderType::MyHp:
+	case EBattleConsiderType::MyCombatPotential:
 		return EAxisType::Single;
 	}
 	return EAxisType::Single;
@@ -115,9 +193,8 @@ void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* Uti
 			Functions.Add(ConsiderType,GetConsiderFunction(ConsiderType));
 			Factors.Add(ConsiderType) = 0.0f;
 		}
-		else if (GetAxisType(ConsiderType) == EAxisType::Array)
+		else
 		{
-			
 			ArrayFunctions.Add(ConsiderType,GetArrayConsiderFunction(ConsiderType));
 			ArrayFactors.Add(ConsiderType,{0.0f});
 		}
@@ -126,6 +203,13 @@ void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* Uti
 
 	UtilityAIComponent = Cast<UBattleUtilityAIComponent>(GetOuter());
 	MyCharacter = Cast<ABattleCharacterBase>(UtilityAIComponent->GetOwner());
+}
+
+void UConsiderationFactors::ClearConsiderFactors()
+{
+	TargetHps.Empty();
+	TargetDistances.Empty();
+	TargetActors.Empty();
 }
 
 void UConsiderationFactors::GetConsiderListData()
@@ -146,6 +230,7 @@ void UConsiderationFactors::SearchNearActors()
 
 	if (!OutOverlaps.IsEmpty())
 	{
+		ClearConsiderFactors();
 		for (FOverlapResult& OverlapResult : OutOverlaps)
 		{
 			AActor* OverlappedActor = OverlapResult.GetActor();
@@ -161,9 +246,12 @@ void UConsiderationFactors::SearchNearActors()
 				}
 			}
 		}
+
 	}
 
 	float MaxTargetDistance = UtilityAIComponent->MaxTargetDistance;
+
+	
 	
 	// Target 나온 것을 토대로
 	for (ABattleCharacterBase* Character : TargetActors)
@@ -174,6 +262,18 @@ void UConsiderationFactors::SearchNearActors()
 		TargetDistances.Add(Distance);
 		TargetHps.Add(TargetHp);
 	}
+}
+
+AActor* UConsiderationFactors::GetTargetPtr(EAxisType InAxisType, int Index) const
+{
+	if (EAxisType::Target == InAxisType)
+	{
+		if (TargetActors.IsValidIndex(Index))
+		{
+			return TargetActors[Index];
+		}
+	}
+	return nullptr;
 }
 
 UBattleUtilityAIComponent::UBattleUtilityAIComponent(const FObjectInitializer& ObjectInitializer)

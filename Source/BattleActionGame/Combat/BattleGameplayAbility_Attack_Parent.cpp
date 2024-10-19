@@ -1,5 +1,6 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 
+#include "AbilitySystemComponent.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -18,6 +19,17 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
                                                            const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		
+		if (ASC)
+		{
+			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+		}
+	}
+	
 }
 
 void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -32,6 +44,13 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 	else
 	{
 		AlreadyHitActors.Reset();
+		
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		
+		if (ASC)
+		{
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+		}
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

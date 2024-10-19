@@ -22,7 +22,7 @@ float UBattleUtilityAxis::GetValue()
 
 UBattleUtilityArrayAxis::UBattleUtilityArrayAxis()
 {
-	AxisType = EAxisType::Array;
+	AxisType = EAxisType::Target;
 }
 
 float UBattleUtilityArrayAxis::CalcValue(float InValue)

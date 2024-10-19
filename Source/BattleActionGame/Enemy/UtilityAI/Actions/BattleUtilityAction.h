@@ -7,7 +7,7 @@ class UConsiderationFactors;
 class UBattleUtilityAxis;
 struct FAxisConfig;
 
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Blueprintable)
 class UBattleUtilityAction : public UObject
 {
 	GENERATED_BODY()
@@ -49,6 +49,9 @@ protected:
 	TArray<TObjectPtr<UBattleUtilityAxis>> AxisArray;
 
 	UPROPERTY()
+	TArray<EAxisType> AxisTypeArray;
+
+	UPROPERTY()
 	TArray<TObjectPtr<UBattleUtilityArrayAxis>> ArrayAxisArray;
 
 	uint8 Priority = 1;
@@ -57,6 +60,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UBattleUtilityAIComponent> CachedAIComponent;
+
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> BestTargets;
 	
 	
 };
