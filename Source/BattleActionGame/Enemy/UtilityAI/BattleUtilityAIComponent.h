@@ -1,22 +1,98 @@
 #pragma once
 
 #include "Components/PawnComponent.h"
+#include "VisualLogger/VisualLoggerTypes.h"
 #include "BattleUtilityAIComponent.generated.h"
 
-enum class EBattleConsiderType : uint8;
+
+class UBattleUtilityAIComponent;
+class ABattleCharacterBase;
 class UBattleUtilityAIData;
 class UBattleUtilityAction;
 
-USTRUCT()
-struct FConsiderationFactors
+UENUM(BlueprintType)
+enum class EBattleConsiderType : uint8
+{
+	MyHp UMETA(DisplayName = "MyHp"),
+	HasTarget UMETA(DisplayName = "HasTarget"),
+	TargetDistanceNearly UMETA(DisplayName = "TargetDistanceNearly"),
+	TargetHp UMETA(DisplayName = "TargetHp"),
+};
+
+UENUM(BlueprintType)
+enum class EAxisType : uint8
+{
+	Single,
+	Array
+};
+
+DECLARE_ENUM_TO_STRING(EBattleConsiderType);
+
+UCLASS()
+class UConsiderationFactors : public UObject
 {
 	GENERATED_BODY()
 
+public:
+
+
+	/*
+	 * 상황 정보를 토대로 ConsiderFactor를 만드는 함수
+	 */
+
+	UConsiderationFactors();
+
+	// ArrayAxis
+
+	TArray<float> GetTargetDistanceNearly();
+	TArray<float> GetTargetHp();
+
+	// Axis
+	float GetMyHp();
+	float GetTarget();
+
+	TFunction<float()> GetConsiderFunction(EBattleConsiderType ConsiderType);
+	TFunction<TArray<float>()> GetArrayConsiderFunction(EBattleConsiderType ConsiderType);
+
+	EAxisType GetAxisType(EBattleConsiderType ConsiderType);
+	
+	void InitConsiderFunction(const UBattleUtilityAIData* UtilityAIData);
+
+
+	/*
+	 * 상황 정보를 알아오는 함수
+	 */
+
+	void GetConsiderListData();
+	void SearchNearActors();
+	
+public:
+
+	TMap<EBattleConsiderType, EAxisType> ConsiderTypeMap;
+	
 	TMap<EBattleConsiderType, float> Factors;
+	TMap<EBattleConsiderType, TFunction<float()>> Functions;
+
+	TMap<EBattleConsiderType, TArray<float>> ArrayFactors;
+	TMap<EBattleConsiderType, TFunction<TArray<float>()>> ArrayFunctions;
+
+	TObjectPtr<ABattleCharacterBase> SelectedTarget;
+	TArray<TObjectPtr<ABattleCharacterBase>> TargetActors;
+	TArray<float> TargetDistances;
+	TArray<float> TargetHps;
+
+	float MyHp;
+
+
+	
+	TObjectPtr<ABattleCharacterBase> MyCharacter;
+	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;
+	
 	
 };
 
-UCLASS()
+
+UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
 class UBattleUtilityAIComponent : public UPawnComponent
 {
 	GENERATED_BODY()
@@ -26,6 +102,9 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void PostInitProperties() override;
+	
+
 	void CollectConsiderFactors();
 	
 	void SelectBestAction();
@@ -34,22 +113,37 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-protected:
+
+	friend class UBattleUtilityAxis;
+	friend class UBattleUtilityArrayAxis;
+	friend class UBattleUtilityAction;
+	friend class UConsiderationFactors;
+
+	UPROPERTY()
+	TObjectPtr<UConsiderationFactors> ConsiderList;
 	
+protected:
+
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<const UBattleUtilityAIData> UtilityAIData;
 	TArray<TObjectPtr<UBattleUtilityAction>> InstancedActions;
 
-	FConsiderationFactors ConsiderList;
-
+	UPROPERTY()
 	UBattleUtilityAction* ActiveAction;
 	bool bActionComplete;
 
+	FTimerHandle TimerHandle;
+	
+
 	// 특정 거리에 Character가 있는지 체크 => 있으면 계산 주기를 0.5, 없으면 1.0 => 3.0 => 5.0...
 	// 캐릭터 발견 시 즉각 반응하도록
-	
+	UPROPERTY(EditAnywhere)
 	float UpdatePeriod = 0.5f;
+	UPROPERTY(EditAnywhere)
+	float MaxTargetDistance = 5000.0f;
 
-	FTimerHandle TimerHandle;
+
+
 	
 	
 };

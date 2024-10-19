@@ -3,31 +3,39 @@
 #include "Engine/DataAsset.h"
 #include "BattleUtilityAIData.generated.h"
 
+enum class EAxisFunction : uint8;
+enum class EBattleConsiderType : uint8;
+enum class EAxisType : uint8;
 class UBattleUtilityAction;
 class UBattleUtilityAxis;
 
-UENUM(BlueprintType)
-enum class EBattleConsiderType : uint8
-{
-	Target,
-	TargetDistance,
-	TargetHp,
-	MyHp,	
-};
+
 
 USTRUCT(BlueprintType)
 struct FAxisConfig
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
-	TSubclassOf<UBattleUtilityAxis> AxisClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
-	float DefaultWeight;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
-	TObjectPtr<UCurveFloat> CurveMapping;
+	EAxisType AxisType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
+	EBattleConsiderType ConsiderType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
+	EAxisFunction FunctionType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
+	float Slope = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
+	float Exponent = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
+	float VerticalShift = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Axis")
+	float HorizontalShift = 0;
 	
 };
 
@@ -41,6 +49,9 @@ struct FActionConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
 	TArray<FAxisConfig> AxisConfigs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
+	float Weight;
 	
 };
 

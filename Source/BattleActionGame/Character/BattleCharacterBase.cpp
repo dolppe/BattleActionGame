@@ -4,6 +4,11 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCharacterBase)
 
+ABattleCharacterBase::ABattleCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
+
 UBattleAbilitySystemComponent* ABattleCharacterBase::GetBattleAbilitySystemComponent() const
 {
 	return NewObject<UBattleAbilitySystemComponent>();
@@ -12,4 +17,9 @@ UBattleAbilitySystemComponent* ABattleCharacterBase::GetBattleAbilitySystemCompo
 UAbilitySystemComponent* ABattleCharacterBase::GetAbilitySystemComponent() const
 {
 	return NewObject<UAbilitySystemComponent>();
+}
+
+UBattleHealthComponent* ABattleCharacterBase::GetHealthComponent() const
+{
+	return nullptr;
 }

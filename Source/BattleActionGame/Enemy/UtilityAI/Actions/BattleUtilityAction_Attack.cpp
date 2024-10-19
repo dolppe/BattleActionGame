@@ -10,6 +10,8 @@ UBattleUtilityAction_Attack::UBattleUtilityAction_Attack()
 void UBattleUtilityAction_Attack::StartAction()
 {
 	Super::StartAction();
+
+	
 }
 
 void UBattleUtilityAction_Attack::EndAction()

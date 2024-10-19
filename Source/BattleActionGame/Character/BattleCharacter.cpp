@@ -53,6 +53,11 @@ UAbilitySystemComponent* ABattleCharacter::GetAbilitySystemComponent() const
 	return PawnExtComponent->GetAbilitySystemComponent();
 }
 
+UBattleHealthComponent* ABattleCharacter::GetHealthComponent() const
+{
+	return HealthComponent;
+}
+
 void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

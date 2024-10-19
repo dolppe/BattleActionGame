@@ -22,9 +22,15 @@ public:
 
 	virtual bool TickAction(float DeltaTime) override;
 
+	virtual float EvaluateScore(const UConsiderationFactors* ConsiderList) override;
+
 	
 protected:
-	
+
+	float BestScore = 0.0f;
+
+	UPROPERTY()
+	ABattleCharacterBase* BestTarget = nullptr;
 
 	
 };

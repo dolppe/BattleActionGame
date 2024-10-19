@@ -32,7 +32,7 @@ public:
 	FString StartName = TEXT("weapon");
 	FString EndName = TEXT("weapon_end");
 	float AttackRadius = 10.f;
-	TEnumAsByte<ECollisionChannel> CollisionChannel = Battle_TraceChannel_Weapon;
+	TEnumAsByte<ECollisionChannel> CollisionChannel = Battle_TraceChannel_AttackToEnemy;
 	
 	
 };

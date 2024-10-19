@@ -19,3 +19,8 @@ bool UBattleUtilityAction_SearchTarget::TickAction(float DeltaTime)
 {
 	return Super::TickAction(DeltaTime);
 }
+
+float UBattleUtilityAction_SearchTarget::EvaluateScore(const UConsiderationFactors* ConsiderList)
+{
+	return Super::EvaluateScore(ConsiderList);
+}

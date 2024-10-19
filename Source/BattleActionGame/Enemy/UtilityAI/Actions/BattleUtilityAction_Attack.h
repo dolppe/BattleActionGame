@@ -3,6 +3,7 @@
 #include "BattleUtilityAction.h"
 #include "BattleUtilityAction_Attack.generated.h"
 
+class UBattleGameplayAbility_Attack;
 
 UCLASS()
 class UBattleUtilityAction_Attack : public UBattleUtilityAction
@@ -24,8 +25,17 @@ public:
 	virtual bool TickAction(float DeltaTime) override;
 
 	
+
 protected:
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBattleGameplayAbility_Attack> GA_Attack;
+
+	UPROPERTY(EditDefaultsOnly)
+	float AttackRange;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float AttackRate;
 	
 };
 
