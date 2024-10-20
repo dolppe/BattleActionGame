@@ -41,6 +41,7 @@ public class BattleActionGame : ModuleRules
 			// MessageSystem
 			"GameplayMessageRuntime",
 			"NavigationSystem",
+			"PhysicsCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

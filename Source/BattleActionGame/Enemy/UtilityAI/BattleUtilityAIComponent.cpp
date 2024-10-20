@@ -184,6 +184,30 @@ float UConsiderationFactors::GetIsAlone()
 	return !bIsInCombat;
 }
 
+float UConsiderationFactors::GetBreakRightLeg()
+{
+	if (bBreakRightLeg)
+	{
+		return 1.0f;
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
+float UConsiderationFactors::GetBreakLeftLeg()
+{
+	if (bBreakLeftLeg)
+	{
+		return 1.0f;
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
 {
 	// 1 => 엄청 멈, 0 => 가까움
@@ -334,6 +358,18 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 		return [this]() -> float
 		{
 			return GetIsAlone();
+		};
+		break;
+	case EBattleConsiderType::BreakLeftLeg:
+		return [this]() -> float
+		{
+			return GetBreakLeftLeg();
+		};
+		break;
+	case EBattleConsiderType::BreakRightLeg:
+		return [this]() -> float
+		{
+			return GetBreakRightLeg();
 		};
 		break;
 	default:
@@ -657,5 +693,17 @@ void UBattleUtilityAIComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		{
 			SelectBestAction();
 		}
+	}
+}
+
+void UBattleUtilityAIComponent::BreakParts(FGameplayTag GameplayTag)
+{
+	if (GameplayTag == FBattleGameplayTags::Get().Gameplay_Breakable_LeftLeg)
+	{
+		ConsiderList->bBreakLeftLeg = true;
+	}
+	else if (GameplayTag == FBattleGameplayTags::Get().Gameplay_Breakable_RightLeg)
+	{
+		ConsiderList->bBreakRightLeg = true;
 	}
 }

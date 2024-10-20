@@ -5,6 +5,7 @@
 #include "BattleUtilityAIComponent.generated.h"
 
 
+struct FGameplayTag;
 class UBattleUtilityAIComponent;
 class ABattleCharacterBase;
 class UBattleUtilityAIData;
@@ -24,6 +25,8 @@ enum class EBattleConsiderType : uint8
 	NearbyWaterAmount UMETA(DisplayName = "NearbyWaterAmount"),
 	EnemyDirection UMETA(DisplayName = "EnemyDirection"),
 	IsAlone UMETA(DisplayName = "IsAlone"),
+	BreakLeftLeg UMETA(DisplayName = "BreakLeftLeg"),
+	BreakRightLeg UMETA(DisplayName = "BreakRightLeg"),
 	
 
 	// Array
@@ -78,7 +81,10 @@ public:
 	float GetNearbyWaterAmount();
 	float GetEnemyDirection();
 	float GetIsAlone();
+	float GetBreakRightLeg();
+	float GetBreakLeftLeg();
 
+	
 
 	TFunction<float()> GetConsiderFunction(EBattleConsiderType ConsiderType);
 	TFunction<TArray<float>()> GetArrayConsiderFunction(EBattleConsiderType ConsiderType);
@@ -123,7 +129,9 @@ public:
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;
-	
+
+	bool bBreakRightLeg = false;
+	bool bBreakLeftLeg = false;
 	
 };
 
@@ -149,6 +157,7 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void BreakParts(FGameplayTag GameplayTag);
 
 	friend class UBattleUtilityAxis;
 	friend class UBattleUtilityArrayAxis;
@@ -171,6 +180,7 @@ protected:
 	bool bActionComplete;
 
 	FTimerHandle TimerHandle;
+
 	
 
 	// 특정 거리에 Character가 있는지 체크 => 있으면 계산 주기를 0.5, 없으면 1.0 => 3.0 => 5.0...

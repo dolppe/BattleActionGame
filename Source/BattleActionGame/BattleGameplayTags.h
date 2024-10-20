@@ -56,6 +56,12 @@ public:
 	 */
 	
 	FGameplayTag GameplayEffect_Data_AttackRate;
+
+	/*
+	 *
+	 */
+	FGameplayTag Gameplay_Breakable_LeftLeg;
+	FGameplayTag Gameplay_Breakable_RightLeg;
 	
 
 protected:

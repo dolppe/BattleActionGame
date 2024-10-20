@@ -1,12 +1,34 @@
 #pragma once
 
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleEnemyCharacter.generated.h"
 
 class UBattleEnemyData;
 class UBattleHealthComponent;
 class UBattleAbilitySystemComponent;
+
+USTRUCT()
+struct FBreakablePart
+{
+	GENERATED_BODY()
+
+	FBreakablePart()
+	{
+		
+	}
+	
+	FBreakablePart(int InRemainHp, const TFunction<void(FGameplayTag)>& InDestroyFunction)
+		: RemainHp(InRemainHp), DestroyFunction(InDestroyFunction)
+	{
+		
+	}
+	int RemainHp;
+	TFunction<void(FGameplayTag)> DestroyFunction; 
+	
+};
+
 
 UCLASS()
 class ABattleEnemyCharacter : public ABattleCharacterBase
@@ -23,6 +45,10 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
+	UFUNCTION(BlueprintCallable)
+	void AttackBreakablePart(FGameplayTag InGameplayTag);
+	
+
 protected:
 	
 	UPROPERTY()
@@ -30,6 +56,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UBattleEnemyData> EnemyData;
+
+	TMap<FGameplayTag,FBreakablePart> BreakableParts;
 	
 	
 };

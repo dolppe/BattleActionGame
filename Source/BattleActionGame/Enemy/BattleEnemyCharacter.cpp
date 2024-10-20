@@ -2,12 +2,14 @@
 
 #include "BattleEnemyController.h"
 #include "BattleEnemyData.h"
+#include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
 #include "BattleActionGame/Character/BattleCharacterMovementComponent.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
+#include "UtilityAI/BattleUtilityAIComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleEnemyCharacter)
 
@@ -61,6 +63,57 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 			}
 		}
 	}
+
+	FBreakablePart LeftLegBreakablePart = FBreakablePart(1, [this](FGameplayTag InGameplayTag)
+	{
+		USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+		if (SkeletalMeshComponent)
+		{
+			SkeletalMeshComponent->HideBoneByName(TEXT("Dummy012"), PBO_None);  
+			SkeletalMeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Dummy012"), true, false);  
+			SkeletalMeshComponent->SetAllBodiesBelowPhysicsDisabled(TEXT("Dummy012"), true, true);  
+		}
+		if (UBattleUtilityAIComponent* UtilityAIComponent = Cast<UBattleUtilityAIComponent>(GetComponentByClass(UBattleUtilityAIComponent::StaticClass())))
+		{
+			UtilityAIComponent->BreakParts(InGameplayTag);
+		}
+	});
+
+	FBreakablePart RightLegBreakablePart = FBreakablePart(1, [this](FGameplayTag InGameplayTag)
+	{
+		USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+		if (SkeletalMeshComponent)
+		{
+			SkeletalMeshComponent->HideBoneByName(TEXT("Dummy020"), PBO_None);  
+			SkeletalMeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Dummy020"), true, false);  
+			SkeletalMeshComponent->SetAllBodiesBelowPhysicsDisabled(TEXT("Dummy020"), true, true);  
+		}
+
+		if (UBattleUtilityAIComponent* UtilityAIComponent = Cast<UBattleUtilityAIComponent>(GetComponentByClass(UBattleUtilityAIComponent::StaticClass())))
+		{
+			UtilityAIComponent->BreakParts(InGameplayTag);
+		}
+	});
+	
+	BreakableParts.Add(FBattleGameplayTags::Get().Gameplay_Breakable_LeftLeg, LeftLegBreakablePart);
+	BreakableParts.Add(FBattleGameplayTags::Get().Gameplay_Breakable_RightLeg, RightLegBreakablePart);
 	
 	
 }
+
+PRAGMA_DISABLE_OPTIMIZATION
+
+void ABattleEnemyCharacter::AttackBreakablePart(FGameplayTag InGameplayTag)
+{
+	if (BreakableParts.Contains(InGameplayTag))
+	{
+		BreakableParts[InGameplayTag].RemainHp--;
+		if (BreakableParts[InGameplayTag].RemainHp == 0)
+		{
+			BreakableParts[InGameplayTag].DestroyFunction(InGameplayTag);
+		}
+	}
+}
+
+
+PRAGMA_ENABLE_OPTIMIZATION
