@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BattleComboData.h"
+#include "BattleCombatData.h"
 #include "Components/PawnComponent.h"
 #include "Animation/AnimMontage.h"
 #include "BattleGameplayAbility_ComboAttack.h"
@@ -16,55 +16,46 @@ public:
 
 	UBattleCombatManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	UBattleComboData* GetComboData(int idx)
+	FComboAttack* GetComboData(int idx) const
 	{
-		return ComboData[idx];
+		return &CombatData->ComboAttacks[idx];
 	}
-	UAnimMontage* GetComboMontage(int idx)
+	UAnimMontage* GetComboMontage(int idx) const
 	{
-		return ComboAttackMontages[idx];
-	}
-
-	UBattleComboData* GetAttackData(int idx)
-	{
-		return AttackData[idx];
+		return CombatData->ComboAttacks[idx].Montage;
 	}
 
-	UAnimMontage* GetAttackMontage(int idx)
+	FSingleAttack* GetAttackData(int idx) const
 	{
-		return AttackMontages[idx];
+		return &CombatData->SingleAttacks[idx];
+	}
+
+	UAnimMontage* GetAttackMontage(int idx) const
+	{
+		return CombatData->SingleAttacks[idx].Montage;
+	}
+
+	FHitCheckAttack* GetHitCheckAttackData(int idx) const
+	{
+		return &CombatData->HitCheckAttacks[idx];
+	}
+
+	UAnimMontage* GetHitCheckAttackMontage(int idx) const
+	{
+		return CombatData->HitCheckAttacks[idx].Montage;
 	}
 
 	int GetCurrentComboIndex();
 
 	void SetComboGA(UBattleGameplayAbility_ComboAttack* InComboAttack);
-	
-	
 
-	
 
 private:
-
-	/*
-	 * 0 => 일반공격
-	 */
 	
-	UPROPERTY(EditDefaultsOnly)
-	TArray<UBattleComboData*> ComboData;
 	
-	UPROPERTY(EditDefaultsOnly)
-	TArray<UAnimMontage*> ComboAttackMontages;
-
-	/*
-	* 0 => 강공격
-	*/
-
-	UPROPERTY(EditDefaultsOnly)
-	TArray<UBattleComboData*> AttackData;
-
-	UPROPERTY(EditDefaultsOnly)
-	TArray<UAnimMontage*> AttackMontages;
-
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UBattleCombatData> CombatData;
+	
 	UPROPERTY()
 	UBattleGameplayAbility_ComboAttack* CurrentCombo = nullptr;
 	

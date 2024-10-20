@@ -26,6 +26,8 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 	CurrentAttackData = CurrentCombatManager->GetAttackData(AttackMode);
 	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(AttackMode);
 
+	AttackRate = CurrentAttackData->AttackRate;
+
 	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, CurrentCombatManager->GetCurrentComboIndex());
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 1.0f, MontageSectionName);
@@ -37,6 +39,7 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 	{
 		UE_LOG(LogTemp, Log, TEXT("ClientAttackStart"));
 		UBattleAbilityTask_HitCheck* HitCheck = UBattleAbilityTask_HitCheck::CreateTask(this);
+		HitCheck->SetHitCheckData(CurrentAttackData->StartSocketName, CurrentAttackData->EndSocketName, CurrentAttackData->AttackRadius, CurrentAttackData->CollisionChannel);
 		HitCheck->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_Attack::SelectHitCheck);
 		HitCheck->ReadyForActivation();
 	}
@@ -90,6 +93,8 @@ void UBattleGameplayAbility_Attack::AttackHitConfirm(const FHitResult& HitResult
 void UBattleGameplayAbility_Attack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
                                                               FGameplayTag ApplicationTag)
 {
+	Super::OnTargetDataReadyCallback(InData, ApplicationTag);
+	
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		OnTargetDataReady(InData);

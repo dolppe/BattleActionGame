@@ -3,7 +3,7 @@
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleGameplayAbility_Attack_Parent.generated.h"
 
-class UBattleComboData;
+class UBattleCombatData;
 
 UCLASS(Abstract)
 class UBattleGameplayAbility_Attack_Parent : public UBattleGameplayAbility
@@ -40,9 +40,6 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	uint8 AttackMode = 0;
-	
-	UPROPERTY()
-	TObjectPtr<UBattleComboData> CurrentAttackData;
 
 	UPROPERTY()
 	TObjectPtr<UAnimMontage> CurrentAttackMontage;
@@ -50,7 +47,11 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_AlreadyHitActors)
 	TArray<TObjectPtr<AActor>> AlreadyHitActors;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameplayEffect> GameplayEffect_Damage;
+
 	float AcceptHitDistance = 1500.f;
+	float AttackRate = 1.0f;
 	
 	
 };

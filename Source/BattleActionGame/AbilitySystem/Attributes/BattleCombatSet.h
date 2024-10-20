@@ -14,6 +14,7 @@ public:
 
 	ATTRIBUTE_ACCESSORS(UBattleCombatSet, BaseDamage);
 	ATTRIBUTE_ACCESSORS(UBattleCombatSet, BaseHeal);
+	ATTRIBUTE_ACCESSORS(UBattleCombatSet, AttackPower);
 
 protected:
 
@@ -23,6 +24,9 @@ protected:
 	UFUNCTION()
 	void OnRep_BaseHeal(const FGameplayAttributeData& OldValue);
 
+	UFUNCTION()
+	void OnRep_AttackPower(const FGameplayAttributeData& OldValue);
+
 private:
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BaseDamage, Category = "Battle|Combat", Meta = (AllowPrivateAccess = true))
@@ -30,5 +34,10 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BaseHeal, Category = "Battle|Combat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData BaseHeal;
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_AttackPower, Category = "Battle|Combat", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData AttackPower;
+
+	
 };
 

@@ -38,6 +38,11 @@ UBattleAbilitySystemComponent* ABattleEnemyCharacter::GetBattleAbilitySystemComp
 	return AbilitySystemComponent;
 }
 
+UBattleHealthComponent* ABattleEnemyCharacter::GetHealthComponent() const
+{
+	return HealthComponent;
+}
+
 void ABattleEnemyCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();

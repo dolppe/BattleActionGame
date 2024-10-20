@@ -1,9 +1,7 @@
 #include "BattleAbilityTask_HitCheck.h"
 
 #include "AbilitySystemComponent.h"
-#include "BattleGameplayAbility_ComboAttack.h"
-#include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
-#include "BattleActionGame/Physics/BattleCollisionChannels.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
 
@@ -20,10 +18,18 @@ UBattleAbilityTask_HitCheck* UBattleAbilityTask_HitCheck::CreateTask(UGameplayAb
 	return NewTask;
 }
 
+void UBattleAbilityTask_HitCheck::SetHitCheckData(FString InStartName, FString InEndName, float InAttackRadius,
+	TEnumAsByte<ECollisionChannel> InCollisionChannel)
+{
+	StartName = InStartName;
+	EndName = InEndName;
+	AttackRadius = InAttackRadius;
+	CollisionChannel = InCollisionChannel;
+}
+
 void UBattleAbilityTask_HitCheck::Activate()
 {
 	Super::Activate();
-	
 }
 
 void UBattleAbilityTask_HitCheck::OnDestroy(bool bInOwnerFinished)
@@ -39,18 +45,16 @@ void UBattleAbilityTask_HitCheck::TickTask(float DeltaTime)
 
 	USkeletalMeshComponent* MeshComp = Character->GetMesh();
 
-	FVector Start = MeshComp->GetSocketLocation(TEXT("weapon"));
-	FVector End = MeshComp->GetSocketLocation(TEXT("weapon_end"));
+	FVector Start = MeshComp->GetSocketLocation(*StartName);
+	FVector End = MeshComp->GetSocketLocation(*EndName);
 
 	TArray<FHitResult> HitResults;
 
 	FCollisionQueryParams Temp;
-	
-	//GetWorld()->LineTraceMultiByChannel(HitResults, Start, End, Battle_TraceChannel_Weapon, Temp);
 
-	float Radius = 10.f;
+	float Radius = AttackRadius;
 	
-	GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, Battle_TraceChannel_Weapon, FCollisionShape::MakeSphere(Radius),Temp);
+	GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
 
 	FColor HitColor = FColor::Red; 
 	
@@ -58,7 +62,7 @@ void UBattleAbilityTask_HitCheck::TickTask(float DeltaTime)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Hit %s"),*HitResult.Component->GetName());
 		HitColor = FColor::Green;
-		if (HitResult.GetActor()->IsA(ABattleEnemyCharacter::StaticClass()))
+		if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
 		{
 			UE_LOG(LogTemp, Log, TEXT("Enemy Hit %s"), *HitResult.GetActor()->GetName());
 			OnHitChecked.Broadcast(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());

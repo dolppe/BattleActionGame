@@ -3,7 +3,8 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 #include "BattleGameplayAbility_Attack.generated.h"
 
-class UBattleComboData;
+class UBattleCombatData;
+struct FSingleAttack;
 
 UCLASS()
 class UBattleGameplayAbility_Attack : public UBattleGameplayAbility_Attack_Parent
@@ -35,6 +36,11 @@ protected:
 	virtual void OnInterrupted() override;
 	
 	virtual void OnRep_AlreadyHitActors() override;
+
+
+protected:
+
+	TObjectPtr<FSingleAttack> CurrentAttackData;
 	
 };
 

@@ -6,6 +6,7 @@
 #include "BattleGameplayAbility_HitCheckAttack.generated.h"
 
 
+struct FHitCheckAttack;
 struct FBattleVerbMessage;
 struct FGameplayMessageListenerHandle;
 
@@ -47,5 +48,7 @@ protected:
 private:
 
 	FGameplayMessageListenerHandle ListenerHandle;
+
+	TObjectPtr<FHitCheckAttack> CurrentHitCheckData;
 	
 };

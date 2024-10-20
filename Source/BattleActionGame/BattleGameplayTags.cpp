@@ -41,11 +41,21 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(Status_Death_Dying, "Status.Death.Dying", "");
 	AddTag(Status_Death_Dead, "Status.Death.Dead", "");
 
+	AddTag(Status_Attack_Attacking, "Status.Attack.Attacking", "");
+	AddTag(Status_Poisoned, "Status.Poisoned", "");
+	
+
 	/*
 	 *	Comboat
 	 */
 
 	AddTag(Combat_Attack_Event, "Combat.Attack.Event", "");
 
+	/*
+	 * GameplayEffectData
+	 */
+
+	AddTag(GameplayEffect_Data_AttackRate, "GameplayEffect.Data.AttackRate", "");
+	
 	
 }

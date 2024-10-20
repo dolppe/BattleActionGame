@@ -1,5 +1,7 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 
+#include "AbilitySystemComponent.h"
+#include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -17,6 +19,17 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
                                                            const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		
+		if (ASC)
+		{
+			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+		}
+	}
+	
 }
 
 void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -31,6 +44,13 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 	else
 	{
 		AlreadyHitActors.Reset();
+		
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		
+		if (ASC)
+		{
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+		}
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -97,7 +117,15 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& Hi
 void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
 	FGameplayTag ApplicationTag)
 {
-
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GameplayEffect_Damage, 1);
+	
+	if (SpecHandle.IsValid())
+	{
+		SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackRate);
+		
+		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);
+	}
+	
 }
 
 void UBattleGameplayAbility_Attack_Parent::SelectHitCheck(const FHitResult HitResult, const float AttackTime)

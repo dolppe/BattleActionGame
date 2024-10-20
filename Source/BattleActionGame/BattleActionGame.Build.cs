@@ -40,6 +40,7 @@ public class BattleActionGame : ModuleRules
 			"AIModule",
 			// MessageSystem
 			"GameplayMessageRuntime",
+			"NavigationSystem",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

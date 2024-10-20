@@ -1,5 +1,6 @@
 #include "BattleDamageExecution.h"
 
+#include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
 
@@ -9,10 +10,12 @@
 struct FDamageStatics
 {
 	FGameplayEffectAttributeCaptureDefinition BaseDamageDef;
+	FGameplayEffectAttributeCaptureDefinition AttackPowerDef;
 
 	FDamageStatics()
 	{
 		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UBattleCombatSet::GetBaseDamageAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
+		AttackPowerDef = FGameplayEffectAttributeCaptureDefinition(UBattleCombatSet::GetAttackPowerAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
 	}
 };
 
@@ -25,6 +28,7 @@ static FDamageStatics& DamageStatics()
 UBattleDamageExecution::UBattleDamageExecution()
 {
 	RelevantAttributesToCapture.Add(DamageStatics().BaseDamageDef);
+	RelevantAttributesToCapture.Add(DamageStatics().AttackPowerDef);
 }
 
 
@@ -47,9 +51,21 @@ void UBattleDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	float BaseDamage = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDamageDef, EvaluateParameters, BaseDamage);
 
-	if (BaseDamage > 0.0f)
+	float AttackPower = 0.0f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().AttackPowerDef, EvaluateParameters, AttackPower);
+	
+	float AttackRate = Spec.GetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, true, 1.0f);
+
+	float TotalDamage = 0.0f;
+
+	TotalDamage = BaseDamage + AttackPower*AttackRate;
+	
+
+	
+
+	if (TotalDamage > 0.0f)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleHealthSet::GetDamageAttribute(), EGameplayModOp::Additive, BaseDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleHealthSet::GetDamageAttribute(), EGameplayModOp::Additive, TotalDamage));
 	}
 #endif
 }

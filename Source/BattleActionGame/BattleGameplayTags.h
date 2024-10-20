@@ -39,12 +39,23 @@ public:
 	FGameplayTag Status_Death;
 	FGameplayTag Status_Death_Dying;
 	FGameplayTag Status_Death_Dead;
+	
+	FGameplayTag Status_Attack_Attacking;
+	FGameplayTag Status_Poisoned;
+
 
 	/*
 	 * Combat
 	 */
 
-	FGameplayTag Combat_Attack_Event; 
+	FGameplayTag Combat_Attack_Event;
+
+	/*
+	 * GameplayEffectData
+	 */
+	
+	FGameplayTag GameplayEffect_Data_AttackRate;
+	
 
 protected:
 

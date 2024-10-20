@@ -19,6 +19,8 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const override;
 
+	virtual UBattleHealthComponent* GetHealthComponent() const override;
+
 	virtual void PostInitializeComponents() override;
 
 protected:

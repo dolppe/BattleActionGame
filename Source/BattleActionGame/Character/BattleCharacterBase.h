@@ -14,10 +14,14 @@ class ABattleCharacterBase : public AModularCharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 public:
 
+	ABattleCharacterBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
 	UFUNCTION(BlueprintCallable, Category="Battle|Character")
 	virtual UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	virtual UBattleHealthComponent* GetHealthComponent() const;
 
 	
 protected:

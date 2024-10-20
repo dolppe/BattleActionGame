@@ -19,7 +19,11 @@ public:
 	virtual UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	virtual UBattleHealthComponent* GetHealthComponent() const override;
+
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	
 
 protected:
 
