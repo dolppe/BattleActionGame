@@ -42,7 +42,8 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(Status_Death_Dead, "Status.Death.Dead", "");
 
 	AddTag(Status_Attack_Attacking, "Status.Attack.Attacking", "");
-
+	AddTag(Status_Poisoned, "Status.Poisoned", "");
+	
 
 	/*
 	 *	Comboat

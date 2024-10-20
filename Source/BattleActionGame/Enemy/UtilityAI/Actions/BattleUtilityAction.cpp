@@ -47,13 +47,11 @@ void UBattleUtilityAction::InitAxis(TArray<FAxisConfig> AxisConfigs, UBattleUtil
 
 float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderList)
 {
-	UE_LOG(LogBattle, Log, TEXT("EvaluateScoreStart"));
 	float Result = 1.0f; 
 	for (UBattleUtilityAxis* UtilityAxis : AxisArray)
 	{
 		float FactorValue = UtilityAxis->GetValue();
 		Result = Result * UtilityAxis->CalcValue(FactorValue);
-		UE_LOG(LogBattle, Log, TEXT("%s Axis Result: %f"), *EnumToString(UtilityAxis->GetConsiderFactor()),Result);
 	}
 
 	TArray<bool> CompletedTypes;
@@ -65,6 +63,7 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 	// 단, 해당 ArrayAxis가 같은 타입인 경우, 내부의 ValueArray는 같은 Index를 의미함
 	// A ArrayAxis => Target, B ArrayAxis => Target인 경우
 	// A ArrayAxis의 ValueArray의 첫번째 Target == B ArrayAxis의 ValueArray의 두번째 Target
+	BestTargets.Empty();
 	while (CompletedTypes.Contains(false))
 	{
 		EAxisType CurrentType =EAxisType::None;
@@ -127,7 +126,7 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 		BestTargets.Add(ConsiderList->GetTargetPtr(CurrentType, BestIdx));
 	}
 	
-	return Result * Weight;
+	return Result * Weight * Age;
 }
 
 void UBattleUtilityAction::StartAction()

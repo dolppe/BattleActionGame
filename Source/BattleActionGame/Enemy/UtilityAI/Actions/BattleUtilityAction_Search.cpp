@@ -14,14 +14,30 @@ void UBattleUtilityAction_SearchTarget::StartAction()
 {
 	Super::StartAction();
 	bSelected = false;
+	AActor* SelectTarget = nullptr;
 	for (AActor* BestTarget : BestTargets)
 	{
+		if (BestTarget == nullptr)
+		{
+			continue;
+		}
 		if (BestTarget->IsA(ABattleCharacter::StaticClass()))
 		{
-			CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(BestTarget);
+			SelectTarget = BestTarget;
 			break;
 		}
 	}
+
+	if (SelectTarget == nullptr)
+	{
+		// 도주시 거리가 멀어져서 Distance 안쪽으로 Target이 없는 경우 캐싱해둔 Target 제거
+		CachedAIComponent->ConsiderList->SelectedTarget = nullptr;
+	}
+	else
+	{
+		CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(SelectTarget);
+	}
+
 	bSelected = true;
 }
 

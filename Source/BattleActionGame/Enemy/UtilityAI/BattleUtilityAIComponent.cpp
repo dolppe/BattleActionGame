@@ -1,7 +1,10 @@
 #include "BattleUtilityAIComponent.h"
 
+#include "AbilitySystemComponent.h"
 #include "BattleActionGame/Enemy/UtilityAI/Actions/BattleUtilityAction.h"
 #include "BattleUtilityAIData.h"
+#include "Actions/BattleUtilityAction_Attack.h"
+#include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
@@ -37,6 +40,148 @@ float UConsiderationFactors::GetMyCombatPotential()
 	
 	return MyHp;
 	
+}
+
+float UConsiderationFactors::GetIsTargetInSight()
+{
+	// 0.5 정면에 딱 맞게 있는것
+	// 0.0 왼쪽에 있는 것
+	// 1.0 오른쪽에 있는 것
+	if (SelectedTarget == nullptr)
+	{
+		return 0.5f;
+	}
+
+	FVector CharacterFwdVector = MyCharacter->GetActorForwardVector();
+	FVector ToTargetVector = (SelectedTarget->GetActorLocation() - MyCharacter->GetActorLocation()).GetSafeNormal();
+
+	float CrossProductZ = FVector::CrossProduct(CharacterFwdVector, ToTargetVector).Z;
+
+	if (FMath::IsNearlyZero(CrossProductZ))
+	{
+		return 0.5f;
+	}
+
+	float DotProduct = FVector::DotProduct(CharacterFwdVector, ToTargetVector);
+
+	if (CrossProductZ > 0.0f)
+	{
+		return 0.5f + (1.0f - DotProduct) * 0.5f;
+	}
+	else
+	{
+		return 0.5f - (1.0f - DotProduct) * 0.5f;
+	}
+	
+}
+
+float UConsiderationFactors::GetNearbyEnemyCount()
+{
+	// 0.4 정도면 가까운 것으로 침 =>
+
+	if (TargetDistances.Num() == 0)
+	{
+		return 0.f;
+	}
+
+	float Count =0.0f;
+	
+	for (float TargetActorDistance : TargetDistances)
+	{
+		if (TargetActorDistance < 0.4f)
+		{
+			Count++;
+		}
+	}
+	
+	
+	float ReturnValue = Count / ThreatCharacterNum;
+	ReturnValue = FMath::Clamp(ReturnValue, 0.0f, 1.0f);
+
+	return ReturnValue;
+}
+
+float UConsiderationFactors::GetThreatScore()
+{
+	// 1 => 위험한 상태
+	// NearbyEnemyCount가 높으면 위협이 큼, 싸울만 한 상태가 아니면 위협이 큼
+	
+	float Result = 1.0f;
+	Result *= GetNearbyEnemyCount();
+	Result *= 1.0f - GetMyCombatPotential();
+	
+	return Result;
+}
+
+float UConsiderationFactors::GetCombatDuration()
+{
+	// 전투 초기 혹은 비전투 => 0, BestCombat => 0.5, 
+	
+	if (!bIsInCombat)
+	{
+		return 0.0f;
+	}
+	else
+	{
+		float CombatTime = GetWorld()->GetTimeSeconds() - CombatStartTime;
+		CombatTime = FMath::Clamp(CombatTime/BestCombatTime *0.5, 0.0f, 1.0f);
+
+		return CombatTime;
+	}
+}
+
+float UConsiderationFactors::GetNearbyWaterAmount()
+{
+	// 주변의 물이 아예 없으면 0, 주변의 물의 퍼센트에 따라서 값 결정
+	return 0.0f;
+}
+
+float UConsiderationFactors::GetEnemyDirection()
+{
+	// 0.5면 중앙, 0.0에 가까울수록 왼쪽에 더 많은 것이고, 1.0으로 가까워질수록 오른쪽에 더 많은 것임
+	// 대신 뒤에 있는 Actor는 신경을 안씀
+	if (TargetActors.IsEmpty())
+	{
+		return 0.5f;
+	}
+	
+	FVector ForwardVector = MyCharacter->GetActorForwardVector();
+	FVector RightVector = MyCharacter->GetActorRightVector();
+	FVector CharacterLocation = MyCharacter->GetActorLocation();
+
+	float RightCount = 0.0f;
+	float TotalCount = 0.0f;
+	for (ABattleCharacterBase* Target : TargetActors)
+	{
+		FVector ToTargetVector = (Target->GetActorLocation() - CharacterLocation).GetSafeNormal();
+
+		float DotProduct = FVector::DotProduct(ForwardVector, ToTargetVector);
+		if (DotProduct <= 0.0f)
+		{
+			continue;
+		}
+		else
+		{
+			TotalCount++;
+			float LeftRight = FVector::DotProduct(RightVector, ToTargetVector);
+			if (LeftRight > 0.0f)
+			{
+				RightCount++;
+			}
+		}
+	}
+	if (TotalCount == 0.0f)
+		return 0.5f;
+
+	return RightCount / TotalCount;
+	
+}
+
+float UConsiderationFactors::GetIsAlone()
+{
+	// 0 => 혼자 아님 1=> 혼자
+
+	return !bIsInCombat;
 }
 
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
@@ -79,20 +224,46 @@ TArray<float> UConsiderationFactors::GetTargetPriority()
 TArray<float> UConsiderationFactors::GetTargetWeakness()
 {
 	// WeakNess 0 => 건강함, 1 => 약해진 상태
-	// Hp가 얼마나 없는지, Distance는 얼마나 가까운지
+	// Hp가 얼마나 없는지
 	// 추후 상태이상에 걸렸는지, Enemy가 주변에 있는지
-	// 
+	// 독에 걸렸으면 1.0f 곱하고, 안걸렸으면 0.7f
 	TArray<float> ResultArray;
 
 	for (int Idx =0; Idx<TargetActors.Num();Idx++)
 	{
 		float Result = 1.0f;
 		Result *= (1 - TargetHps[Idx]);
-		Result *= (1 - TargetDistances[Idx]);
 
+		UAbilitySystemComponent* ASC = TargetActors[Idx]->GetAbilitySystemComponent();
+
+		if (ASC != nullptr && ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Poisoned))
+		{
+			Result *= 0.7f;
+		}
+		
 		ResultArray.Add(Result);
 	}
 	
+	return ResultArray;
+}
+
+TArray<float> UConsiderationFactors::GetTargetPoisonedState()
+{
+	// 0 => 독안걸림 1 => 걸림
+	TArray<float> ResultArray;
+
+	for (ABattleCharacterBase* TargetActor : TargetActors)
+	{
+		if (TargetActor->GetAbilitySystemComponent()->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Poisoned))
+		{
+			ResultArray.Add(1.0f);
+		}
+		else
+		{
+			ResultArray.Add(0.0f);
+		}
+	}
+
 	return ResultArray;
 }
 
@@ -121,6 +292,48 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 		return [this]() -> float
 		{
 			return GetMyCombatPotential();
+		};
+		break;
+	case EBattleConsiderType::IsTargetInSight:
+		return [this]() -> float
+		{
+			return GetIsTargetInSight();
+		};
+		break;
+	case EBattleConsiderType::NearbyEnemyCount:
+		return [this]() -> float
+		{
+			return GetNearbyEnemyCount();
+		};
+		break;
+	case EBattleConsiderType::ThreatScore:
+		return [this]() -> float
+		{
+			return GetThreatScore();
+		};
+		break;
+	case EBattleConsiderType::CombatDuration:
+		return [this]() -> float
+		{
+			return GetCombatDuration();
+		};
+		break;
+	case EBattleConsiderType::NearbyWaterAmount:
+		return [this]() -> float
+		{
+			return GetNearbyWaterAmount();
+		};
+		break;
+	case EBattleConsiderType::EnemyDirection:
+		return [this]() -> float
+		{
+			return GetEnemyDirection();
+		};
+		break;
+	case EBattleConsiderType::IsAlone:
+		return [this]() -> float
+		{
+			return GetIsAlone();
 		};
 		break;
 	default:
@@ -159,6 +372,12 @@ TFunction<TArray<float>()> UConsiderationFactors::GetArrayConsiderFunction(EBatt
 			return GetTargetWeakness();
 		};
 		break;
+	case EBattleConsiderType::TargetPoisonedState:
+		return [this]() -> TArray<float>
+		{
+			return GetTargetPoisonedState();
+		};
+		break;
 	default:
 		return [this]() -> TArray<float>
 		{
@@ -175,16 +394,15 @@ EAxisType UConsiderationFactors::GetAxisType(EBattleConsiderType ConsiderType)
 	case EBattleConsiderType::TargetDistanceNearly:
 	case EBattleConsiderType::TargetPriority:
 	case EBattleConsiderType::TargetWeakness:
+	case EBattleConsiderType::TargetPoisonedState:
 		return EAxisType::Target;
-	case EBattleConsiderType::HasTarget:
-	case EBattleConsiderType::MyHp:
-	case EBattleConsiderType::MyCombatPotential:
+	default:
 		return EAxisType::Single;
 	}
 	return EAxisType::Single;
 }
 
-void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* UtilityAIData)
+void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* UtilityAIData, UBattleUtilityAIComponent* InUtilityAIComponent)
 {
 	for (EBattleConsiderType ConsiderType: UtilityAIData->Consider)
 	{
@@ -201,8 +419,10 @@ void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* Uti
 		
 	}
 
-	UtilityAIComponent = Cast<UBattleUtilityAIComponent>(GetOuter());
+	UtilityAIComponent = InUtilityAIComponent;
 	MyCharacter = Cast<ABattleCharacterBase>(UtilityAIComponent->GetOwner());
+	BestCombatTime = UtilityAIComponent->BestCombatTime;
+	ThreatCharacterNum = UtilityAIComponent->ThreatCharacterNum;
 }
 
 void UConsiderationFactors::ClearConsiderFactors()
@@ -228,9 +448,11 @@ void UConsiderationFactors::SearchNearActors()
 	// 이걸로 Target 찾아서 지정하기
 	GetWorld()->OverlapMultiByChannel(OutOverlaps, Center, FQuat::Identity, Battle_TraceChannel_AttackToCharacter, FCollisionShape::MakeSphere(Radius));
 
+	ClearConsiderFactors();
+	
 	if (!OutOverlaps.IsEmpty())
 	{
-		ClearConsiderFactors();
+		
 		for (FOverlapResult& OverlapResult : OutOverlaps)
 		{
 			AActor* OverlappedActor = OverlapResult.GetActor();
@@ -246,12 +468,21 @@ void UConsiderationFactors::SearchNearActors()
 				}
 			}
 		}
-
 	}
 
+	if (TargetActors.IsEmpty() && bIsInCombat == true)
+	{
+		bIsInCombat = false;
+		SelectedTarget = nullptr;
+	}
+	else if (!TargetActors.IsEmpty() && bIsInCombat == false)
+	{
+		CombatStartTime = GetWorld()->GetTimeSeconds();
+		bIsInCombat = true;
+	}
+	
 	float MaxTargetDistance = UtilityAIComponent->MaxTargetDistance;
 
-	
 	
 	// Target 나온 것을 토대로
 	for (ABattleCharacterBase* Character : TargetActors)
@@ -290,6 +521,11 @@ void UBattleUtilityAIComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (GetWorld()->GetNetMode() == NM_Client)
+	{
+		return;
+	}
+
 	for (FActionConfig ActionConfig : UtilityAIData->ActionConfigs)
 	{
 		UBattleUtilityAction* NewAction = NewObject<UBattleUtilityAction>(this, ActionConfig.ActionClass);
@@ -299,8 +535,9 @@ void UBattleUtilityAIComponent::BeginPlay()
 		InstancedActions.Add(NewAction);
 	}
 
+	ConsiderList = NewObject<UConsiderationFactors>(GetOwner(), UConsiderationFactors::StaticClass());
 
-	ConsiderList->InitConsiderFunction(UtilityAIData);
+	ConsiderList->InitConsiderFunction(UtilityAIData, this);
 	
 	CollectConsiderFactors();
 
@@ -311,19 +548,17 @@ void UBattleUtilityAIComponent::BeginPlay()
 void UBattleUtilityAIComponent::PostInitProperties()
 {
 	Super::PostInitProperties();
-	ConsiderList = NewObject<UConsiderationFactors>(this, UConsiderationFactors::StaticClass());
+
 }
 
 void UBattleUtilityAIComponent::CollectConsiderFactors()
 {
 	ConsiderList->GetConsiderListData();
-
-	UE_LOG(LogBattle, Log, TEXT("Consider Factor"));
 	
 	for (TTuple<EBattleConsiderType, float>& Factor :ConsiderList->Factors)
 	{
 		Factor.Value = ConsiderList->Functions[Factor.Key]();
-		UE_LOG(LogBattle, Log, TEXT("%s Factor Value: %f"), *EnumToString(Factor.Key), Factor.Value);
+		//UE_LOG(LogBattle, Log, TEXT("%s Factor Value: %f"), *EnumToString(Factor.Key), Factor.Value);
 	}
 
 	for (TTuple<EBattleConsiderType, TArray<float>>& ArrayFactor : ConsiderList->ArrayFactors)
@@ -331,7 +566,7 @@ void UBattleUtilityAIComponent::CollectConsiderFactors()
 		ArrayFactor.Value = ConsiderList->ArrayFunctions[ArrayFactor.Key]();
 		for (float DebugValue : ArrayFactor.Value)
 		{
-			UE_LOG(LogBattle, Log, TEXT("%s Factor Value: %f"), *EnumToString(ArrayFactor.Key), DebugValue);
+			//UE_LOG(LogBattle, Log, TEXT("%s Factor Value: %f"), *EnumToString(ArrayFactor.Key), DebugValue);
 		}
 	}
 }
@@ -342,6 +577,8 @@ void UBattleUtilityAIComponent::SelectBestAction()
 {
 
 	CollectConsiderFactors();
+
+	UE_LOG(LogBattle, Log, TEXT("SelectBestAction Start"));
 	
 	float BestScore = 0.0f;
 	UBattleUtilityAction* BestAction = nullptr;
@@ -349,18 +586,26 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	for (UBattleUtilityAction* Action : InstancedActions)
 	{
 		float CurScore = Action->EvaluateScore(ConsiderList);
+
 		if (BestScore < CurScore)
 		{
 			BestScore = CurScore;
 			BestAction = Action;
+
 		}
 	}
-
+	if (BestAction != nullptr)
+	{
+		UE_LOG(LogBattle, Log, TEXT("Best Action Is : %s"), *BestAction->GetName());
+	}
+	
 	if (ActiveAction == nullptr)
 	{
+		
 		ActiveAction = BestAction;
 		ActiveAction->StartAction();
 		bActionComplete = false;
+		UE_LOG(LogBattle, Log, TEXT("ActiveAction Is Nullptr => %s Start"), *ActiveAction->GetName());
 	}
 	else if (bActionComplete)
 	{
@@ -371,6 +616,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction->StartAction();
 		bActionComplete = false;
 
+		UE_LOG(LogBattle, Log, TEXT("bActionComplete Is True => %s Start"), *ActiveAction->GetName());
 	}
 	else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
 	{
@@ -380,6 +626,8 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction = BestAction;
 		ActiveAction->StartAction();
 		bActionComplete = false;
+
+		UE_LOG(LogBattle, Log, TEXT("Priority Change => %s Start"), *ActiveAction->GetName());
 		
 	}
 	

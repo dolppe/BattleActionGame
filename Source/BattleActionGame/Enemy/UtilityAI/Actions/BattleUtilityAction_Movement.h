@@ -22,6 +22,8 @@ public:
 
 	virtual bool TickAction(float DeltaTime) override;
 
+	void UpdateAge();
+
 	
 protected:
 
@@ -32,8 +34,72 @@ protected:
 
 	bool bStartMovement;
 
+	float CoolTime = 5.0f;
 	
 };
 
+UCLASS()
+class UBattleUtilityAction_TurnToTarget : public UBattleUtilityAction
+{
+	GENERATED_BODY()
 
+public:
+
+	UBattleUtilityAction_TurnToTarget();
+
+	virtual void StartAction() override;
+
+	virtual void EndAction() override;
+
+	virtual bool TickAction(float DeltaTime) override;
+
+protected:
+	
+	TObjectPtr<ABattleCharacterBase> SelectedTarget;
+
+	TObjectPtr<ABattleCharacterBase> MyCharacter;
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_PatrolAround : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_PatrolAround();
+
+	virtual void StartAction() override;
+
+	virtual void EndAction() override;
+
+	virtual bool TickAction(float DeltaTime) override;
+
+protected:
+
+	TObjectPtr<ABattleCharacterBase> MyCharacter;
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_RunCombat : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_RunCombat();
+
+	virtual void StartAction() override;
+
+	virtual void EndAction() override;
+
+	virtual bool TickAction(float DeltaTime) override;
+
+protected:
+		
+	TObjectPtr<ABattleCharacterBase> MyCharacter;
+	
+};
 

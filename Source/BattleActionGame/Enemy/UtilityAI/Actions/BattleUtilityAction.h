@@ -54,7 +54,7 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UBattleUtilityArrayAxis>> ArrayAxisArray;
 
-	uint8 Priority = 1;
+	uint8 Priority = 2;
 
 	float Weight;
 
@@ -63,6 +63,8 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> BestTargets;
+
+	float Age = 1.0f;
 	
 	
 };

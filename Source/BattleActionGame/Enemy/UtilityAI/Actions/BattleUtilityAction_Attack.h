@@ -27,7 +27,7 @@ public:
 
 	virtual float EvaluateScore(const UConsiderationFactors* ConsiderList) override;
 
-	
+	void UpdateAge();
 
 protected:
 
@@ -42,6 +42,11 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;
+
+	UPROPERTY(EditDefaultsOnly)
+	float CoolTime = 7.0f;
+
+
 	
 };
 

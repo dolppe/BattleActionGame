@@ -17,12 +17,21 @@ enum class EBattleConsiderType : uint8
 	MyHp UMETA(DisplayName = "MyHp"),
 	HasTarget UMETA(DisplayName = "HasTarget"),
 	MyCombatPotential UMETA(DisplayName = "MyCombatPotential"),
+	IsTargetInSight UMETA(DisplayName = "IsTargetInSight"),
+	NearbyEnemyCount UMETA(DisplayName = "NearbyEnemyCount"),
+	ThreatScore UMETA(DisplayName = "ThreatScore"),
+	CombatDuration UMETA(DisplayName = "CombatDuration"),
+	NearbyWaterAmount UMETA(DisplayName = "NearbyWaterAmount"),
+	EnemyDirection UMETA(DisplayName = "EnemyDirection"),
+	IsAlone UMETA(DisplayName = "IsAlone"),
+	
 
 	// Array
 	TargetDistanceNearly UMETA(DisplayName = "TargetDistanceNearly"),
 	TargetHp UMETA(DisplayName = "TargetHp"),
 	TargetPriority UMETA(DisplayName = "TargetPriority"),
-	TargetWeakness UMETA(DisplayName = "TargetWeakness")
+	TargetWeakness UMETA(DisplayName = "TargetWeakness"),
+	TargetPoisonedState UMETA(DisplayName = "TargetPoisonedState"),
 	
 };
 
@@ -36,7 +45,7 @@ enum class EAxisType : uint8
 
 DECLARE_ENUM_TO_STRING(EBattleConsiderType);
 
-UCLASS()
+UCLASS(BlueprintType)
 class UConsiderationFactors : public UObject
 {
 	GENERATED_BODY()
@@ -56,18 +65,27 @@ public:
 	TArray<float> GetTargetHp();
 	TArray<float> GetTargetPriority();
 	TArray<float> GetTargetWeakness();
+	TArray<float> GetTargetPoisonedState();
 
 	// Axis
 	float GetMyHp();
 	float GetTarget();
 	float GetMyCombatPotential();
+	float GetIsTargetInSight();
+	float GetNearbyEnemyCount();
+	float GetThreatScore();
+	float GetCombatDuration();
+	float GetNearbyWaterAmount();
+	float GetEnemyDirection();
+	float GetIsAlone();
+
 
 	TFunction<float()> GetConsiderFunction(EBattleConsiderType ConsiderType);
 	TFunction<TArray<float>()> GetArrayConsiderFunction(EBattleConsiderType ConsiderType);
 
 	EAxisType GetAxisType(EBattleConsiderType ConsiderType);
 	
-	void InitConsiderFunction(const UBattleUtilityAIData* UtilityAIData);
+	void InitConsiderFunction(const UBattleUtilityAIData* UtilityAIData, UBattleUtilityAIComponent* InUtilityAIComponent);
 	void ClearConsiderFactors();
 
 
@@ -96,6 +114,12 @@ public:
 	TArray<float> TargetHps;
 
 	float MyHp;
+	
+	bool bIsInCombat = false;
+	float CombatStartTime = -1;
+
+	float BestCombatTime;
+	float ThreatCharacterNum;
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;
@@ -155,9 +179,15 @@ protected:
 	float UpdatePeriod = 0.5f;
 	UPROPERTY(EditAnywhere)
 	float MaxTargetDistance = 5000.0f;
+	UPROPERTY(EditAnywhere)
+	float BestCombatTime = 10.0f;
+	UPROPERTY(EditAnywhere)
+	float ThreatCharacterNum = 3.0f;
+	
 
 
 
+	
 	
 	
 };
