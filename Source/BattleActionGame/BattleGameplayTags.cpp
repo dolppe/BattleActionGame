@@ -56,6 +56,9 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	 */
 
 	AddTag(GameplayEffect_Data_AttackRate, "GameplayEffect.Data.AttackRate", "");
+
+	AddTag(Gameplay_Breakable_LeftLeg, "Gameplay.Breakable.LeftLeg", "");
+	AddTag(Gameplay_Breakable_RightLeg, "Gameplay.Breakable.RightLeg", "");
 	
 	
 }

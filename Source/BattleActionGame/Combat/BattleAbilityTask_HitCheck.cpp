@@ -51,6 +51,7 @@ void UBattleAbilityTask_HitCheck::TickTask(float DeltaTime)
 	TArray<FHitResult> HitResults;
 
 	FCollisionQueryParams Temp;
+	Temp.bReturnPhysicalMaterial = true;
 
 	float Radius = AttackRadius;
 	
