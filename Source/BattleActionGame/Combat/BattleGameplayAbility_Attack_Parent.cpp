@@ -98,6 +98,16 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& Hi
 	// 실제 데미지 처리, 서버에서 바로 호출되는 경우 거리에 따른 Hit 검사를 안함.
 
 	AActor* HitActor = HitResult.GetActor();
+	if (IAbilitySystemInterface* AbilitySystemObject = Cast<IAbilitySystemInterface>(HitActor))
+	{
+		if (UAbilitySystemComponent* ASC = AbilitySystemObject->GetAbilitySystemComponent())
+		{
+			if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry))
+			{
+				return;
+			}
+		}
+	}
 	if (IsValid(HitActor))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Hit Success => Damage"));

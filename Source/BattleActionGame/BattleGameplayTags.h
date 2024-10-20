@@ -42,6 +42,7 @@ public:
 	
 	FGameplayTag Status_Attack_Attacking;
 	FGameplayTag Status_Poisoned;
+	FGameplayTag Status_Parry;
 
 
 	/*
