@@ -52,6 +52,9 @@ public:
 
 	UPROPERTY()
 	FVector PreviousStart;
+
+	UPROPERTY()
+	FVector PreviousMiddle;
 	
 	UPROPERTY()
 	FVector PreviousEnd;

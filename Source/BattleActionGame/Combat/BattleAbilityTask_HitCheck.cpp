@@ -38,6 +38,7 @@ void UBattleAbilityTask_HitCheck::Activate()
 
 	PreviousStart = MeshComp->GetSocketLocation(*StartName);
 	PreviousEnd = MeshComp->GetSocketLocation(*EndName);
+	PreviousMiddle = FMath::Lerp(PreviousStart, PreviousEnd, 0.5f);
 }
 
 void UBattleAbilityTask_HitCheck::OnDestroy(bool bInOwnerFinished)
@@ -83,14 +84,19 @@ void UBattleAbilityTask_HitCheck::PerformHitCheckWithLerpNotStep(FVector& CurWea
 
 	TArray<FHitResult> OutHitResults;
 
-	GetWorld()->SweepMultiByChannel(OutHitResults, CurWeaponStart, PreviousStart, FQuat::Identity, CollisionChannel, FCollisionShape::MakeSphere(AttackRadius),Temp);
+	FVector CurWeaponMiddle = FMath::Lerp(CurWeaponStart, CurWeaponEnd, 0.5f); 
+	PreviousMiddle = FMath::Lerp(PreviousStart, PreviousEnd, 0.5f);
 
+	GetWorld()->SweepMultiByChannel(OutHitResults, CurWeaponStart, PreviousStart, FQuat::Identity, CollisionChannel, FCollisionShape::MakeSphere(AttackRadius),Temp);
 	GetWorld()->SweepMultiByChannel(OutHitResults, CurWeaponEnd, PreviousEnd, FQuat::Identity, CollisionChannel, FCollisionShape::MakeSphere(AttackRadius),Temp);
+	GetWorld()->SweepMultiByChannel(OutHitResults, CurWeaponMiddle, PreviousMiddle, FQuat::Identity, CollisionChannel, FCollisionShape::MakeSphere(AttackRadius),Temp);
+	
 
 	bool bIsHit = HandleHit(OutHitResults);
 
 	DrawDebug(CurWeaponStart, PreviousStart, false);
 	DrawDebug(CurWeaponEnd, PreviousEnd, false);
+	DrawDebug(CurWeaponMiddle, PreviousMiddle, false);
 	
 }
 
