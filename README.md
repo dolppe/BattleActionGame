@@ -10,7 +10,8 @@
     - 부위파괴 시스템
     - 회피 시스템
 
-- 프로젝트에 대한 자세한 설명은 https://harmonious-soarer-fb1.notion.site/RPG-126ed0548bcd80229a31ee111f0a5fc9 에 있습니다.
+- 프로젝트에 대한 자세한 설명은  
+  https://harmonious-soarer-fb1.notion.site/RPG-126ed0548bcd80229a31ee111f0a5fc9 에 있습니다.
 
 ## Requirements
 
