@@ -1,6 +1,8 @@
 #pragma once
 
+#include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
+#include "BattleActionGame/Messages/BattleVerbMessage.h"
 #include "BattleGameplayAbility_Attack_Parent.generated.h"
 
 class UBattleCombatData;
@@ -15,6 +17,7 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -27,18 +30,28 @@ protected:
 
 	virtual void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
 
+	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification);
+
+	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification);
+
 	UFUNCTION()
 	virtual void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
 	UFUNCTION()
 	virtual void OnCompleted();
 	UFUNCTION()
 	virtual void OnInterrupted();
+	UFUNCTION()
+	virtual void OnBlendOut();
 
 	UFUNCTION()
 	virtual void OnRep_AlreadyHitActors();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAttackStart();
 	
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	uint8 AttackMode = 0;
 
 	UPROPERTY()
@@ -52,7 +65,11 @@ protected:
 
 	float AcceptHitDistance = 1500.f;
 	float AttackRate = 1.0f;
+
+protected:
 	
+	FGameplayMessageListenerHandle StartListenerHandle;
+	FGameplayMessageListenerHandle EndListenerHandle;
 	
 };
 

@@ -49,7 +49,8 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	 *	Comboat
 	 */
 
-	AddTag(Combat_Attack_Event, "Combat.Attack.Event", "");
+	AddTag(Combat_Attack_Event_Start, "Combat.Attack.Event.Start", "");
+	AddTag(Combat_Attack_Event_End, "Combat.Attack.Event.End", "");
 
 	/*
 	 * GameplayEffectData

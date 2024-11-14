@@ -3,6 +3,7 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 #include "BattleGameplayAbility_Attack.generated.h"
 
+class UBattleAbilityTask_HitCheck;
 class UBattleCombatData;
 struct FSingleAttack;
 
@@ -37,10 +38,15 @@ protected:
 	
 	virtual void OnRep_AlreadyHitActors() override;
 
+	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 
-protected:
+	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 
-	TObjectPtr<FSingleAttack> CurrentAttackData;
-	
+
+private:
+
+	UBattleAbilityTask_HitCheck* HitCheckTask;
+
+
 };
 

@@ -18,7 +18,7 @@ void UAnimNotify_SendAttackMessage::Notify(USkeletalMeshComponent* MeshComp, UAn
 		if (ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(MeshComp->GetOwner()))
 		{
 			FBattleVerbMessage Message;
-			Message.Verb = FBattleGameplayTags::Get().Combat_Attack_Event;
+			Message.Verb = SendGameplayTag;
 			Message.Target = CharacterBase;
 
 			if (CharacterBase->GetWorld())

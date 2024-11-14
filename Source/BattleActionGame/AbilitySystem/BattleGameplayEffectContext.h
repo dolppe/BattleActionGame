@@ -2,9 +2,12 @@
 
 #include "BattleAbilitySourceInterface.h"
 #include "GameplayEffectTypes.h"
+#include "UObject/Class.h"
+#include "UObject/WeakObjectPtr.h"
+#include "UObject/WeakObjectPtrTemplates.h"
 #include "BattleGameplayEffectContext.generated.h"
 
-
+class FArchive;
 class IBattleAbilitySourceInterface;
 
 USTRUCT()
@@ -39,6 +42,8 @@ struct FBattleGameplayEffectContext : public FGameplayEffectContext
 		}
 		return NewContext;
 	}
+	
+	virtual bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess) override;
 
 	virtual UScriptStruct* GetScriptStruct() const override
 	{
@@ -52,3 +57,15 @@ protected:
 	TWeakObjectPtr<const UObject> AbilitySourceObject;
 	
 };
+
+
+template<>
+struct TStructOpsTypeTraits<FBattleGameplayEffectContext> : public TStructOpsTypeTraitsBase2<FBattleGameplayEffectContext>
+{
+	enum
+	{
+		WithNetSerializer = true,
+		WithCopy = true
+	};
+};
+

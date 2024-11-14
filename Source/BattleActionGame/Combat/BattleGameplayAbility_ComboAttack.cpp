@@ -4,6 +4,7 @@
 #include "BattleAbilityTask_HitCheck.h"
 #include "BattleCombatManagerComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -28,14 +29,15 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentComboAttackData = CurrentCombatManager->GetComboData(AttackMode);
-	CurrentAttackMontage = CurrentCombatManager->GetComboMontage(AttackMode);
+	CurrentComboAttackData = &CurrentCombatManager->GetComboData(AttackMode);
+	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Combo, AttackMode);
 
 	FName MontageSectionName = GetNextSection();
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 1.0f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::OnCompleted);
 	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::OnInterrupted);
+	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::OnBlendOut);
 	PlayAttackMontage->ReadyForActivation();
 
 	UE_LOG(LogTemp, Log, TEXT("%s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
@@ -46,10 +48,11 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	{
 		UE_LOG(LogTemp, Log, TEXT("ClientAttackStart"));
 		StartComboTimer(MontageSectionName);
-		UBattleAbilityTask_HitCheck* HitCheck = UBattleAbilityTask_HitCheck::CreateTask(this);
-		HitCheck->SetHitCheckData(CurrentComboAttackData->StartSocketName, CurrentComboAttackData->EndSocketName, CurrentComboAttackData->AttackRadius, CurrentComboAttackData->CollisionChannel);
-		HitCheck->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::SelectHitCheck);
-		HitCheck->ReadyForActivation();
+
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_ComboAttack::StartHitCheck);
+		EndListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_End, this, &UBattleGameplayAbility_ComboAttack::EndHitCheck);
 
 		UE_LOG(LogTemp, Log, TEXT("Client: %s"),*Character->GetAbilitySystemComponent()->GetAnimatingAbility()->GetName());
 	}
@@ -68,7 +71,7 @@ void UBattleGameplayAbility_ComboAttack::InputPressed(const FGameplayAbilitySpec
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-
+	
 	if (CurrentComboAttackData->MaxComboCount <= CurrentComboIndex)
 	{
 		return;
@@ -153,6 +156,7 @@ void UBattleGameplayAbility_ComboAttack::CheckComboInput()
 		MontageJumpToSection(MontageSection);
 		ServerRPCMontageSectionChanged(CurrentComboIndex);
 		StartComboTimer(MontageSection);
+		OnAttackStart();
 		bHasNextComboInput = false;
 		bAllowedInput = false;
 	}
@@ -221,4 +225,17 @@ void UBattleGameplayAbility_ComboAttack::OnRep_AlreadyHitActors()
 
 void UBattleGameplayAbility_ComboAttack::OnRep_HasNextComboInput()
 {
+}
+
+void UBattleGameplayAbility_ComboAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+{
+	HitCheckTask = UBattleAbilityTask_HitCheck::CreateTask(this);
+	HitCheckTask->SetHitCheckData(CurrentComboAttackData->StartSocketName, CurrentComboAttackData->EndSocketName, CurrentComboAttackData->AttackRadius, CurrentComboAttackData->CollisionChannel);
+	HitCheckTask->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::SelectHitCheck);
+	HitCheckTask->ReadyForActivation();
+}
+
+void UBattleGameplayAbility_ComboAttack::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+{
+	HitCheckTask->EndTask();
 }

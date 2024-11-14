@@ -27,25 +27,24 @@ void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbili
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentHitCheckData = CurrentCombatManager->GetHitCheckAttackData(AttackMode);
-	CurrentAttackMontage = CurrentCombatManager->GetHitCheckAttackMontage(AttackMode);
+	const FHitCheckAttack& CurrentHitCheckData = CurrentCombatManager->GetHitCheckAttackData(AttackMode);
+	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::HitCheck, AttackMode);
 
-	AttackRate = CurrentHitCheckData->AttackRate;
+	AttackRate = CurrentHitCheckData.AttackRate;
 
-	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentHitCheckData->MontageSectionName, 1);
+	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentHitCheckData.MontageSectionName, 1);
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 0.65f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_HitCheckAttack::OnCompleted);
 	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_HitCheckAttack::OnInterrupted);
+	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_HitCheckAttack::OnBlendOut);
 	PlayAttackMontage->ReadyForActivation();
 
 	if (Character->IsLocallyControlled())
 	{
-		UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
-
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
-		ListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event, this, &UBattleGameplayAbility_HitCheckAttack::AttackEvent);
+		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_HitCheckAttack::StartHitCheck);
 		
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
@@ -68,10 +67,7 @@ void UBattleGameplayAbility_HitCheckAttack::EndAbility(const FGameplayAbilitySpe
 	if (Character->IsLocallyControlled())
 	{
 		// 테스크 실행
-		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
-		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
-		MessageSystem.UnregisterListener(ListenerHandle);
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -132,7 +128,12 @@ void UBattleGameplayAbility_HitCheckAttack::OnRep_AlreadyHitActors()
 
 void UBattleGameplayAbility_HitCheckAttack::AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
-	if (Notification.Target == GetAvatarActorFromActorInfo())
+
+}
+
+void UBattleGameplayAbility_HitCheckAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+{
+		if (Notification.Target == GetAvatarActorFromActorInfo())
 	{
 		// Trace해서 처리 후 SelectHitCheck에 전송
 		TArray<FHitResult> HitResults;
@@ -146,13 +147,16 @@ void UBattleGameplayAbility_HitCheckAttack::AttackEvent(FGameplayTag Channel, co
 		FCollisionQueryParams Temp;
 		
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		FVector Start = SkeletalMesh->GetSocketLocation(*CurrentHitCheckData->StartSocketName);
-		FVector End = Start + ForwardDirection*CurrentHitCheckData->AttackRange;
-
-		float Radius = CurrentHitCheckData->AttackRadius;
 		
-		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CurrentHitCheckData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
+		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(CharacterBase->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
+		const FHitCheckAttack& CurrentHitCheckData = CurrentCombatManager->GetHitCheckAttackData(AttackMode);
+
+		FVector Start = SkeletalMesh->GetSocketLocation(*CurrentHitCheckData.StartSocketName);
+		FVector End = Start + ForwardDirection*CurrentHitCheckData.AttackRange;
+
+		float Radius = CurrentHitCheckData.AttackRadius;
+		
+		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CurrentHitCheckData.CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
 		
 		FColor HitColor = FColor::Red; 
 	

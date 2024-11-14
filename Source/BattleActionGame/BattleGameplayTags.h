@@ -49,7 +49,8 @@ public:
 	 * Combat
 	 */
 
-	FGameplayTag Combat_Attack_Event;
+	FGameplayTag Combat_Attack_Event_Start;
+	FGameplayTag Combat_Attack_Event_End;
 
 	/*
 	 * GameplayEffectData
