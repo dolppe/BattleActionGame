@@ -1,5 +1,6 @@
 #include "BattleHeroComponent.h"
 
+#include "BattleCharacter.h"
 #include "BattlePawnExtensionComponent.h"
 #include "EnhancedInputSubsystemInterface.h"
 #include "EnhancedInputSubsystems.h"
@@ -13,6 +14,8 @@
 #include "BattleActionGame/Player/BattlePlayerController.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleHeroComponent)
 
@@ -317,6 +320,11 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
+	if (!bAllowedInput)
+	{
+		return;
+	}
+	
 	APawn* Pawn = GetPawn<APawn>();
 	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
 
@@ -387,7 +395,76 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 	}
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
 
+void UBattleHeroComponent::PerformDirectionalMove(FVector Direction, float Strength, float ZForce)
+{
+	APawn* Pawn = GetPawn<APawn>();
+
+	Direction = Direction * Strength;
+	Direction.Z = ZForce;
+	
+	if (ACharacter* Character = Cast<ACharacter>(Pawn))
+	{
+		Character->LaunchCharacter(Direction*Strength, true, true);
+	}
+	
+}
+
+void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, float ZForce)
+{
+	if (KnockbackMontage)
+	{
+		APawn* Pawn = GetPawn<APawn>();
+
+		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
+		{
+			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+			Character->GetCharacterMovement()->AirControl = 0.0f;
+
+			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
+			{
+				ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
+			}
+			
+			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+			AnimInstance->Montage_Play(KnockbackMontage, 2.f);
+
+			AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
+
+			PerformDirectionalMove(Direction, Strength, ZForce);
+		}
+		
+	}
+	
+	
+}
+
+void UBattleHeroComponent::OnKnockbackEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage == KnockbackMontage)
+	{
+		APawn* Pawn = GetPawn<APawn>();
+
+		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
+		{
+			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
+			{
+				ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
+			}
+			
+			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+			AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
+		}
+		
+	}
+	
+}
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 bool UBattleHeroComponent::IsReadyToBindInputs() const
 {
@@ -422,4 +499,9 @@ void UBattleHeroComponent::AdditionalInputConfig(const UBattleInputConfig* Input
 
 void UBattleHeroComponent::RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig)
 {
+}
+
+void UBattleHeroComponent::SetAllowedInput(bool bInAllowedInput)
+{
+	bAllowedInput = bInAllowedInput;
 }

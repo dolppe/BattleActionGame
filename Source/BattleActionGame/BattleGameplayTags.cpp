@@ -44,6 +44,9 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(Status_Attack_Attacking, "Status.Attack.Attacking", "");
 	AddTag(Status_Poisoned, "Status.Poisoned", "");
 	AddTag(Status_Parry, "Status.Parry", "");
+	
+	AddTag(Status_KnockBack, "Status.KnockBack", "");
+	
 
 	/*
 	 *	Comboat

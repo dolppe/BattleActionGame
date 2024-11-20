@@ -51,9 +51,20 @@ public:
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 
+	UFUNCTION(BlueprintCallable)
+	void PerformDirectionalMove(FVector Direction, float Strength, float ZForce);
+
+	UFUNCTION(BlueprintCallable)
+	void PerformKnockback(FVector Direction, float Strength, float ZForce);
+
+	UFUNCTION()
+	void OnKnockbackEnded(UAnimMontage* Montage, bool bInterrupted);
+
 	bool IsReadyToBindInputs() const;
 	void AdditionalInputConfig(const UBattleInputConfig* InputConfig);
 	void RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig);
+
+	void SetAllowedInput(bool bInAllowedInput);
 	
 protected:
 
@@ -67,5 +78,13 @@ protected:
 
 	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
 
+protected:
+
+	bool bAllowedInput = true;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* KnockbackMontage;
+	
+	
 	
 };

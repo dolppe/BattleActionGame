@@ -44,6 +44,8 @@ public:
 	FGameplayTag Status_Poisoned;
 	FGameplayTag Status_Parry;
 
+	FGameplayTag Status_KnockBack;
+
 
 	/*
 	 * Combat

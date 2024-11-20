@@ -133,7 +133,7 @@ void UBattleGameplayAbility_HitCheckAttack::AttackEvent(FGameplayTag Channel, co
 
 void UBattleGameplayAbility_HitCheckAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
-		if (Notification.Target == GetAvatarActorFromActorInfo())
+	if (Notification.Target == GetAvatarActorFromActorInfo())
 	{
 		// Trace해서 처리 후 SelectHitCheck에 전송
 		TArray<FHitResult> HitResults;
