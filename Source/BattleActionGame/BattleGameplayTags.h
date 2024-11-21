@@ -44,12 +44,15 @@ public:
 	FGameplayTag Status_Poisoned;
 	FGameplayTag Status_Parry;
 
+	FGameplayTag Status_KnockBack;
+
 
 	/*
 	 * Combat
 	 */
 
-	FGameplayTag Combat_Attack_Event;
+	FGameplayTag Combat_Attack_Event_Start;
+	FGameplayTag Combat_Attack_Event_End;
 
 	/*
 	 * GameplayEffectData

@@ -44,11 +44,13 @@ protected:
 
 	void AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification);
 
+	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
+
 	
 private:
 
-	FGameplayMessageListenerHandle ListenerHandle;
 
-	TObjectPtr<FHitCheckAttack> CurrentHitCheckData;
+	
+
 	
 };

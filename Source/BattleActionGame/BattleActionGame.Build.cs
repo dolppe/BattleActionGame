@@ -40,8 +40,11 @@ public class BattleActionGame : ModuleRules
 			"AIModule",
 			// MessageSystem
 			"GameplayMessageRuntime",
+			// Physics
 			"NavigationSystem",
 			"PhysicsCore",
+			// Effect
+			"Niagara",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

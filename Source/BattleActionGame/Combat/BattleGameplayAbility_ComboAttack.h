@@ -1,11 +1,13 @@
 #pragma once
 
 #include "BattleGameplayAbility_Attack_Parent.h"
+#include "BattleCombatData.h"
 #include "BattleGameplayAbility_ComboAttack.generated.h"
 
-struct FComboAttack;
+
 class UBattleCombatManagerComponent;
 class UBattleCombatData;
+class UBattleAbilityTask_HitCheck;
 
 UCLASS()
 class UBattleGameplayAbility_ComboAttack : public UBattleGameplayAbility_Attack_Parent
@@ -52,8 +54,12 @@ protected:
 	virtual void OnInterrupted() override;
 	
 	virtual void OnRep_AlreadyHitActors() override;
+	
 	UFUNCTION()
 	void OnRep_HasNextComboInput();
+
+	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
+	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 	
 protected:
 	
@@ -65,6 +71,12 @@ protected:
 	bool bHasNextComboInput;
 
 	TObjectPtr<UBattleCombatManagerComponent> CurrentCombatManager;
-	TObjectPtr<FComboAttack> CurrentComboAttackData;
+
+
+private:
+
+	const FComboAttack* CurrentComboAttackData;
+
+	UBattleAbilityTask_HitCheck* HitCheckTask;
 	
 };

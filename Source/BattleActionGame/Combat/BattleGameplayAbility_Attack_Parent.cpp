@@ -2,6 +2,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -19,6 +20,8 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
                                                            const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
+	OnAttackStart();
 
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -29,19 +32,23 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
 		}
 	}
-	
 }
 
 void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-
-	if (GetWorld()->GetNetMode() == NM_Client)
+	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
+	
+	if (Character->IsLocallyControlled())
 	{
-		
+		// 테스크 실행
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+		MessageSystem.UnregisterListener(StartListenerHandle);
+		MessageSystem.UnregisterListener(EndListenerHandle);
 	}
-	else
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		AlreadyHitActors.Reset();
 		
@@ -53,7 +60,16 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 		}
 	}
 	
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UBattleGameplayAbility_Attack_Parent::CancelAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateCancelAbility)
+{
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+	
 }
 
 void UBattleGameplayAbility_Attack_Parent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -97,6 +113,11 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& Hi
 {
 	// 실제 데미지 처리, 서버에서 바로 호출되는 경우 거리에 따른 Hit 검사를 안함.
 
+	if (GetWorld()->GetNetMode() == NM_Client)
+	{
+		return;
+	}
+
 	AActor* HitActor = HitResult.GetActor();
 	if (IAbilitySystemInterface* AbilitySystemObject = Cast<IAbilitySystemInterface>(HitActor))
 	{
@@ -110,7 +131,6 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& Hi
 	}
 	if (IsValid(HitActor))
 	{
-		UE_LOG(LogTemp, Log, TEXT("Hit Success => Damage"));
 		AlreadyHitActors.Add(HitActor);
 
 		FGameplayAbilityTargetDataHandle TargetData;
@@ -138,6 +158,15 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 	
 }
 
+void UBattleGameplayAbility_Attack_Parent::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+{
+}
+
+void UBattleGameplayAbility_Attack_Parent::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+{
+}
+
+
 void UBattleGameplayAbility_Attack_Parent::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
 {
 	if (!AlreadyHitActors.Contains(HitResult.GetActor()))
@@ -161,6 +190,13 @@ void UBattleGameplayAbility_Attack_Parent::OnCompleted()
 }
 
 void UBattleGameplayAbility_Attack_Parent::OnInterrupted()
+{
+	bool bReplicatedEndAbility = true;
+	bool bWasCancelled = true;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+}
+
+void UBattleGameplayAbility_Attack_Parent::OnBlendOut()
 {
 	bool bReplicatedEndAbility = true;
 	bool bWasCancelled = true;

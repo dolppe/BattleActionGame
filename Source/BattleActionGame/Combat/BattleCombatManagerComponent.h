@@ -6,6 +6,14 @@
 #include "BattleGameplayAbility_ComboAttack.h"
 #include "BattleCombatManagerComponent.generated.h"
 
+UENUM()
+enum class EAttackType : uint8
+{
+	Single,
+	Combo,
+	HitCheck,
+};
+
 
 UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
 class UBattleCombatManagerComponent : public UPawnComponent
@@ -16,33 +24,37 @@ public:
 
 	UBattleCombatManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	FComboAttack* GetComboData(int idx) const
+	UFUNCTION(BlueprintCallable)
+	const FComboAttack& GetComboData(int idx) const
 	{
-		return &CombatData->ComboAttacks[idx];
-	}
-	UAnimMontage* GetComboMontage(int idx) const
-	{
-		return CombatData->ComboAttacks[idx].Montage;
+		return CombatData->ComboAttacks[idx];
 	}
 
-	FSingleAttack* GetAttackData(int idx) const
+	UFUNCTION(BlueprintCallable)
+	const FSingleAttack& GetAttackData(int idx) const
 	{
-		return &CombatData->SingleAttacks[idx];
+		return CombatData->SingleAttacks[idx];
 	}
 
-	UAnimMontage* GetAttackMontage(int idx) const
+	UFUNCTION(BlueprintCallable)
+	const FHitCheckAttack& GetHitCheckAttackData(int idx) const
 	{
-		return CombatData->SingleAttacks[idx].Montage;
+		return CombatData->HitCheckAttacks[idx];
 	}
 
-	FHitCheckAttack* GetHitCheckAttackData(int idx) const
+	UFUNCTION(BlueprintCallable)
+	UAnimMontage* GetAttackMontage(EAttackType AttackType, int Idx) const
 	{
-		return &CombatData->HitCheckAttacks[idx];
-	}
-
-	UAnimMontage* GetHitCheckAttackMontage(int idx) const
-	{
-		return CombatData->HitCheckAttacks[idx].Montage;
+		switch (AttackType)
+		{
+		case EAttackType::Single:
+			return CombatData->SingleAttacks[Idx].Montage;
+		case EAttackType::Combo:
+			return CombatData->ComboAttacks[Idx].Montage;
+		case EAttackType::HitCheck:
+			return CombatData->HitCheckAttacks[Idx].Montage;
+		}
+		return nullptr;
 	}
 
 	int GetCurrentComboIndex();

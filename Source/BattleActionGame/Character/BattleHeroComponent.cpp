@@ -1,5 +1,6 @@
 #include "BattleHeroComponent.h"
 
+#include "BattleCharacter.h"
 #include "BattlePawnExtensionComponent.h"
 #include "EnhancedInputSubsystemInterface.h"
 #include "EnhancedInputSubsystems.h"
@@ -13,6 +14,8 @@
 #include "BattleActionGame/Player/BattlePlayerController.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleHeroComponent)
 
@@ -317,6 +320,11 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
+	if (!bAllowedInput)
+	{
+		return;
+	}
+	
 	APawn* Pawn = GetPawn<APawn>();
 	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
 
@@ -387,6 +395,101 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 	}
 }
 
+void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Direction, float Strength, float ZForce)
+{
+	BA_SUBLOG(LogBattle, Warning, TEXT("Perform Suc"));
+	APawn* Pawn = GetPawn<APawn>();
+
+	Direction = Direction * Strength;
+	Direction.Z = ZForce;
+	
+	if (ACharacter* Character = Cast<ACharacter>(Pawn))
+	{
+		if (HasAuthority())
+		{
+			BA_SUBLOG(LogBattle, Warning, TEXT("ServerStart"));
+			Character->LaunchCharacter(Direction*Strength, true, true);
+			BA_SUBLOG(LogBattle, Warning, TEXT("ServerEnd"));
+		}
+		else if (Character->IsLocallyControlled())
+		{
+			BA_SUBLOG(LogBattle, Warning, TEXT("ClientStart"));
+			//Character->LaunchCharacter(Direction*Strength, true, true);
+			BA_SUBLOG(LogBattle, Warning, TEXT("ClientEnd"));
+		}
+	}
+	
+}
+
+void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, float ZForce)
+{
+	BA_SUBLOG(LogBattle, Warning, TEXT("Start"));
+	//PerformDirectionalMove(Direction, Strength, ZForce);
+	if (KnockbackMontage)
+	{
+		BA_SUBLOG(LogBattle, Warning, TEXT("Montage Suc"));
+		APawn* Pawn = GetPawn<APawn>();
+
+		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
+		{
+			BA_SUBLOG(LogBattle, Warning, TEXT("Character Suc"));
+
+			if (HasAuthority())
+			{
+				Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+				Character->GetCharacterMovement()->AirControl = 0.0f;
+			}
+			
+			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
+			{
+				BA_SUBLOG(LogBattle, Warning, TEXT("ASC Suc"));
+				ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
+			}
+			
+			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+			AnimInstance->Montage_Play(KnockbackMontage, 2.f);
+
+			if (HasAuthority())
+			{
+				AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
+			}
+			PerformDirectionalMove(Direction, Strength, ZForce);
+		}
+		
+	}
+	
+	
+}
+
+void UBattleHeroComponent::OnKnockbackEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage == KnockbackMontage)
+	{
+		APawn* Pawn = GetPawn<APawn>();
+
+		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
+		{
+			if (HasAuthority())
+			{
+				Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+			}
+			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
+			{
+				ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
+			}
+
+			if (HasAuthority())
+			{
+				UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+				AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
+			}
+
+		}
+		
+	}
+	
+}
 
 
 bool UBattleHeroComponent::IsReadyToBindInputs() const
@@ -422,4 +525,9 @@ void UBattleHeroComponent::AdditionalInputConfig(const UBattleInputConfig* Input
 
 void UBattleHeroComponent::RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig)
 {
+}
+
+void UBattleHeroComponent::SetAllowedInput(bool bInAllowedInput)
+{
+	bAllowedInput = bInAllowedInput;
 }

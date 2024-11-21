@@ -613,8 +613,6 @@ void UBattleUtilityAIComponent::SelectBestAction()
 {
 
 	CollectConsiderFactors();
-
-	UE_LOG(LogBattle, Log, TEXT("SelectBestAction Start"));
 	
 	float BestScore = 0.0f;
 	UBattleUtilityAction* BestAction = nullptr;
@@ -632,7 +630,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	}
 	if (BestAction != nullptr)
 	{
-		UE_LOG(LogBattle, Log, TEXT("Best Action Is : %s"), *BestAction->GetName());
+
 	}
 	
 	if (ActiveAction == nullptr)
@@ -641,7 +639,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction = BestAction;
 		ActiveAction->StartAction();
 		bActionComplete = false;
-		UE_LOG(LogBattle, Log, TEXT("ActiveAction Is Nullptr => %s Start"), *ActiveAction->GetName());
+
 	}
 	else if (bActionComplete)
 	{
@@ -651,8 +649,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction = BestAction;
 		ActiveAction->StartAction();
 		bActionComplete = false;
-
-		UE_LOG(LogBattle, Log, TEXT("bActionComplete Is True => %s Start"), *ActiveAction->GetName());
+		
 	}
 	else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
 	{
@@ -662,8 +659,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction = BestAction;
 		ActiveAction->StartAction();
 		bActionComplete = false;
-
-		UE_LOG(LogBattle, Log, TEXT("Priority Change => %s Start"), *ActiveAction->GetName());
+		
 		
 	}
 	

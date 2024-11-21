@@ -34,3 +34,10 @@ const UPhysicalMaterial* FBattleGameplayEffectContext::GetPhysicalMaterial() con
 	}
 	return nullptr;
 }
+
+bool FBattleGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+{
+	FGameplayEffectContext::NetSerialize(Ar, Map, bOutSuccess);
+
+	return true;
+}
