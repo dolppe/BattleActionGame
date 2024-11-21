@@ -94,7 +94,6 @@ void UBattleAssetManager::LoadMapComplete()
 
 	int b = 10;
 
-	UE_LOG(LogTemp,Log,TEXT("asdf"));
 
 
 	

@@ -35,7 +35,6 @@ UBattleDamageExecution::UBattleDamageExecution()
 void UBattleDamageExecution::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
 	FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
-	UE_LOG(LogTemp, Log, TEXT("GE STart"));
 	
 #if WITH_SERVER_CODE
 

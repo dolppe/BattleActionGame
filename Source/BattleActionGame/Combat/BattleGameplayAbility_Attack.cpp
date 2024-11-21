@@ -40,7 +40,6 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 
 	if (Character->IsLocallyControlled())
 	{
-		UE_LOG(LogTemp, Log, TEXT("ClientAttackStart"));
 
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
@@ -50,7 +49,6 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
 		AlreadyHitActors.Reset();
 	}
 	
@@ -65,12 +63,10 @@ void UBattleGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle 
 	if (Character->IsLocallyControlled())
 	{
 		// 테스크 실행
-		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
-		UE_LOG(LogTemp, Log, TEXT("ServerEndAbility"));
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 	

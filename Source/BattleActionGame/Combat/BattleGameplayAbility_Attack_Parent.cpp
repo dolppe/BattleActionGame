@@ -32,7 +32,6 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
 		}
 	}
-	UE_LOG(LogBattle, Log, TEXT("%s: ActivateABility"), *GetName());
 }
 
 void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -60,8 +59,7 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
 		}
 	}
-
-	UE_LOG(LogBattle, Log, TEXT("%s: EndABility"), *GetName());
+	
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -71,8 +69,7 @@ void UBattleGameplayAbility_Attack_Parent::CancelAbility(const FGameplayAbilityS
 	bool bReplicateCancelAbility)
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-
-	UE_LOG(LogBattle, Log, TEXT("%s: CancleAbility"), *GetName());
+	
 }
 
 void UBattleGameplayAbility_Attack_Parent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -134,7 +131,6 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& Hi
 	}
 	if (IsValid(HitActor))
 	{
-		UE_LOG(LogTemp, Log, TEXT("Hit Success => Damage"));
 		AlreadyHitActors.Add(HitActor);
 
 		FGameplayAbilityTargetDataHandle TargetData;

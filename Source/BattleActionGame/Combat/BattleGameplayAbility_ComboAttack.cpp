@@ -40,29 +40,23 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::OnBlendOut);
 	PlayAttackMontage->ReadyForActivation();
 
-	UE_LOG(LogTemp, Log, TEXT("%s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
-
 	CurrentCombatManager->SetComboGA(this);
 	
 	if (Character->IsLocallyControlled())
 	{
-		UE_LOG(LogTemp, Log, TEXT("ClientAttackStart"));
 		StartComboTimer(MontageSectionName);
 
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
 		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_ComboAttack::StartHitCheck);
 		EndListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_End, this, &UBattleGameplayAbility_ComboAttack::EndHitCheck);
-
-		UE_LOG(LogTemp, Log, TEXT("Client: %s"),*Character->GetAbilitySystemComponent()->GetAnimatingAbility()->GetName());
+		
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
+
 		AlreadyHitActors.Reset();
-		
-		UE_LOG(LogTemp, Log, TEXT("Server: %s"),*Character->GetAbilitySystemComponent()->GetAnimatingAbility()->GetName());
 
 	}
 }
@@ -80,7 +74,6 @@ void UBattleGameplayAbility_ComboAttack::InputPressed(const FGameplayAbilitySpec
 	if (bAllowedInput && !bHasNextComboInput)
 	{
 		bHasNextComboInput = true;
-		UE_LOG(LogTemp, Log, TEXT("InputPressed"));
 	}
 }
 
@@ -93,12 +86,12 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 	if (Character->IsLocallyControlled())
 	{
 		// 테스크 실행
-		UE_LOG(LogTemp, Log, TEXT("ClientEndAbility"));
+
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
-		UE_LOG(LogTemp, Log, TEXT("ServerEndAbility"));
+
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 		CurrentCombatManager->SetComboGA(nullptr);
 	}
@@ -119,7 +112,6 @@ FName UBattleGameplayAbility_ComboAttack::GetNextSection()
 	AttackRate = CurrentComboAttackData->AttackRate[CurrentComboIndex];
 	CurrentComboIndex = FMath::Clamp(CurrentComboIndex+1,1,CurrentComboAttackData->MaxComboCount);
 	FName NextSection = *FString::Printf(TEXT("%s%d"), *CurrentComboAttackData->MontageSectionName, CurrentComboIndex);
-	UE_LOG(LogTemp, Log, TEXT("%s"), *NextSection.ToString());
 	return NextSection;
 }
 
@@ -132,10 +124,7 @@ void UBattleGameplayAbility_ComboAttack::StartComboTimer(FName MontageSectionNam
 	float ComboInputCheckTime = CurrentMontageSectionLength*0.7;
 	const float AllowedInputTimeRate = CurrentComboAttackData->AllowInputFrameCount[CurrentComboIndex-1] / CurrentComboAttackData->FrameRate;
 	float AllowedInputTime = CurrentMontageSectionLength * AllowedInputTimeRate;
-
-	UE_LOG(LogTemp, Log, TEXT("MontageLength: %f"), CurrentMontageSectionLength);
-	UE_LOG(LogTemp,Log,TEXT("AllowedInputTime: %f"), AllowedInputTime);
-	UE_LOG(LogTemp, Log, TEXT("ComboInputCheckTime: %f"), ComboInputCheckTime);
+	
 
 	if (AllowedInputTime >0.0f)
 	{
@@ -147,11 +136,9 @@ void UBattleGameplayAbility_ComboAttack::StartComboTimer(FName MontageSectionNam
 
 void UBattleGameplayAbility_ComboAttack::CheckComboInput()
 {
-	UE_LOG(LogTemp, Log, TEXT("ComboCheck"));
 	ComboTimerHandle.Invalidate();
 	if (bHasNextComboInput)
 	{
-		UE_LOG(LogTemp, Log, TEXT("%s: ComboCheck => Success"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
 		FName MontageSection = GetNextSection();
 		MontageJumpToSection(MontageSection);
 		ServerRPCMontageSectionChanged(CurrentComboIndex);
@@ -164,7 +151,6 @@ void UBattleGameplayAbility_ComboAttack::CheckComboInput()
 
 void UBattleGameplayAbility_ComboAttack::AllowInput()
 {
-	UE_LOG(LogTemp, Log, TEXT("AllowedInput"));
 	ComboAllowedTimerHandle.Invalidate();
 	bAllowedInput = true;
 }

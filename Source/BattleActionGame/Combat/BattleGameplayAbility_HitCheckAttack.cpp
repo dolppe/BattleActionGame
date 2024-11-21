@@ -50,7 +50,6 @@ void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbili
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-		UE_LOG(LogTemp, Log, TEXT("ServerAttackStart"));
 		AlreadyHitActors.Reset();
 	}
 	
@@ -72,7 +71,6 @@ void UBattleGameplayAbility_HitCheckAttack::EndAbility(const FGameplayAbilitySpe
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
-		UE_LOG(LogTemp, Log, TEXT("ServerEndAbility"));
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 	
@@ -162,11 +160,9 @@ void UBattleGameplayAbility_HitCheckAttack::StartHitCheck(FGameplayTag Channel, 
 	
 		for (FHitResult HitResult : HitResults)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Hit %s"),*HitResult.Component->GetName());
 			HitColor = FColor::Green;
 			if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
 			{
-				UE_LOG(LogTemp, Log, TEXT("Enemy Hit %s"), *HitResult.GetActor()->GetName());
 				SelectHitCheck(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
 			}
 		}

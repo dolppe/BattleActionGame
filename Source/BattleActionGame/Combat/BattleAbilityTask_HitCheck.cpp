@@ -159,12 +159,10 @@ void UBattleAbilityTask_HitCheck::TickTask(float DeltaTime)
 
 	if (DeltaTime < DeltaTimeThreshold)
 	{
-		UE_LOG(LogTemp, Log, TEXT("NotLerp"));
 		PerformHitCheck(Start, End);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT("Lerp"));
 		PerformHitCheckWithLerpNotStep(Start, End, DeltaTime);
 	}
 	

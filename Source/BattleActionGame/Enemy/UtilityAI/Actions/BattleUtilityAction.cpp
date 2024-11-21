@@ -131,7 +131,7 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 
 void UBattleUtilityAction::StartAction()
 {
-	UE_LOG(LogBattle, Log, TEXT("Start Action: %s"), *this->GetName());
+
 }
 
 void UBattleUtilityAction::EndAction()

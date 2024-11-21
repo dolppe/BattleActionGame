@@ -51,7 +51,7 @@ public:
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(Server, Reliable)
 	void PerformDirectionalMove(FVector Direction, float Strength, float ZForce);
 
 	UFUNCTION(BlueprintCallable)

@@ -395,10 +395,9 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 	}
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-
-void UBattleHeroComponent::PerformDirectionalMove(FVector Direction, float Strength, float ZForce)
+void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Direction, float Strength, float ZForce)
 {
+	BA_SUBLOG(LogBattle, Warning, TEXT("Perform Suc"));
 	APawn* Pawn = GetPawn<APawn>();
 
 	Direction = Direction * Strength;
@@ -406,32 +405,54 @@ void UBattleHeroComponent::PerformDirectionalMove(FVector Direction, float Stren
 	
 	if (ACharacter* Character = Cast<ACharacter>(Pawn))
 	{
-		Character->LaunchCharacter(Direction*Strength, true, true);
+		if (HasAuthority())
+		{
+			BA_SUBLOG(LogBattle, Warning, TEXT("ServerStart"));
+			Character->LaunchCharacter(Direction*Strength, true, true);
+			BA_SUBLOG(LogBattle, Warning, TEXT("ServerEnd"));
+		}
+		else if (Character->IsLocallyControlled())
+		{
+			BA_SUBLOG(LogBattle, Warning, TEXT("ClientStart"));
+			//Character->LaunchCharacter(Direction*Strength, true, true);
+			BA_SUBLOG(LogBattle, Warning, TEXT("ClientEnd"));
+		}
 	}
 	
 }
 
 void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, float ZForce)
 {
+	BA_SUBLOG(LogBattle, Warning, TEXT("Start"));
+	//PerformDirectionalMove(Direction, Strength, ZForce);
 	if (KnockbackMontage)
 	{
+		BA_SUBLOG(LogBattle, Warning, TEXT("Montage Suc"));
 		APawn* Pawn = GetPawn<APawn>();
 
 		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
 		{
-			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
-			Character->GetCharacterMovement()->AirControl = 0.0f;
+			BA_SUBLOG(LogBattle, Warning, TEXT("Character Suc"));
 
+			if (HasAuthority())
+			{
+				Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+				Character->GetCharacterMovement()->AirControl = 0.0f;
+			}
+			
 			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 			{
+				BA_SUBLOG(LogBattle, Warning, TEXT("ASC Suc"));
 				ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
 			}
 			
 			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 			AnimInstance->Montage_Play(KnockbackMontage, 2.f);
 
-			AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
-
+			if (HasAuthority())
+			{
+				AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
+			}
 			PerformDirectionalMove(Direction, Strength, ZForce);
 		}
 		
@@ -448,23 +469,28 @@ void UBattleHeroComponent::OnKnockbackEnded(UAnimMontage* Montage, bool bInterru
 
 		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
 		{
-			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-
+			if (HasAuthority())
+			{
+				Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+			}
 			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 			{
 				ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
 			}
-			
-			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 
-			AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
+			if (HasAuthority())
+			{
+				UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+
+				AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
+			}
+
 		}
 		
 	}
 	
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
 
 bool UBattleHeroComponent::IsReadyToBindInputs() const
 {
