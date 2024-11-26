@@ -26,12 +26,12 @@ class BATTLEACTIONGAME_API UBattleHealthComponent : public UGameFrameworkCompone
 public:
 
 	UBattleHealthComponent(const FObjectInitializer& ObjectInitializer);
-
-	UFUNCTION(BlueprintCallable, Category="Battle|Health")
-	void InitializeWithAbilitySystem(UBattleAbilitySystemComponent* InASC);
 	
-	UFUNCTION(BlueprintCallable, Category="Battle|Health")
+	void InitializeWithAbilitySystem(UBattleAbilitySystemComponent* InASC);
 	void UninitializeFromAbilitySystem();
+
+	UFUNCTION(BlueprintPure, Category="Battle|Health")
+	static UBattleHealthComponent* FindHealthComponent(const AActor* Actor);
 	
 	UFUNCTION(BlueprintCallable, Category = "Battle|Health")
 	float GetHealth() const;

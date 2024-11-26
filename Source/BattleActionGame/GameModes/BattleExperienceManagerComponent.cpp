@@ -309,6 +309,18 @@ const UBattleExperienceDefinition* UBattleExperienceManagerComponent::GetCurrent
 	return CurrentExperience;
 }
 
+void UBattleExperienceManagerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	BA_SUBLOG(LogBattle, Log, TEXT("Start"));
+
+	if (GetOwnerRole() == ROLE_Authority) // 서버에서만 설정
+	{
+		SetIsReplicated(true); // 컴포넌트를 복제 가능하도록 설정
+	}
+}
+
 void UBattleExperienceManagerComponent::OnRep_CurrentExperience()
 {
 	StartExperienceLoad();

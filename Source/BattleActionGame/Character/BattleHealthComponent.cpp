@@ -83,6 +83,17 @@ void UBattleHealthComponent::UninitializeFromAbilitySystem()
 	AbilitySystemComponent = nullptr;
 }
 
+UBattleHealthComponent* UBattleHealthComponent::FindHealthComponent(const AActor* Actor)
+{
+	if (!Actor)
+	{
+		return nullptr;
+	}
+
+	UBattleHealthComponent* HealthComponent = Actor->FindComponentByClass<UBattleHealthComponent>();
+	return HealthComponent;
+}
+
 float UBattleHealthComponent::GetHealth() const
 {
 	return (HealthSet ? HealthSet->GetHealth() : 0.0f);
