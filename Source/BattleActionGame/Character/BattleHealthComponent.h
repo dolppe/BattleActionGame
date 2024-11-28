@@ -49,6 +49,9 @@ public:
 	float GetMaxStamina() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Battle|Health")
+	float GetStaminaNormalized() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Battle|Health")
 	EBattleDeathState GetDeathState() const { return DeathState; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Battle|Health", Meta = (ExpandBoolAsExecs = "ReturnValue"))

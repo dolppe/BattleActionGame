@@ -127,6 +127,19 @@ float UBattleHealthComponent::GetMaxStamina() const
 	return (HealthSet ? HealthSet->GetMaxStamina() : 0.0f);
 }
 
+float UBattleHealthComponent::GetStaminaNormalized() const
+{
+	if (HealthSet)
+	{
+		const float Stamina = HealthSet->GetStamina();
+		const float MaxStamina = HealthSet->GetMaxStamina();
+
+		return ((MaxStamina > 0.0f) ? (Stamina / MaxStamina) : 0.0f);
+	}
+	
+	return 0.0f;
+}
+
 void UBattleHealthComponent::StartDeath()
 {
 	if (DeathState != EBattleDeathState::NotDead)

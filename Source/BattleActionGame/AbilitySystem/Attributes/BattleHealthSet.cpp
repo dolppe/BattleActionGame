@@ -121,6 +121,16 @@ void UBattleHealthSet::ClampAttribute(const FGameplayAttribute& Attribute, float
 		// Do not allow max health to drop below 1.
 		NewValue = FMath::Max(NewValue, 1.0f);
 	}
+	else if (Attribute == GetStaminaAttribute())
+	{
+		// Do not allow health to go negative or above max health.
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina());
+	}
+	else if (Attribute == GetMaxStaminaAttribute())
+	{
+		// Do not allow max health to drop below 1.
+		NewValue = FMath::Max(NewValue, 1.0f);
+	}
 }
 
 void UBattleHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
