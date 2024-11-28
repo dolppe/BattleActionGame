@@ -5,6 +5,7 @@
 
 #include "BattleCharacter.generated.h"
 
+class UGameplayEffect;
 class UBattleHealthComponent;
 class UBattlePawnExtensionComponent;
 class UBattleCameraComponent;
@@ -32,6 +33,9 @@ protected:
 	
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
+
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<UGameplayEffect>> SelfApplyEffects;
 
 	
 private:

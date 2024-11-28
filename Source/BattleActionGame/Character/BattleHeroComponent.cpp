@@ -434,11 +434,10 @@ void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, f
 		{
 			BA_SUBLOG(LogBattle, Warning, TEXT("Character Suc"));
 
-			if (HasAuthority())
-			{
-				Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
-				Character->GetCharacterMovement()->AirControl = 0.0f;
-			}
+
+			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+			Character->GetCharacterMovement()->AirControl = 0.0f;
+			
 			
 			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 			{
@@ -448,11 +447,9 @@ void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, f
 			
 			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 			AnimInstance->Montage_Play(KnockbackMontage, 2.f);
-
-			if (HasAuthority())
-			{
-				AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
-			}
+			
+			AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
+			
 			PerformDirectionalMove(Direction, Strength, ZForce);
 		}
 		
@@ -469,22 +466,15 @@ void UBattleHeroComponent::OnKnockbackEnded(UAnimMontage* Montage, bool bInterru
 
 		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
 		{
-			if (HasAuthority())
-			{
-				Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-			}
+			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+			
 			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 			{
 				ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
 			}
-
-			if (HasAuthority())
-			{
-				UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
-
-				AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
-			}
-
+			
+			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+			AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
 		}
 		
 	}

@@ -42,7 +42,7 @@ public:
 	void OnExperienceFullLoadCompleted();
 	const UBattleExperienceDefinition* GetCurrentExperienceChecked() const;
 	
-	
+	virtual void BeginPlay() override;
 
 private:
 
