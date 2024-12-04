@@ -1,8 +1,21 @@
 #pragma once
 
 #include "BattleItemData.h"
-#include "AttributeSet.h"
+#include "GameplayTags.h"
 #include "BattleItemData_AttributeBased.generated.h"
+
+USTRUCT(BlueprintType)
+struct FAttributeMagData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category="Battle|Item")
+	FGameplayTag AttributeTag;
+
+	UPROPERTY(EditAnywhere, Category="Battle|Item")
+	float Magnitude;
+	
+};
 
 USTRUCT(BlueprintType)
 struct FAttributeData
@@ -10,13 +23,11 @@ struct FAttributeData
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category="Battle|Item")
-	FGameplayAttribute Attribute;
+	float Duration;
 
 	UPROPERTY(EditAnywhere, Category="Battle|Item")
-	float Magnitude;
+	TArray<FAttributeMagData> AttributeMag;
 	
-	UPROPERTY(EditAnywhere, Category="Battle|Item")
-	float Duration;
 };
 
 UCLASS()

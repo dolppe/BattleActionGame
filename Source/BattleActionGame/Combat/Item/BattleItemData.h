@@ -26,12 +26,6 @@ public:
 	EItemType ItemType;
 	
 	UPROPERTY(EditAnywhere, Category="Battle|Item")
-	USoundBase* ItemSound;
-
-	UPROPERTY(EditAnywhere, Category="Battle|Item")
-	UNiagaraSystem* ItemEffect;
-
-	UPROPERTY(EditAnywhere, Category="Battle|Item")
 	TObjectPtr<UAnimMontage> UseAnimation;
 	
 	

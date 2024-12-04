@@ -1,5 +1,6 @@
 #include "BattleQuickBarComponent.h"
 
+#include "BattleItemData.h"
 #include "GameplayMessageSubsystem.h"
 #include "Net/UnrealNetwork.h"
 #include "NativeGameplayTags.h"
@@ -94,6 +95,79 @@ void UBattleQuickBarComponent::RemoveItemFromSlot(int SlotIndex)
 			OnRep_Slots();
 		}
 	}
+}
+
+FBattleItemInfo* UBattleQuickBarComponent::GetActiveSlotIndex()
+{
+	if (Slots.IsValidIndex(ActiveSlotIndex))
+	{
+		if (Slots[ActiveSlotIndex].ItemDef != nullptr)
+		{
+			return &Slots[ActiveSlotIndex];
+		}
+	}
+
+	return nullptr;
+}
+
+bool UBattleQuickBarComponent::AddItemQuantity(UBattleItemData* Item, int Quantity)
+{
+	int Idx = GetItemSlotIndex(Item);
+
+	if (Idx == -1)
+	{
+		return false;
+	}
+	else
+	{
+		Slots[Idx].Num += Quantity;
+		return true;
+	}
+
+	return false;
+}
+
+bool UBattleQuickBarComponent::UseItemQuantity(UBattleItemData* Item, int Quantity)
+{
+	int Idx = GetItemSlotIndex(Item);
+
+	if (Idx == -1)
+	{
+		return false;
+	}
+	else
+	{
+		if (Slots[Idx].Num < Quantity)
+		{
+			return false;
+		}
+		else if (Slots[Idx].Num == Quantity)
+		{
+			RemoveItemFromSlot(Idx);
+			return true;
+		}
+		else
+		{
+			Slots[Idx].Num -= Quantity;
+		}
+	}
+	return false;
+	
+}
+
+int UBattleQuickBarComponent::GetItemSlotIndex(UBattleItemData* Item)
+{
+	int idx = 0;
+	for (FBattleItemInfo& BattleItemInfo : Slots)
+	{
+		if (BattleItemInfo.ItemDef.GetClass() == Item->GetClass())
+		{
+			return idx; 
+		}
+
+		idx++;
+	}
+	return -1;
 }
 
 void UBattleQuickBarComponent::OnRep_Slots()

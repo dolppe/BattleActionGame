@@ -24,6 +24,11 @@ public:
 
 	UBattleCombatManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable)
+	void UseItem(EItemType Item);
+
 	UFUNCTION(BlueprintCallable)
 	const FComboAttack& GetComboData(int idx) const
 	{
@@ -64,7 +69,6 @@ public:
 
 private:
 	
-	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBattleCombatData> CombatData;
 	
@@ -72,5 +76,9 @@ private:
 	UBattleGameplayAbility_ComboAttack* CurrentCombo = nullptr;
 	
 	uint8 ComboStep = 0;
+
+	UPROPERTY(EditAnywhere)
+	TMap<EItemType, TSubclassOf<UGameplayAbility>> ItemTypeToAbility;
+	
 
 };

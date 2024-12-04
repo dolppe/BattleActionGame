@@ -49,11 +49,22 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	
 
 	/*
-	 *	Comboat
+	 *	Combat
 	 */
 
 	AddTag(Combat_Attack_Event_Start, "Combat.Attack.Event.Start", "");
 	AddTag(Combat_Attack_Event_End, "Combat.Attack.Event.End", "");
+
+	AddTag(GameplayEffect_Caller_MaxHp, "GameplayEffect.Caller.MaxHp", "");
+	AddTag(GameplayEffect_Caller_Stamina, "GameplayEffect.Caller.Stamina", "");
+	AddTag(GameplayEffect_Caller_MaxStamina, "GameplayEffect.Caller.MaxStamina", "");
+	AddTag(GameplayEffect_Caller_Healing, "GameplayEffect.Caller.Healing", "");
+	AddTag(GameplayEffect_Caller_Damage, "GameplayEffect.Caller.Damage", "");
+
+	AddTag(GameplayEffect_Caller_BaseDamage, "GameplayEffect.Caller.BaseDamage", "");
+	AddTag(GameplayEffect_Caller_BaseHeal, "GameplayEffect.Caller.BaseHeal", "");
+	AddTag(GameplayEffect_Caller_AttackPower, "GameplayEffect.Caller.AttackPower", "");
+	
 
 	/*
 	 * GameplayEffectData

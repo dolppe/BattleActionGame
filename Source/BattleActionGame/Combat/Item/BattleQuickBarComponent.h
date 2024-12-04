@@ -40,6 +40,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void RemoveItemFromSlot(int SlotIndex);
+
+	FBattleItemInfo* GetActiveSlotIndex();
+
+	bool AddItemQuantity(UBattleItemData* Item, int Quantity);
+
+	bool UseItemQuantity(UBattleItemData* Item, int Quantity);
+
+	int GetItemSlotIndex(UBattleItemData* Item);
 	
 protected:
 
