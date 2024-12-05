@@ -4,6 +4,7 @@
 #include "Components/PawnComponent.h"
 #include "Animation/AnimMontage.h"
 #include "BattleGameplayAbility_ComboAttack.h"
+#include "Item/BattleQuickBarComponent.h"
 #include "BattleCombatManagerComponent.generated.h"
 
 UENUM()
@@ -66,6 +67,11 @@ public:
 
 	void SetComboGA(UBattleGameplayAbility_ComboAttack* InComboAttack);
 
+	UFUNCTION()
+	void OnRep_CurrentUsedItemInfo();
+
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentUsedItemInfo, BlueprintReadWrite)
+	FBattleItemInfo CurrentUsedItemInfo;
 
 private:
 	
@@ -79,6 +85,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TMap<EItemType, TSubclassOf<UGameplayAbility>> ItemTypeToAbility;
+
+
 	
 
 };

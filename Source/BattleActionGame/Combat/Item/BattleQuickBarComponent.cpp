@@ -4,6 +4,9 @@
 #include "GameplayMessageSubsystem.h"
 #include "Net/UnrealNetwork.h"
 #include "NativeGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
+#include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleQuickBarComponent)
 
@@ -14,6 +17,7 @@ UBattleQuickBarComponent::UBattleQuickBarComponent(const FObjectInitializer& Obj
 	: Super(ObjectInitializer)
 {
 	SetIsReplicatedByDefault(true);
+
 }
 
 void UBattleQuickBarComponent::CycleActiveSlotForward()
@@ -68,6 +72,7 @@ void UBattleQuickBarComponent::SetActiveSlotIndex_Implementation(int NewIndex)
 
 void UBattleQuickBarComponent::AddItemToSlot(int SlotIndex, UBattleItemData* Item, int Quantity)
 {
+	BA_SUBLOG(LogBattle, Log, TEXT("OnRep_Slots"));
 	if (Slots.IsValidIndex(SlotIndex) && (Item != nullptr))
 	{
 		if (Slots[SlotIndex].ItemDef == nullptr)
@@ -110,8 +115,22 @@ FBattleItemInfo* UBattleQuickBarComponent::GetActiveSlotIndex()
 	return nullptr;
 }
 
+bool UBattleQuickBarComponent::CheckUseActiveSlot(int Quantity)
+{
+	if (Slots[ActiveSlotIndex].ItemDef != nullptr )
+	{
+		if (Slots[ActiveSlotIndex].Num >= Quantity)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool UBattleQuickBarComponent::AddItemQuantity(UBattleItemData* Item, int Quantity)
 {
+	
 	int Idx = GetItemSlotIndex(Item);
 
 	if (Idx == -1)
@@ -127,15 +146,16 @@ bool UBattleQuickBarComponent::AddItemQuantity(UBattleItemData* Item, int Quanti
 	return false;
 }
 
-bool UBattleQuickBarComponent::UseItemQuantity(UBattleItemData* Item, int Quantity)
+bool UBattleQuickBarComponent::UseItemQuantity(int Quantity)
 {
-	int Idx = GetItemSlotIndex(Item);
+	int Idx = ActiveSlotIndex;
 
+	BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity Start: %d"), Slots[ActiveSlotIndex].Num);
 	if (Idx == -1)
 	{
 		return false;
 	}
-	else
+	else if (Slots.IsValidIndex(ActiveSlotIndex))
 	{
 		if (Slots[Idx].Num < Quantity)
 		{
@@ -143,13 +163,23 @@ bool UBattleQuickBarComponent::UseItemQuantity(UBattleItemData* Item, int Quanti
 		}
 		else if (Slots[Idx].Num == Quantity)
 		{
+			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(GetPawn<ABattleCharacterBase>()->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+			{
+				CombatManagerComponent->CurrentUsedItemInfo = Slots[ActiveSlotIndex];
+			}
 			RemoveItemFromSlot(Idx);
-			return true;
 		}
 		else
 		{
+			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(GetPawn<ABattleCharacterBase>()->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+			{
+				CombatManagerComponent->CurrentUsedItemInfo = Slots[ActiveSlotIndex];
+			}
 			Slots[Idx].Num -= Quantity;
 		}
+
+		BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity End: %d"), Slots[ActiveSlotIndex].Num);
+		return true;
 	}
 	return false;
 	
@@ -172,6 +202,7 @@ int UBattleQuickBarComponent::GetItemSlotIndex(UBattleItemData* Item)
 
 void UBattleQuickBarComponent::OnRep_Slots()
 {
+	BA_SUBLOG(LogBattle, Log, TEXT("OnRep_Slots, %s"), *Slots[ActiveSlotIndex].ItemDef.GetName());
 	FBattleQuickBarSlotsChangedMessage Message;
 	Message.Owner = GetOwner();
 	Message.Slots = Slots;
@@ -209,3 +240,4 @@ void UBattleQuickBarComponent::GetLifetimeReplicatedProps(TArray< FLifetimePrope
 	DOREPLIFETIME(ThisClass, Slots);
 	DOREPLIFETIME(ThisClass, ActiveSlotIndex);
 }
+

@@ -40,5 +40,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Battle|Item")
 	TArray<FAttributeData> AttributeData;
-	
+
+
 };

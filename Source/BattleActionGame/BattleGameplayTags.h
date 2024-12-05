@@ -53,6 +53,7 @@ public:
 
 	FGameplayTag Combat_Attack_Event_Start;
 	FGameplayTag Combat_Attack_Event_End;
+	FGameplayTag Combat_UseItem_AttributeBased;
 	
 	FGameplayTag GameplayEffect_Caller_MaxHp;
 	FGameplayTag GameplayEffect_Caller_Stamina;

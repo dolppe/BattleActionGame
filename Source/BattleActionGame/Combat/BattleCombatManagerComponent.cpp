@@ -14,6 +14,13 @@
 UBattleCombatManagerComponent::UBattleCombatManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	SetIsReplicatedByDefault(true);
+}
+
+void UBattleCombatManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, CurrentUsedItemInfo);
 }
 
 void UBattleCombatManagerComponent::BeginPlay()
@@ -45,4 +52,9 @@ int UBattleCombatManagerComponent::GetCurrentComboIndex()
 void UBattleCombatManagerComponent::SetComboGA(UBattleGameplayAbility_ComboAttack* InComboAttack)
 {
 	CurrentCombo = InComboAttack;
+}
+
+void UBattleCombatManagerComponent::OnRep_CurrentUsedItemInfo()
+{
+	
 }

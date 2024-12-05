@@ -43,14 +43,17 @@ public:
 
 	FBattleItemInfo* GetActiveSlotIndex();
 
+	bool CheckUseActiveSlot(int Quantity);
+	
 	bool AddItemQuantity(UBattleItemData* Item, int Quantity);
 
-	bool UseItemQuantity(UBattleItemData* Item, int Quantity);
+	bool UseItemQuantity(int Quantity);
 
 	int GetItemSlotIndex(UBattleItemData* Item);
+
 	
 protected:
-
+	
 	UFUNCTION()
 	void OnRep_Slots();
 

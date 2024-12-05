@@ -14,7 +14,7 @@ enum class EItemType : uint8
 
 
 
-UCLASS()
+UCLASS(BlueprintType)
 class UBattleItemData : public UDataAsset
 {
 	GENERATED_BODY()
@@ -22,10 +22,16 @@ public:
 
 	UBattleItemData();
 
-	UPROPERTY(EditAnywhere, Category="Battle|Item")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Battle|Item")
 	EItemType ItemType;
 	
-	UPROPERTY(EditAnywhere, Category="Battle|Item")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Battle|Item")
+	USoundBase* ItemSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Battle|Item")
+	UNiagaraSystem* ItemEffect;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Battle|Item")
 	TObjectPtr<UAnimMontage> UseAnimation;
 	
 	

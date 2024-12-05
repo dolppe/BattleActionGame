@@ -55,6 +55,10 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(Combat_Attack_Event_Start, "Combat.Attack.Event.Start", "");
 	AddTag(Combat_Attack_Event_End, "Combat.Attack.Event.End", "");
 
+	AddTag(Combat_UseItem_AttributeBased, "Combat.UseItem.AttributeBased", "");
+
+	
+
 	AddTag(GameplayEffect_Caller_MaxHp, "GameplayEffect.Caller.MaxHp", "");
 	AddTag(GameplayEffect_Caller_Stamina, "GameplayEffect.Caller.Stamina", "");
 	AddTag(GameplayEffect_Caller_MaxStamina, "GameplayEffect.Caller.MaxStamina", "");
