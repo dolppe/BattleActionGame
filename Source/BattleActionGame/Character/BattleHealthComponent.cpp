@@ -216,21 +216,29 @@ static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& Cha
 void UBattleHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
 	BA_SUBLOG(LogBattle, Log, TEXT("Health Change : %f => %f"), ChangeData.OldValue, ChangeData.NewValue);
+	if (ChangeData.OldValue == ChangeData.NewValue)
+		return;
 	OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
 }
 
 void UBattleHealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
+	if (ChangeData.OldValue == ChangeData.NewValue)
+		return;
 	OnMaxHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
 }
 
 void UBattleHealthComponent::HandleStaminaChanged(const FOnAttributeChangeData& ChangeData)
 {
+	if (ChangeData.OldValue == ChangeData.NewValue)
+		return;
 	OnStaminaChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
 }
 
 void UBattleHealthComponent::HandleMaxStaminaChanged(const FOnAttributeChangeData& ChangeData)
 {
+	if (ChangeData.OldValue == ChangeData.NewValue)
+		return;
 	OnMaxStaminaChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
 }
 

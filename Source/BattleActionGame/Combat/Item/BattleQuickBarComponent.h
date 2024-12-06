@@ -41,7 +41,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void RemoveItemFromSlot(int SlotIndex);
 
-	FBattleItemInfo* GetActiveSlotIndex();
+	FBattleItemInfo* GetActiveSlotItem();
 
 	bool CheckUseActiveSlot(int Quantity);
 	
@@ -51,6 +51,18 @@ public:
 
 	int GetItemSlotIndex(UBattleItemData* Item);
 
+	UFUNCTION(BlueprintCallable)
+	int GetBeforeActiveSlotIdx();
+
+	UFUNCTION(BlueprintCallable)
+	int GetActiveSlotIdx();
+	
+	UFUNCTION(BlueprintCallable)
+	int GetAfterActiveSlotIdx();
+
+	UFUNCTION(BlueprintCallable)
+	FBattleItemInfo& GetSlotsItem(int SlotIdx);
+	
 	
 protected:
 	

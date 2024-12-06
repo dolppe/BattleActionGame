@@ -68,7 +68,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(GameplayEffect_Caller_BaseDamage, "GameplayEffect.Caller.BaseDamage", "");
 	AddTag(GameplayEffect_Caller_BaseHeal, "GameplayEffect.Caller.BaseHeal", "");
 	AddTag(GameplayEffect_Caller_AttackPower, "GameplayEffect.Caller.AttackPower", "");
-	
+	AddTag(GameplayEffect_Caller_Duration, "GameplayEffect.Caller.Duration", "");
 
 	/*
 	 * GameplayEffectData

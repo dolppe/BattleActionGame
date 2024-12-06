@@ -102,7 +102,7 @@ void UBattleQuickBarComponent::RemoveItemFromSlot(int SlotIndex)
 	}
 }
 
-FBattleItemInfo* UBattleQuickBarComponent::GetActiveSlotIndex()
+FBattleItemInfo* UBattleQuickBarComponent::GetActiveSlotItem()
 {
 	if (Slots.IsValidIndex(ActiveSlotIndex))
 	{
@@ -140,9 +140,10 @@ bool UBattleQuickBarComponent::AddItemQuantity(UBattleItemData* Item, int Quanti
 	else
 	{
 		Slots[Idx].Num += Quantity;
+		OnRep_Slots();
 		return true;
 	}
-
+	
 	return false;
 }
 
@@ -175,6 +176,7 @@ bool UBattleQuickBarComponent::UseItemQuantity(int Quantity)
 			{
 				CombatManagerComponent->CurrentUsedItemInfo = Slots[ActiveSlotIndex];
 			}
+			OnRep_Slots();
 			Slots[Idx].Num -= Quantity;
 		}
 
@@ -198,6 +200,74 @@ int UBattleQuickBarComponent::GetItemSlotIndex(UBattleItemData* Item)
 		idx++;
 	}
 	return -1;
+}
+
+int UBattleQuickBarComponent::GetBeforeActiveSlotIdx()
+{
+	if (ActiveSlotIndex == -1 || Slots[ActiveSlotIndex].ItemDef == nullptr)
+	{
+		return -1;
+	}
+	else
+	{
+		int OriIdx = ActiveSlotIndex;
+
+		int CurIdx = (OriIdx ==0 ? Slots.Num()-1 : OriIdx-1);
+
+		while (CurIdx != OriIdx)
+		{
+			if (Slots[CurIdx].ItemDef != nullptr)
+			{
+				return CurIdx;
+			}
+			else
+			{
+				CurIdx = (CurIdx == 0 ? Slots.Num()-1 : CurIdx-1);
+			}
+		}
+		return -1;
+	}
+}
+
+int UBattleQuickBarComponent::GetActiveSlotIdx()
+{
+	if (Slots[ActiveSlotIndex].ItemDef != nullptr)
+	{
+		return ActiveSlotIndex;
+	}
+	return -1;
+}
+
+int UBattleQuickBarComponent::GetAfterActiveSlotIdx()
+{
+	if (ActiveSlotIndex == -1 || Slots[ActiveSlotIndex].ItemDef == nullptr)
+	{
+		return -1;
+	}
+	else
+	{
+		int OriIdx = ActiveSlotIndex;
+
+		int CurIdx = (OriIdx ==Slots.Num()-1 ? 0 : OriIdx+1);
+
+		while (CurIdx != OriIdx)
+		{
+			if (Slots[CurIdx].ItemDef != nullptr)
+			{
+				return CurIdx;
+			}
+			else
+			{
+				CurIdx = (CurIdx == Slots.Num()-1 ? 0 : CurIdx+1);
+			}
+		}
+		return -1;
+	}
+}
+
+FBattleItemInfo& UBattleQuickBarComponent::GetSlotsItem(int SlotIdx)
+{
+	return Slots[SlotIdx];
 }
 
 void UBattleQuickBarComponent::OnRep_Slots()

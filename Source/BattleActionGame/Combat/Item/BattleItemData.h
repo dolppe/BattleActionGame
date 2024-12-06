@@ -33,6 +33,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Battle|Item")
 	TObjectPtr<UAnimMontage> UseAnimation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Battle|Item")
+	UTexture2D* ItemIcon;
 	
 	
 };

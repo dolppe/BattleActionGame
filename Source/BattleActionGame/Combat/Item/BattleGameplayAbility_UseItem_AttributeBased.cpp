@@ -40,7 +40,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::ActivateAbility(const FGamep
 				return;
 			}
 			
-			FBattleItemInfo* ItemInfo = QuickBarComponent->GetActiveSlotIndex();
+			FBattleItemInfo* ItemInfo = QuickBarComponent->GetActiveSlotItem();
 
 			if (UBattleItemData_AttributeBased* ItemData = Cast<UBattleItemData_AttributeBased>(ItemInfo->ItemDef))
 			{
@@ -107,7 +107,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::UseItem()
 	ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
 	UBattleQuickBarComponent* QuickBarComponent = CastChecked<UBattleQuickBarComponent>(CharacterBase->GetController()->GetComponentByClass(UBattleQuickBarComponent::StaticClass()));
 
-	FBattleItemInfo* ItemInfo = QuickBarComponent->GetActiveSlotIndex();
+	FBattleItemInfo* ItemInfo = QuickBarComponent->GetActiveSlotItem();
 	
 	UAbilitySystemComponent* ASC = CharacterBase->GetAbilitySystemComponent();
 	UBattleItemData_AttributeBased* ItemData = Cast<UBattleItemData_AttributeBased>(ItemInfo->ItemDef);
@@ -131,7 +131,9 @@ void UBattleGameplayAbility_UseItem_AttributeBased::UseItem()
 			{
 				DurationSpecHandle.Data->SetSetByCallerMagnitude(MagData.AttributeTag, MagData.Magnitude);
 			}
-			DurationSpecHandle.Data->Duration = AttData.Duration;
+			
+			//DurationSpecHandle.Data->SetDuration(AttData.Duration, false);
+			DurationSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Caller_Duration, AttData.Duration);
 
 			ASC->ApplyGameplayEffectSpecToSelf(*DurationSpecHandle.Data.Get());
 		}
