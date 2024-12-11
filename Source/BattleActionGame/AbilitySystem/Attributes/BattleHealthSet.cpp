@@ -13,6 +13,8 @@ UBattleHealthSet::UBattleHealthSet()
 	, MaxStamina(100.0f)
 {
 	bOutOfHealth = false;
+
+
 }
 
 void UBattleHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
@@ -32,7 +34,7 @@ void UBattleHealthSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
 
 void UBattleHealthSet::OnRep_MaxStamina(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UBattleHealthSet, Stamina, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UBattleHealthSet, MaxStamina, OldValue);
 }
 
 void UBattleHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -95,11 +97,33 @@ void UBattleHealthSet::PostAttributeChange(const FGameplayAttribute& Attribute, 
 
 	if (Attribute == GetMaxHealthAttribute())
 	{
-		if (GetHealth() > NewValue)
+		if (OldValue < NewValue)
 		{
 			UBattleAbilitySystemComponent* BattleASC = GetBattleAbilitySystemComponent();
-
 			BattleASC->ApplyModToAttribute(GetHealthAttribute(), EGameplayModOp::Override, NewValue);
+		}
+		else
+		{
+			if (GetHealth() > NewValue)
+			{
+				SetHealth(NewValue);
+			}
+		}
+	}
+
+	if (Attribute == GetMaxStaminaAttribute())
+	{
+		if (OldValue < NewValue)
+		{
+			UBattleAbilitySystemComponent* BattleASC = GetBattleAbilitySystemComponent();
+			BattleASC->ApplyModToAttribute(GetStaminaAttribute(), EGameplayModOp::Override, NewValue);
+		}
+		else
+		{
+			if (GetStamina() > NewValue)
+			{
+				SetStamina(NewValue);
+			}
 		}
 	}
 

@@ -53,6 +53,24 @@ public:
 
 	FGameplayTag Combat_Attack_Event_Start;
 	FGameplayTag Combat_Attack_Event_End;
+	FGameplayTag Combat_UseItem_AttributeBased;
+
+	/*
+	 * GE
+	 */
+	
+	FGameplayTag GameplayEffect_Caller_MaxHp;
+	FGameplayTag GameplayEffect_Caller_Stamina;
+	FGameplayTag GameplayEffect_Caller_MaxStamina;
+	FGameplayTag GameplayEffect_Caller_Healing;
+	FGameplayTag GameplayEffect_Caller_Damage;
+
+	FGameplayTag GameplayEffect_Caller_BaseDamage;
+	FGameplayTag GameplayEffect_Caller_BaseHeal;
+	FGameplayTag GameplayEffect_Caller_AttackPower;
+	FGameplayTag GameplayEffect_Caller_Duration;
+	
+	
 
 	/*
 	 * GameplayEffectData

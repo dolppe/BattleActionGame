@@ -1,4 +1,4 @@
-#include "AnimNotify_SendAttackMessage.h"
+#include "AnimNotify_SendVerbMessage.h"
 
 #include "AbilitySystemComponent.h"
 #include "GameplayMessageSubsystem.h"
@@ -6,9 +6,9 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Messages/BattleVerbMessage.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(AnimNotify_SendAttackMessage)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AnimNotify_SendVerbMessage)
 
-void UAnimNotify_SendAttackMessage::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UAnimNotify_SendVerbMessage::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);

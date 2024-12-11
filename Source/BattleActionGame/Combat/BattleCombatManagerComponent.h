@@ -4,6 +4,7 @@
 #include "Components/PawnComponent.h"
 #include "Animation/AnimMontage.h"
 #include "BattleGameplayAbility_ComboAttack.h"
+#include "Item/BattleQuickBarComponent.h"
 #include "BattleCombatManagerComponent.generated.h"
 
 UENUM()
@@ -23,6 +24,11 @@ class UBattleCombatManagerComponent : public UPawnComponent
 public:
 
 	UBattleCombatManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable)
+	void UseItem(EItemType Item);
 
 	UFUNCTION(BlueprintCallable)
 	const FComboAttack& GetComboData(int idx) const
@@ -61,9 +67,13 @@ public:
 
 	void SetComboGA(UBattleGameplayAbility_ComboAttack* InComboAttack);
 
+	UFUNCTION()
+	void OnRep_CurrentUsedItemInfo();
+
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentUsedItemInfo, BlueprintReadWrite)
+	FBattleItemInfo CurrentUsedItemInfo;
 
 private:
-	
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBattleCombatData> CombatData;
@@ -72,5 +82,11 @@ private:
 	UBattleGameplayAbility_ComboAttack* CurrentCombo = nullptr;
 	
 	uint8 ComboStep = 0;
+
+	UPROPERTY(EditAnywhere)
+	TMap<EItemType, TSubclassOf<UGameplayAbility>> ItemTypeToAbility;
+
+
+	
 
 };
