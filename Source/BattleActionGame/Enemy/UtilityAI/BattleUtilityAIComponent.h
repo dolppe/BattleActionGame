@@ -27,6 +27,7 @@ enum class EBattleConsiderType : uint8
 	IsAlone UMETA(DisplayName = "IsAlone"),
 	BreakLeftLeg UMETA(DisplayName = "BreakLeftLeg"),
 	BreakRightLeg UMETA(DisplayName = "BreakRightLeg"),
+	CanMovement UMETA(DisplayName = "CanMovement"),
 	
 
 	// Array
@@ -83,6 +84,7 @@ public:
 	float GetIsAlone();
 	float GetBreakRightLeg();
 	float GetBreakLeftLeg();
+	float GetCanMovement();
 
 	
 

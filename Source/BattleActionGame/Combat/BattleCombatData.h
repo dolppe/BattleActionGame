@@ -47,6 +47,9 @@ struct FHitCheckAttack : public FAttackData
 
 	UPROPERTY(EditAnywhere, Category=HitCheck)
 	float AttackRate = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category=HitCheck)
+	float GroggyValue = 10.0f;
 	
 };
 
@@ -55,12 +58,14 @@ struct FSingleAttack : public FAttackData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=SingleAttack)
+	UPROPERTY(EditAnywhere, Category=SingleAttack)
 	FString EndSocketName = TEXT("weapon_end");
 	
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=SingleAttack)
+	UPROPERTY(EditAnywhere, Category=SingleAttack)
 	float AttackRate = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category=SingleAttack)
+	float GroggyValue = 10.0f;
 	
 	
 };
@@ -84,7 +89,9 @@ struct FComboAttack : public FAttackData
 
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> AttackRate;
-	
+
+	UPROPERTY(EditAnywhere, Category=HitCheck)
+	TArray<float> GroggyValue;
 	
 };
 

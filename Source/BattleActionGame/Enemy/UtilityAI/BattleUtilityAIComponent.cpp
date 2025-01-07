@@ -208,6 +208,25 @@ float UConsiderationFactors::GetBreakLeftLeg()
 	}
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
+float UConsiderationFactors::GetCanMovement()
+{
+	// 0 => 움직일 수 없음 1 => 움직일 수 있음.
+	if (MyCharacter->GetAbilitySystemComponent()->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Groggy))
+	{
+		UE_LOG(LogTemp,Log, TEXT("GroggyGroggyGroggyGroggyGroggy"));
+		return 0.0f;
+	}
+	
+
+	UE_LOG(LogTemp,Log, TEXT("NOTNONOTOTNTOTNTOTNTOT"));
+	return 1.0f;
+	
+}
+
+PRAGMA_ENABLE_OPTIMIZATION
+
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
 {
 	// 1 => 엄청 멈, 0 => 가까움
@@ -370,6 +389,12 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 		return [this]() -> float
 		{
 			return GetBreakRightLeg();
+		};
+		break;
+	case EBattleConsiderType::CanMovement:
+		return [this]() -> float
+		{
+			return GetCanMovement();
 		};
 		break;
 	default:
@@ -617,10 +642,16 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	float BestScore = 0.0f;
 	UBattleUtilityAction* BestAction = nullptr;
 
+	int Key = 0;
 	for (UBattleUtilityAction* Action : InstancedActions)
 	{
 		float CurScore = Action->EvaluateScore(ConsiderList);
 
+		FString DebugString = FString::Printf(TEXT("%s: %f"), *Action->GetName(), CurScore);
+		GEngine->AddOnScreenDebugMessage(Key, 1.0f, FColor::Green, DebugString);
+
+		Key++;
+		
 		if (BestScore < CurScore)
 		{
 			BestScore = CurScore;
@@ -632,7 +663,6 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	{
 
 	}
-	
 	if (ActiveAction == nullptr)
 	{
 		

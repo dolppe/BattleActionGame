@@ -46,6 +46,8 @@ public:
 
 	FGameplayTag Status_KnockBack;
 
+	FGameplayTag Status_Groggy;
+
 
 	/*
 	 * Combat
@@ -77,6 +79,7 @@ public:
 	 */
 	
 	FGameplayTag GameplayEffect_Data_AttackRate;
+	FGameplayTag GameplayEffect_Data_GroggyValue;
 
 	/*
 	 *

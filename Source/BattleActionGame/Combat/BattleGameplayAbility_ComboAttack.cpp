@@ -110,6 +110,7 @@ void UBattleGameplayAbility_ComboAttack::GetLifetimeReplicatedProps(TArray<FLife
 FName UBattleGameplayAbility_ComboAttack::GetNextSection()
 {
 	AttackRate = CurrentComboAttackData->AttackRate[CurrentComboIndex];
+	GroggyValue = CurrentComboAttackData->GroggyValue[CurrentComboIndex];
 	CurrentComboIndex = FMath::Clamp(CurrentComboIndex+1,1,CurrentComboAttackData->MaxComboCount);
 	FName NextSection = *FString::Printf(TEXT("%s%d"), *CurrentComboAttackData->MontageSectionName, CurrentComboIndex);
 	return NextSection;

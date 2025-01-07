@@ -2,10 +2,12 @@
 
 #include "BattleEnemyController.h"
 #include "BattleEnemyData.h"
+#include "GameplayEffect.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
+#include "BattleActionGame/AbilitySystem/Attributes/BattleEnemySet.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
 #include "BattleActionGame/Character/BattleCharacterMovementComponent.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
@@ -24,6 +26,7 @@ ABattleEnemyCharacter::ABattleEnemyCharacter(const FObjectInitializer& ObjectIni
 
 	CreateDefaultSubobject<UBattleHealthSet>(TEXT("HealthSet"));
 	CreateDefaultSubobject<UBattleCombatSet>(TEXT("CombatSet"));
+	CreateDefaultSubobject<UBattleEnemySet>(TEXT("EnemySet"));
 	
 	HealthComponent = CreateDefaultSubobject<UBattleHealthComponent>(TEXT("HealthComponent"));
 
@@ -98,7 +101,12 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 	BreakableParts.Add(FBattleGameplayTags::Get().Gameplay_Breakable_LeftLeg, LeftLegBreakablePart);
 	BreakableParts.Add(FBattleGameplayTags::Get().Gameplay_Breakable_RightLeg, RightLegBreakablePart);
 	
-	
+	const UBattleEnemySet* EnemySet = AbilitySystemComponent->GetSet<UBattleEnemySet>();
+
+	if (EnemySet)
+	{
+		EnemySet->OnGroggyState.AddUObject(this, &ThisClass::HandleGroggyState);
+	}
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
@@ -113,6 +121,17 @@ void ABattleEnemyCharacter::AttackBreakablePart(FGameplayTag InGameplayTag)
 			BreakableParts[InGameplayTag].DestroyFunction(InGameplayTag);
 		}
 	}
+}
+
+void ABattleEnemyCharacter::HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude)
+{
+	UE_LOG(LogTemp, Log, TEXT("Groggy"));
+
+	//AbilitySystemComponent->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Groggy);
+
+	FGameplayTagContainer GameplayTags;
+	GameplayTags.AddTag(FBattleGameplayTags::Get().Status_Groggy);
+	AbilitySystemComponent->TryActivateAbilitiesByTag(GameplayTags, false);
 }
 
 

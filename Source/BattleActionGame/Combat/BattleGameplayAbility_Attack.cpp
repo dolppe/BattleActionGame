@@ -29,6 +29,7 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Single, AttackMode);
 
 	AttackRate = CurrentAttackData.AttackRate;
+	GroggyValue = CurrentAttackData.GroggyValue;
 
 	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData.MontageSectionName, CurrentCombatManager->GetCurrentComboIndex());
 

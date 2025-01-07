@@ -131,11 +131,12 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 
 void UBattleUtilityAction::StartAction()
 {
-
+	UE_LOG(LogBattle, Log, TEXT("StartAction: %s"), *GetName());
 }
 
 void UBattleUtilityAction::EndAction()
 {
+	UE_LOG(LogBattle, Log, TEXT("EndAction: %s"), *GetName());
 }
 
 bool UBattleUtilityAction::TickAction(float DeltaTime)

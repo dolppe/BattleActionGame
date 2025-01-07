@@ -31,6 +31,7 @@ void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbili
 	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::HitCheck, AttackMode);
 
 	AttackRate = CurrentHitCheckData.AttackRate;
+	GroggyValue = CurrentHitCheckData.GroggyValue;
 
 	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentHitCheckData.MontageSectionName, 1);
 

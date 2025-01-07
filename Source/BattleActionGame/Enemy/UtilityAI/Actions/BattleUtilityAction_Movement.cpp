@@ -96,6 +96,8 @@ bool UBattleUtilityAction_TurnToTarget::TickAction(float DeltaTime)
 	
 	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, 12.f);
 
+	NewRotation.Pitch = 0;
+
 	// 캐릭터의 회전을 업데이트
 	MyCharacter->SetActorRotation(NewRotation);
 

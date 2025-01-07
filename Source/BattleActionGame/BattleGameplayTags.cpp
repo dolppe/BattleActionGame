@@ -47,7 +47,9 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	
 	AddTag(Status_KnockBack, "Status.KnockBack", "");
 	
-
+	AddTag(Status_Groggy, "Status.Groggy", "");
+	
+	
 	/*
 	 *	Combat
 	 */
@@ -75,6 +77,9 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	 */
 
 	AddTag(GameplayEffect_Data_AttackRate, "GameplayEffect.Data.AttackRate", "");
+	AddTag(GameplayEffect_Data_GroggyValue, "GameplayEffect.Data.GroggyValue", "");
+
+	
 
 	AddTag(Gameplay_Breakable_LeftLeg, "Gameplay.Breakable.LeftLeg", "");
 	AddTag(Gameplay_Breakable_RightLeg, "Gameplay.Breakable.RightLeg", "");

@@ -65,6 +65,7 @@ protected:
 
 	float AcceptHitDistance = 1500.f;
 	float AttackRate = 1.0f;
+	float GroggyValue = 1.0f; 
 
 protected:
 	
