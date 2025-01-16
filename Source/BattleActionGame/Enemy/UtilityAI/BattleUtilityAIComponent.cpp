@@ -10,6 +10,7 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
+#include "BattleActionGame/Player/BattlePlayerState.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAIComponent)
 
@@ -258,6 +259,29 @@ TArray<float> UConsiderationFactors::GetTargetPriority()
 		
 		Result *= (1 - TargetDistances[Idx]);
 
+		if (DamageStack.Contains(TargetActors[Idx]))
+		{
+			float DamageRate = DamageStack[TargetActors[Idx]] / MaxDamageForPriority;
+
+			if (DamageRate <= 0.4)
+			{
+				Result *= 0.4f;
+			}
+			else if (DamageRate >= 1.0f)
+			{
+				Result *= 1.0f;
+			}
+			else
+			{
+				Result *= DamageRate;
+			}
+		}
+		else
+		{
+			Result *= 0.4f;
+		}
+		
+		
 		ResultArray.Add(Result);
 	}
 
@@ -308,6 +332,11 @@ TArray<float> UConsiderationFactors::GetTargetPoisonedState()
 	}
 
 	return ResultArray;
+}
+
+TArray<float> UConsiderationFactors::GetTargetAggroValue()
+{
+	return TArray<float>();
 }
 
 float UConsiderationFactors::GetMyHp()
@@ -484,6 +513,11 @@ void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* Uti
 	MyCharacter = Cast<ABattleCharacterBase>(UtilityAIComponent->GetOwner());
 	BestCombatTime = UtilityAIComponent->BestCombatTime;
 	ThreatCharacterNum = UtilityAIComponent->ThreatCharacterNum;
+
+	if (UBattleHealthComponent* HealthComponent = MyCharacter->GetHealthComponent())
+	{
+		HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnCharacterHealthChanged);
+	}
 }
 
 void UConsiderationFactors::ClearConsiderFactors()
@@ -555,6 +589,45 @@ void UConsiderationFactors::SearchNearActors()
 		TargetHps.Add(TargetHp);
 	}
 }
+
+PRAGMA_DISABLE_OPTIMIZATION
+
+void UConsiderationFactors::OnCharacterHealthChanged(UBattleHealthComponent* HealthComponent, float OldValue,
+	float NewValue, AActor* Instigator)
+{
+	if (OldValue <= NewValue)
+	{
+		return;
+	}
+	
+	if (ABattlePlayerState* PlayerState = Cast<ABattlePlayerState>(Instigator))
+	{
+		if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(PlayerState->GetPawn()))
+		{
+			if (DamageStack.Contains(Character))
+			{
+				DamageStack[Character] += (OldValue - NewValue);
+			}
+			else
+			{
+				DamageStack.Add(Character, OldValue- NewValue);
+			}
+		}
+	}
+	else if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(Instigator))
+	{
+		if (DamageStack.Contains(Character))
+		{
+			DamageStack[Character] += (OldValue - NewValue);
+		}
+		else
+		{
+			DamageStack.Add(Character, OldValue- NewValue);
+		}
+	}
+	
+}
+PRAGMA_ENABLE_OPTIMIZATION
 
 AActor* UConsiderationFactors::GetTargetPtr(EAxisType InAxisType, int Index) const
 {

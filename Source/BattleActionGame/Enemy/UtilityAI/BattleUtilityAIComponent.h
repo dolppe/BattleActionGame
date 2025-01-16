@@ -10,6 +10,7 @@ class UBattleUtilityAIComponent;
 class ABattleCharacterBase;
 class UBattleUtilityAIData;
 class UBattleUtilityAction;
+class UBattleHealthComponent;
 
 UENUM(BlueprintType)
 enum class EBattleConsiderType : uint8
@@ -70,6 +71,7 @@ public:
 	TArray<float> GetTargetPriority();
 	TArray<float> GetTargetWeakness();
 	TArray<float> GetTargetPoisonedState();
+	TArray<float> GetTargetAggroValue();
 
 	// Axis
 	float GetMyHp();
@@ -104,6 +106,9 @@ public:
 	void GetConsiderListData();
 	void SearchNearActors();
 
+	UFUNCTION()
+	void OnCharacterHealthChanged(UBattleHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
+
 	AActor* GetTargetPtr(EAxisType InAxisType, int Index) const;
 	
 public:
@@ -118,8 +123,12 @@ public:
 
 	TObjectPtr<ABattleCharacterBase> SelectedTarget;
 	TArray<TObjectPtr<ABattleCharacterBase>> TargetActors;
+	TArray<float> TargetAggroValues;
 	TArray<float> TargetDistances;
 	TArray<float> TargetHps;
+	
+	TMap<TObjectPtr<ABattleCharacterBase>, float> DamageStack;
+	const float MaxDamageForPriority = 100.0f; 
 
 	float MyHp;
 	

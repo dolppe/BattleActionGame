@@ -132,6 +132,7 @@ void ABattleEnemyCharacter::HandleGroggyState(AActor* GEInstigator, AActor* GECa
 	FGameplayTagContainer GameplayTags;
 	GameplayTags.AddTag(FBattleGameplayTags::Get().Status_Groggy);
 	AbilitySystemComponent->TryActivateAbilitiesByTag(GameplayTags, false);
+	
 }
 
 

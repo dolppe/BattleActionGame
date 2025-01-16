@@ -4,6 +4,7 @@
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
+#include "BattleActionGame/AbilitySystem/BattleAbilitySystemGlobals.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
 #include "Net/UnrealNetwork.h"
 
@@ -209,15 +210,24 @@ static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& Cha
 		const FGameplayEffectContextHandle& EffectContext = ChangeData.GEModData->EffectSpec.GetEffectContext();
 		return EffectContext.GetOriginalInstigator();
 	}
-
-	return nullptr;
+	else
+	{
+		const FGameplayEffectSpec* EffectSpec = UBattleAbilitySystemGlobals::GetBattleGlobals().GetCurrentAppliedGE();
+		if (EffectSpec)
+		{
+			return EffectSpec->GetEffectContext().GetOriginalInstigator();
+		}
+		return nullptr;
+	}
 }
 
 void UBattleHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
 	BA_SUBLOG(LogBattle, Log, TEXT("Health Change : %f => %f"), ChangeData.OldValue, ChangeData.NewValue);
 
-	OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, GetInstigatorFromAttrChangeData(ChangeData));
+	AActor* Instigator = GetInstigatorFromAttrChangeData(ChangeData);
+
+	OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, Instigator);
 }
 
 void UBattleHealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& ChangeData)
