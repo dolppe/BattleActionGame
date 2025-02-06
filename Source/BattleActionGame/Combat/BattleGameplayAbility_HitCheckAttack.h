@@ -6,6 +6,27 @@
 #include "BattleGameplayAbility_HitCheckAttack.generated.h"
 
 
+
+UENUM()
+enum class EHitCheckAttackType : uint8
+{
+	WeaponRange,
+	AreaRange,
+	
+};
+
+USTRUCT()
+struct FAttackAreaData
+{
+	GENERATED_BODY()
+
+	FVector CenterLocation;
+
+	float Radius;
+	
+}; 
+
+
 struct FHitCheckAttack;
 struct FBattleVerbMessage;
 struct FGameplayMessageListenerHandle;
@@ -27,6 +48,17 @@ public:
 
 	virtual void AttackHitConfirm(const FHitResult& HitResult) override;
 
+	void SetHitCheckAttackType(EHitCheckAttackType InHitCheckAttackType)
+	{
+		HitCheckAttackType = InHitCheckAttackType;
+	}
+
+	void SetAttackAreaData(const TArray<FAttackAreaData>& InAttackAreaData)
+	{
+		AttackAreaData = InAttackAreaData;
+	}
+	
+
 
 protected:
 
@@ -44,13 +76,15 @@ protected:
 
 	void AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification);
 
+	TArray<FHitResult> StartHitCheckByWeaponRange();
+	TArray<FHitResult> StartHitCheckByAreaRange();
+	
 	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 
-	
-private:
 
+	EHitCheckAttackType HitCheckAttackType = EHitCheckAttackType::WeaponRange;
 
-	
+	TArray<FAttackAreaData> AttackAreaData;
 
 	
 };

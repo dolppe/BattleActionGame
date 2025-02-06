@@ -16,6 +16,7 @@ UBattleGameplayAbility_HitCheckAttack::UBattleGameplayAbility_HitCheckAttack(
 	const FObjectInitializer& ObjectInitializer)
 		: Super(ObjectInitializer)
 {
+	AttackType = EAttackType::HitCheck;
 }
 
 void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -27,7 +28,7 @@ void UBattleGameplayAbility_HitCheckAttack::ActivateAbility(const FGameplayAbili
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	const FHitCheckAttack& CurrentHitCheckData = CurrentCombatManager->GetHitCheckAttackData(AttackMode);
+	const FHitCheckAttack& CurrentHitCheckData = CurrentCombatManager->GetAttackData()->HitCheckAttacks[AttackMode];
 	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::HitCheck, AttackMode);
 
 	AttackRate = CurrentHitCheckData.AttackRate;
@@ -130,55 +131,117 @@ void UBattleGameplayAbility_HitCheckAttack::AttackEvent(FGameplayTag Channel, co
 
 }
 
+TArray<FHitResult> UBattleGameplayAbility_HitCheckAttack::StartHitCheckByWeaponRange()
+{
+	TArray<FHitResult> HitResults;
+
+	ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
+	USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
+
+	const FRotator Rotation = CharacterBase->GetActorRotation();
+	const FRotator YawRotation(0,Rotation.Yaw,0);
+
+	FCollisionQueryParams Temp;
+
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		
+	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(CharacterBase->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
+	const FHitCheckAttack& CurrentHitCheckData = CurrentCombatManager->GetAttackData()->HitCheckAttacks[AttackMode];
+
+	FVector Start = SkeletalMesh->GetSocketLocation(*CurrentHitCheckData.StartSocketName);
+	FVector End = Start + ForwardDirection*CurrentHitCheckData.AttackRange;
+
+	float Radius = CurrentHitCheckData.AttackRadius;
+		
+	GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CurrentHitCheckData.CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
+
+	FColor HitColor = FColor::Red;
+
+	for (FHitResult HitResult : HitResults)
+	{
+		if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
+		{
+			HitColor = FColor::Green;
+		}
+	}
+	
+#if 1
+	
+	FVector TraceVector = End - Start;
+	FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
+	float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
+	FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
+	//	DrawDebugLine(GetWorld(), Start, End, HitColor, false, 10.f, 0, 0);
+	DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, HitColor,false, 10.f);
+#endif
+	
+	return HitResults;
+}
+
+TArray<FHitResult> UBattleGameplayAbility_HitCheckAttack::StartHitCheckByAreaRange()
+{
+	TArray<FHitResult> OutHitResults;
+
+	if (AttackAreaData.IsEmpty())
+	{
+		return TArray<FHitResult>();
+	}
+
+	ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
+	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(CharacterBase->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
+	const FHitCheckAttack& CurrentHitCheckData = CurrentCombatManager->GetAttackData()->HitCheckAttacks[AttackMode];
+
+	FVector OffSet = FVector(0.1f,0.1f,0.1f);
+	
+	for (FAttackAreaData AttackAreaDataItem : AttackAreaData)
+	{
+		TArray<FHitResult> HitResults;
+		GetWorld()->SweepMultiByChannel(HitResults, AttackAreaDataItem.CenterLocation, AttackAreaDataItem.CenterLocation + OffSet,FQuat::Identity, CurrentHitCheckData.CollisionChannel, FCollisionShape::MakeSphere(AttackAreaDataItem.Radius));
+
+		for (FHitResult HitResult : HitResults)
+		{
+			auto Pred = [&HitResult](const FHitResult& Other)
+			{
+				return Other.HitObjectHandle == HitResult.HitObjectHandle;
+			};
+
+			if (!OutHitResults.ContainsByPredicate(Pred))
+			{
+				OutHitResults.Add(HitResult);
+			}
+		}
+	}
+
+	return OutHitResults;
+
+	
+}
+
 void UBattleGameplayAbility_HitCheckAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
+	
 	if (Notification.Target == GetAvatarActorFromActorInfo())
 	{
 		// Trace해서 처리 후 SelectHitCheck에 전송
+
 		TArray<FHitResult> HitResults;
-
-		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
-		USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
 		
-		const FRotator Rotation = CharacterBase->GetActorRotation();
-		const FRotator YawRotation(0,Rotation.Yaw,0);
-
-		FCollisionQueryParams Temp;
-		
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		
-		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(CharacterBase->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
-		const FHitCheckAttack& CurrentHitCheckData = CurrentCombatManager->GetHitCheckAttackData(AttackMode);
-
-		FVector Start = SkeletalMesh->GetSocketLocation(*CurrentHitCheckData.StartSocketName);
-		FVector End = Start + ForwardDirection*CurrentHitCheckData.AttackRange;
-
-		float Radius = CurrentHitCheckData.AttackRadius;
-		
-		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CurrentHitCheckData.CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
-		
-		FColor HitColor = FColor::Red; 
+		if (HitCheckAttackType == EHitCheckAttackType::WeaponRange)
+		{
+			HitResults = StartHitCheckByWeaponRange();
+		}
+		else if (HitCheckAttackType == EHitCheckAttackType::AreaRange)
+		{
+			HitResults = StartHitCheckByAreaRange();
+		}
 	
 		for (FHitResult HitResult : HitResults)
 		{
-			HitColor = FColor::Green;
 			if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
 			{
 				SelectHitCheck(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
 			}
 		}
-
-#if 1
-	
-		FVector TraceVector = End - Start;
-		FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
-		float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
-		FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
-		//	DrawDebugLine(GetWorld(), Start, End, HitColor, false, 10.f, 0, 0);
-		DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, HitColor,false, 10.f);
-#endif
-		
-		
 	}
 	
 }

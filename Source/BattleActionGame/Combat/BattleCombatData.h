@@ -3,6 +3,7 @@
 #include "Engine/DataAsset.h"
 #include "BattleCombatData.generated.h"
 
+enum class EAttackType : uint8;
 class UNiagaraSystem;
 
 USTRUCT(BlueprintType)

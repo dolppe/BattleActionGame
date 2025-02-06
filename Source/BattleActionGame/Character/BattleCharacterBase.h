@@ -24,6 +24,8 @@ public:
 	virtual UBattleHealthComponent* GetHealthComponent() const;
 
 	
+
+	
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))

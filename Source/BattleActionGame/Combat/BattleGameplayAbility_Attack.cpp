@@ -14,6 +14,7 @@
 UBattleGameplayAbility_Attack::UBattleGameplayAbility_Attack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	AttackType = EAttackType::Single;
 }
 
 void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -25,7 +26,7 @@ void UBattleGameplayAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHa
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	const FSingleAttack& CurrentAttackData = CurrentCombatManager->GetAttackData(AttackMode);
+	const FSingleAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->SingleAttacks[AttackMode];
 	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Single, AttackMode);
 
 	AttackRate = CurrentAttackData.AttackRate;
@@ -127,7 +128,7 @@ void UBattleGameplayAbility_Attack::StartHitCheck(FGameplayTag Channel, const FB
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetActorInfo().AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	const FSingleAttack& CurrentAttackData = CurrentCombatManager->GetAttackData(AttackMode);
+	const FSingleAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->SingleAttacks[AttackMode];
 	
 	HitCheckTask = UBattleAbilityTask_HitCheck::CreateTask(this);
 	HitCheckTask->SetHitCheckData(CurrentAttackData.StartSocketName, CurrentAttackData.EndSocketName, CurrentAttackData.AttackRadius, CurrentAttackData.CollisionChannel);

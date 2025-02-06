@@ -1,6 +1,7 @@
 #include "BattleCombatManagerComponent.h"
 
 #include "AbilitySystemComponent.h"
+#include "BattleGameplayAbility_ComboAttack.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "Item/BattleGameplayAbility_UseItem_AttributeBased.h"
 #include "Item/BattleItemData.h"

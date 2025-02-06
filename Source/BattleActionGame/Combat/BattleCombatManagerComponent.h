@@ -3,9 +3,12 @@
 #include "BattleCombatData.h"
 #include "Components/PawnComponent.h"
 #include "Animation/AnimMontage.h"
-#include "BattleGameplayAbility_ComboAttack.h"
 #include "Item/BattleQuickBarComponent.h"
 #include "BattleCombatManagerComponent.generated.h"
+
+class UBattleGameplayAbility_ComboAttack;
+enum class EItemType : uint8;
+class UGameplayAbility;
 
 UENUM()
 enum class EAttackType : uint8
@@ -29,23 +32,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UseItem(EItemType Item);
-
+	
 	UFUNCTION(BlueprintCallable)
-	const FComboAttack& GetComboData(int idx) const
+	UBattleCombatData* GetAttackData() const
 	{
-		return CombatData->ComboAttacks[idx];
-	}
-
-	UFUNCTION(BlueprintCallable)
-	const FSingleAttack& GetAttackData(int idx) const
-	{
-		return CombatData->SingleAttacks[idx];
-	}
-
-	UFUNCTION(BlueprintCallable)
-	const FHitCheckAttack& GetHitCheckAttackData(int idx) const
-	{
-		return CombatData->HitCheckAttacks[idx];
+		return CombatData;
 	}
 
 	UFUNCTION(BlueprintCallable)
@@ -73,10 +64,11 @@ public:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentUsedItemInfo, BlueprintReadWrite)
 	FBattleItemInfo CurrentUsedItemInfo;
 
-private:
-	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBattleCombatData> CombatData;
+
+private:
+	
 	
 	UPROPERTY()
 	UBattleGameplayAbility_ComboAttack* CurrentCombo = nullptr;

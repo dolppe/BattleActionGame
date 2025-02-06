@@ -29,9 +29,11 @@ enum class EBattleConsiderType : uint8
 	BreakLeftLeg UMETA(DisplayName = "BreakLeftLeg"),
 	BreakRightLeg UMETA(DisplayName = "BreakRightLeg"),
 	CanMovement UMETA(DisplayName = "CanMovement"),
+	EnemyDensity UMETA(DisplayName = "EnemyDensity"),
+	EnemyAverageDistance UMETA(DisplayName = "EnemyAverageDistance"),
 	
 
-	// Array
+	// Array - Target
 	TargetDistanceNearly UMETA(DisplayName = "TargetDistanceNearly"),
 	TargetHp UMETA(DisplayName = "TargetHp"),
 	TargetPriority UMETA(DisplayName = "TargetPriority"),
@@ -87,6 +89,8 @@ public:
 	float GetBreakRightLeg();
 	float GetBreakLeftLeg();
 	float GetCanMovement();
+	float GetEnemyDensity();
+	float GetEnemyAverageDistance();
 
 	
 
@@ -137,6 +141,9 @@ public:
 
 	float BestCombatTime;
 	float ThreatCharacterNum;
+
+	float EnemyDensity;
+	float EnemyAverageDistance;
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;

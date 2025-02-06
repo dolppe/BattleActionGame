@@ -226,6 +226,20 @@ float UConsiderationFactors::GetCanMovement()
 	
 }
 
+float UConsiderationFactors::GetEnemyDensity()
+{
+	/*
+	 *  0.0에 가까울수록 밀집한 것, 0.2정도면 꽤 밀집한 상태.
+	 */
+	
+	return EnemyDensity;
+}
+
+float UConsiderationFactors::GetEnemyAverageDistance()
+{
+	return EnemyAverageDistance;
+}
+
 PRAGMA_ENABLE_OPTIMIZATION
 
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
@@ -426,6 +440,18 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 			return GetCanMovement();
 		};
 		break;
+	case EBattleConsiderType::EnemyDensity:
+		return [this]() -> float
+		{
+			return GetEnemyDensity();
+		};
+		break;
+	case EBattleConsiderType::EnemyAverageDistance:
+		return [this]() -> float
+		{
+			return GetEnemyAverageDistance();
+		};
+		break;
 	default:
 		return [this]() -> float
 		{
@@ -534,6 +560,8 @@ void UConsiderationFactors::GetConsiderListData()
 	MyHp = MyCharacter->GetHealthComponent()->GetHealthNormalized();
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 void UConsiderationFactors::SearchNearActors()
 {
 	FVector Center = MyCharacter->GetActorLocation();
@@ -547,7 +575,7 @@ void UConsiderationFactors::SearchNearActors()
 	
 	if (!OutOverlaps.IsEmpty())
 	{
-		
+
 		for (FOverlapResult& OverlapResult : OutOverlaps)
 		{
 			AActor* OverlappedActor = OverlapResult.GetActor();
@@ -575,22 +603,97 @@ void UConsiderationFactors::SearchNearActors()
 		CombatStartTime = GetWorld()->GetTimeSeconds();
 		bIsInCombat = true;
 	}
-	
-	float MaxTargetDistance = UtilityAIComponent->MaxTargetDistance;
 
-	
-	// Target 나온 것을 토대로
-	for (ABattleCharacterBase* Character : TargetActors)
+	if (!TargetActors.IsEmpty())
 	{
-		float Distance = FMath::Clamp(FVector::Dist(Character->GetActorLocation(), Center), 0.0f, MaxTargetDistance);
-		float TargetHp = Character->GetHealthComponent()->GetHealthNormalized();
-		Distance = FMath::GetRangePct(0.0f, MaxTargetDistance, Distance);
-		TargetDistances.Add(Distance);
-		TargetHps.Add(TargetHp);
+		float MaxTargetDistance = UtilityAIComponent->MaxTargetDistance;
+
+		float TotalDistance = 0.0f;
+
+		TArray<float> Angles;
+	
+		// Target 나온 것을 토대로
+		for (ABattleCharacterBase* Character : TargetActors)
+		{
+			float Distance = FMath::Clamp(FVector::Dist(Character->GetActorLocation(), Center), 0.0f, MaxTargetDistance);
+			float TargetHp = Character->GetHealthComponent()->GetHealthNormalized();
+			Distance = FMath::GetRangePct(0.0f, MaxTargetDistance, Distance);
+			TargetDistances.Add(Distance);
+			TargetHps.Add(TargetHp);
+			
+			FVector Delta = Character->GetActorLocation() - Center;
+			TotalDistance += Delta.Size2D();
+
+			float Angle = FMath::Atan2(Delta.Y, Delta.X);
+			
+			UE_LOG(LogTemp, Log, TEXT("Angle: %f"), Angle);
+			
+			Angles.Add(Angle);
+		}
+		
+		float AverageDistance = TotalDistance / TargetActors.Num();
+
+		float TotalX = 0.0f;
+		float TotalY = 0.0f;
+
+		for (float Angle : Angles)
+		{
+			TotalX += FMath::Cos(Angle);
+			TotalY += FMath::Sin(Angle);
+		}
+
+		float AverageX = TotalX / TargetActors.Num();
+		float AverageY = TotalY / TargetActors.Num();
+
+		float AverageAngles = FMath::Atan2(AverageY, AverageX);
+
+		float VarianceAngles = 0.0f;
+		float TotalWeight = 0.0f;
+
+		for (float Angle : Angles)
+		{
+			float Deviation = Angle - AverageAngles;
+
+			if (Deviation > PI)
+			{
+				Deviation -= (2*PI);
+			}
+			else if (Deviation < -PI)
+			{
+				Deviation += (2*PI);
+			}
+
+			Deviation = (1- FMath::Cos(Deviation));
+
+			float VarianceWeight = (1 / (Deviation + 1));
+
+			TotalWeight += VarianceWeight;
+			VarianceAngles += VarianceWeight * Deviation * Deviation;
+		}
+
+		VarianceAngles = VarianceAngles / TotalWeight;
+		//VarianceAngles = VarianceAngles / TargetActors.Num();
+
+		/*
+		 * 정규화
+		 */
+		
+		// 5000으로 나누기
+		AverageDistance *= 0.0002;
+		// 2로 나누기
+		VarianceAngles *= 0.5;
+
+		
+		EnemyDensity = VarianceAngles;
+		EnemyAverageDistance = AverageDistance;
+		
+
+		UE_LOG(LogTemp, Log, TEXT("AverageDistance: %f      |    VarianceAngles: %f  | EnemyDensity: %f "), AverageDistance, VarianceAngles, EnemyDensity);
+		
 	}
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
+
 
 void UConsiderationFactors::OnCharacterHealthChanged(UBattleHealthComponent* HealthComponent, float OldValue,
 	float NewValue, AActor* Instigator)

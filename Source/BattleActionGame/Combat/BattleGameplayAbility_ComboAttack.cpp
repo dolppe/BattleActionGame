@@ -14,6 +14,7 @@
 UBattleGameplayAbility_ComboAttack::UBattleGameplayAbility_ComboAttack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	AttackType = EAttackType::Combo;
 }
 
 void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -29,7 +30,7 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentComboAttackData = &CurrentCombatManager->GetComboData(AttackMode);
+	CurrentComboAttackData = &CurrentCombatManager->GetAttackData()->ComboAttacks[AttackMode];
 	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Combo, AttackMode);
 
 	FName MontageSectionName = GetNextSection();

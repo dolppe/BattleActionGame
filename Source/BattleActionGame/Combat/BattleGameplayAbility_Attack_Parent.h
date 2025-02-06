@@ -5,6 +5,7 @@
 #include "BattleActionGame/Messages/BattleVerbMessage.h"
 #include "BattleGameplayAbility_Attack_Parent.generated.h"
 
+enum class EAttackType : uint8;
 class UBattleCombatData;
 
 UCLASS(Abstract)
@@ -25,6 +26,11 @@ public:
 	virtual void ServerRPCNotifyHit(const FHitResult& HitResult, float HitCheckTime);
 	
 	virtual void AttackHitConfirm(const FHitResult& HitResult);
+
+	EAttackType GetAttackType() const
+	{
+		return AttackType;
+	}
 	
 protected:
 
@@ -71,6 +77,8 @@ protected:
 	
 	FGameplayMessageListenerHandle StartListenerHandle;
 	FGameplayMessageListenerHandle EndListenerHandle;
+
+	EAttackType AttackType;
 	
 };
 
