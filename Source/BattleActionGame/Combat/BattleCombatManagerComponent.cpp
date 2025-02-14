@@ -1,6 +1,10 @@
 #include "BattleCombatManagerComponent.h"
 
 #include "AbilitySystemComponent.h"
+#include "AttackCollisionMethod_CircularAOE.h"
+#include "AttackCollisionMethod_DirectionalSweep.h"
+#include "AttackCollisionMethod_SocketBasedLineTrace.h"
+#include "BattleGameplayAbility_ComboAttack.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "Item/BattleGameplayAbility_UseItem_AttributeBased.h"
 #include "Item/BattleItemData.h"
@@ -26,6 +30,10 @@ void UBattleCombatManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetime
 void UBattleCombatManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InstancedCollisionMethod.Add(ECollisionMethodType::SocketBasedLineTrace, NewObject<UAttackCollisionMethod_SocketBasedLineTrace>(this));
+	InstancedCollisionMethod.Add(ECollisionMethodType::DirectionalSweep, NewObject<UAttackCollisionMethod_DirectionalSweep>(this));
+	InstancedCollisionMethod.Add(ECollisionMethodType::CircularAOE, NewObject<UAttackCollisionMethod_CircularAOE>(this));
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
@@ -35,6 +43,20 @@ void UBattleCombatManagerComponent::UseItem(EItemType Item)
 }
 
 PRAGMA_ENABLE_OPTIMIZATION
+
+UAnimMontage* UBattleCombatManagerComponent::GetAttackMontage(EAttackType AttackType, int Idx) const
+{
+	switch (AttackType)
+	{
+	case EAttackType::ComboStrong:
+		return CombatData->ComboStrongAttacks[Idx].Montage;
+	case EAttackType::Combo:
+		return CombatData->ComboAttacks[Idx].Montage;
+	case EAttackType::Basic:
+		return CombatData->BasicAttacks[Idx].Montage;
+	}
+	return nullptr;
+}
 
 int UBattleCombatManagerComponent::GetCurrentComboIndex()
 {
@@ -57,4 +79,9 @@ void UBattleCombatManagerComponent::SetComboGA(UBattleGameplayAbility_ComboAttac
 void UBattleCombatManagerComponent::OnRep_CurrentUsedItemInfo()
 {
 	
+}
+
+UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(ECollisionMethodType CollisionMethod)
+{
+	return InstancedCollisionMethod[CollisionMethod];
 }

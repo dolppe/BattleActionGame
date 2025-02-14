@@ -3,7 +3,28 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 #include "GameplayMessageSubsystem.h"
 #include "GameplayTagContainer.h"
-#include "BattleGameplayAbility_HitCheckAttack.generated.h"
+#include "BattleGameplayAbility_BasicAttack.generated.h"
+
+
+
+UENUM()
+enum class EHitCheckAttackType : uint8
+{
+	WeaponRange,
+	AreaRange,
+	
+};
+
+USTRUCT()
+struct FAttackAreaData
+{
+	GENERATED_BODY()
+
+	FVector CenterLocation;
+
+	float Radius;
+	
+}; 
 
 
 struct FHitCheckAttack;
@@ -11,12 +32,12 @@ struct FBattleVerbMessage;
 struct FGameplayMessageListenerHandle;
 
 UCLASS()
-class UBattleGameplayAbility_HitCheckAttack : public UBattleGameplayAbility_Attack_Parent
+class UBattleGameplayAbility_BasicAttack : public UBattleGameplayAbility_Attack_Parent
 {
 	GENERATED_BODY()
 public:
 
-	UBattleGameplayAbility_HitCheckAttack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UBattleGameplayAbility_BasicAttack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -26,6 +47,17 @@ public:
 	virtual void ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime) override;
 
 	virtual void AttackHitConfirm(const FHitResult& HitResult) override;
+
+	void SetHitCheckAttackType(EHitCheckAttackType InHitCheckAttackType)
+	{
+		HitCheckAttackType = InHitCheckAttackType;
+	}
+
+	void SetAttackAreaData(const TArray<FAttackAreaData>& InAttackAreaData)
+	{
+		AttackAreaData = InAttackAreaData;
+	}
+	
 
 
 protected:
@@ -44,13 +76,15 @@ protected:
 
 	void AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification);
 
+	TArray<FHitResult> StartHitCheckByWeaponRange();
+	TArray<FHitResult> StartHitCheckByAreaRange();
+	
 	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
-
+	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 	
-private:
+	EHitCheckAttackType HitCheckAttackType = EHitCheckAttackType::WeaponRange;
 
-
-	
+	TArray<FAttackAreaData> AttackAreaData;
 
 	
 };

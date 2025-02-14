@@ -3,17 +3,16 @@
 #include "BattleCombatData.h"
 #include "Components/PawnComponent.h"
 #include "Animation/AnimMontage.h"
-#include "BattleGameplayAbility_ComboAttack.h"
 #include "Item/BattleQuickBarComponent.h"
 #include "BattleCombatManagerComponent.generated.h"
 
-UENUM()
-enum class EAttackType : uint8
-{
-	Single,
-	Combo,
-	HitCheck,
-};
+class UAttackCollisionMethod;
+enum class ECollisionMethodType : uint8;
+class UBattleGameplayAbility_ComboAttack;
+enum class EItemType : uint8;
+class UGameplayAbility;
+enum class EAttackType : uint8;
+
 
 
 UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
@@ -29,39 +28,15 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UseItem(EItemType Item);
-
+	
 	UFUNCTION(BlueprintCallable)
-	const FComboAttack& GetComboData(int idx) const
+	UBattleCombatData* GetAttackData() const
 	{
-		return CombatData->ComboAttacks[idx];
+		return CombatData;
 	}
 
 	UFUNCTION(BlueprintCallable)
-	const FSingleAttack& GetAttackData(int idx) const
-	{
-		return CombatData->SingleAttacks[idx];
-	}
-
-	UFUNCTION(BlueprintCallable)
-	const FHitCheckAttack& GetHitCheckAttackData(int idx) const
-	{
-		return CombatData->HitCheckAttacks[idx];
-	}
-
-	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetAttackMontage(EAttackType AttackType, int Idx) const
-	{
-		switch (AttackType)
-		{
-		case EAttackType::Single:
-			return CombatData->SingleAttacks[Idx].Montage;
-		case EAttackType::Combo:
-			return CombatData->ComboAttacks[Idx].Montage;
-		case EAttackType::HitCheck:
-			return CombatData->HitCheckAttacks[Idx].Montage;
-		}
-		return nullptr;
-	}
+	UAnimMontage* GetAttackMontage(EAttackType AttackType, int Idx) const;
 
 	int GetCurrentComboIndex();
 
@@ -70,13 +45,17 @@ public:
 	UFUNCTION()
 	void OnRep_CurrentUsedItemInfo();
 
+	UFUNCTION(BlueprintCallable)
+	UAttackCollisionMethod* GetCollisionMethod(ECollisionMethodType CollisionMethod);
+
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentUsedItemInfo, BlueprintReadWrite)
 	FBattleItemInfo CurrentUsedItemInfo;
 
-private:
-	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBattleCombatData> CombatData;
+
+private:
+	
 	
 	UPROPERTY()
 	UBattleGameplayAbility_ComboAttack* CurrentCombo = nullptr;
@@ -86,7 +65,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	TMap<EItemType, TSubclassOf<UGameplayAbility>> ItemTypeToAbility;
 
-
+	UPROPERTY()
+	TMap<ECollisionMethodType, UAttackCollisionMethod*> InstancedCollisionMethod;
 	
 
 };

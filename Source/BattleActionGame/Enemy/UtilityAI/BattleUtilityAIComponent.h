@@ -10,6 +10,7 @@ class UBattleUtilityAIComponent;
 class ABattleCharacterBase;
 class UBattleUtilityAIData;
 class UBattleUtilityAction;
+class UBattleHealthComponent;
 
 UENUM(BlueprintType)
 enum class EBattleConsiderType : uint8
@@ -27,9 +28,12 @@ enum class EBattleConsiderType : uint8
 	IsAlone UMETA(DisplayName = "IsAlone"),
 	BreakLeftLeg UMETA(DisplayName = "BreakLeftLeg"),
 	BreakRightLeg UMETA(DisplayName = "BreakRightLeg"),
+	CanMovement UMETA(DisplayName = "CanMovement"),
+	EnemyDensity UMETA(DisplayName = "EnemyDensity"),
+	EnemyAverageDistance UMETA(DisplayName = "EnemyAverageDistance"),
 	
 
-	// Array
+	// Array - Target
 	TargetDistanceNearly UMETA(DisplayName = "TargetDistanceNearly"),
 	TargetHp UMETA(DisplayName = "TargetHp"),
 	TargetPriority UMETA(DisplayName = "TargetPriority"),
@@ -69,6 +73,7 @@ public:
 	TArray<float> GetTargetPriority();
 	TArray<float> GetTargetWeakness();
 	TArray<float> GetTargetPoisonedState();
+	TArray<float> GetTargetAggroValue();
 
 	// Axis
 	float GetMyHp();
@@ -83,6 +88,9 @@ public:
 	float GetIsAlone();
 	float GetBreakRightLeg();
 	float GetBreakLeftLeg();
+	float GetCanMovement();
+	float GetEnemyDensity();
+	float GetEnemyAverageDistance();
 
 	
 
@@ -102,6 +110,9 @@ public:
 	void GetConsiderListData();
 	void SearchNearActors();
 
+	UFUNCTION()
+	void OnCharacterHealthChanged(UBattleHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
+
 	AActor* GetTargetPtr(EAxisType InAxisType, int Index) const;
 	
 public:
@@ -116,8 +127,12 @@ public:
 
 	TObjectPtr<ABattleCharacterBase> SelectedTarget;
 	TArray<TObjectPtr<ABattleCharacterBase>> TargetActors;
+	TArray<float> TargetAggroValues;
 	TArray<float> TargetDistances;
 	TArray<float> TargetHps;
+	
+	TMap<TObjectPtr<ABattleCharacterBase>, float> DamageStack;
+	const float MaxDamageForPriority = 100.0f; 
 
 	float MyHp;
 	
@@ -126,6 +141,9 @@ public:
 
 	float BestCombatTime;
 	float ThreatCharacterNum;
+
+	float EnemyDensity;
+	float EnemyAverageDistance;
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;

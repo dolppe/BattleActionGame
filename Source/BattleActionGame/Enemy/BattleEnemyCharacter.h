@@ -8,6 +8,7 @@
 class UBattleEnemyData;
 class UBattleHealthComponent;
 class UBattleAbilitySystemComponent;
+struct FGameplayEffectSpec;
 
 USTRUCT()
 struct FBreakablePart
@@ -47,6 +48,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AttackBreakablePart(FGameplayTag InGameplayTag);
+
+	void HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude);
 	
 
 protected:

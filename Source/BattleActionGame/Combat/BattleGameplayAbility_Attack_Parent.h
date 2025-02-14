@@ -1,11 +1,23 @@
 #pragma once
 
+#include "AttackCollisionMethod.h"
 #include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/Messages/BattleVerbMessage.h"
 #include "BattleGameplayAbility_Attack_Parent.generated.h"
 
+enum class ECollisionMethodType : uint8;
 class UBattleCombatData;
+
+
+UENUM()
+enum class EAttackType : uint8
+{
+	Combo,
+	ComboStrong,
+	Basic,
+};
+
 
 UCLASS(Abstract)
 class UBattleGameplayAbility_Attack_Parent : public UBattleGameplayAbility
@@ -25,6 +37,14 @@ public:
 	virtual void ServerRPCNotifyHit(const FHitResult& HitResult, float HitCheckTime);
 	
 	virtual void AttackHitConfirm(const FHitResult& HitResult);
+
+	EAttackType GetAttackType() const
+	{
+		return AttackType;
+	}
+
+	UFUNCTION()
+	virtual void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
 	
 protected:
 
@@ -34,8 +54,7 @@ protected:
 
 	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification);
 
-	UFUNCTION()
-	virtual void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
+
 	UFUNCTION()
 	virtual void OnCompleted();
 	UFUNCTION()
@@ -65,11 +84,14 @@ protected:
 
 	float AcceptHitDistance = 1500.f;
 	float AttackRate = 1.0f;
+	float GroggyValue = 1.0f; 
 
 protected:
 	
 	FGameplayMessageListenerHandle StartListenerHandle;
 	FGameplayMessageListenerHandle EndListenerHandle;
+
+	EAttackType AttackType;
 	
 };
 

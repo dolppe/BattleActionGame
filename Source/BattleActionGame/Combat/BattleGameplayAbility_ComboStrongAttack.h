@@ -1,19 +1,19 @@
 #pragma once
 
 #include "BattleGameplayAbility_Attack_Parent.h"
-#include "BattleGameplayAbility_Attack.generated.h"
+#include "BattleGameplayAbility_ComboStrongAttack.generated.h"
 
 class UBattleAbilityTask_HitCheck;
 class UBattleCombatData;
-struct FSingleAttack;
+struct FComboStrongAttack;
 
 UCLASS()
-class UBattleGameplayAbility_Attack : public UBattleGameplayAbility_Attack_Parent
+class UBattleGameplayAbility_ComboStrongAttack : public UBattleGameplayAbility_Attack_Parent
 {
 	GENERATED_BODY()
 public:
 
-	UBattleGameplayAbility_Attack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UBattleGameplayAbility_ComboStrongAttack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
