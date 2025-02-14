@@ -5,7 +5,7 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "BattleActionGame/Combat/BattleGameplayAbility_Attack_Parent.h"
-#include "BattleActionGame/Combat/BattleGameplayAbility_HitCheckAttack.h"
+#include "BattleActionGame/Combat/BattleGameplayAbility_BasicAttack.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Attack)
 
@@ -208,10 +208,9 @@ void UBattleUtilityAction_AttackArea::StartAction()
 		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Attack))
 		{
 			// GA 하나 만들기 (Spot을 담고 있어야하며 전달 받은것으로 처리, Instancing은 Actor마다 있어야함.
-			if (UBattleGameplayAbility_HitCheckAttack* GA = Cast<UBattleGameplayAbility_HitCheckAttack>(AbilitySpec->Ability))
+			if (UBattleGameplayAbility_BasicAttack* GA = Cast<UBattleGameplayAbility_BasicAttack>(AbilitySpec->Ability))
 			{
 				// Target Spot 찾는 함수
-				GA->GetAttackType();
 				TArray<FAttackAreaData> AttackAreaData = GetBestSpots();
 				
 				// GA->SetTargetData(Target) => 해당 함수 만들어서 Spot 넘겨주기 

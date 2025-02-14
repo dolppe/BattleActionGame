@@ -130,11 +130,15 @@ bool UBattleAbilityTask_HitCheck::HandleHit(TArray<FHitResult>& HitResults)
 	
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 void UBattleAbilityTask_HitCheck::DrawDebug(FVector& CurWeaponStart, FVector& CurWeaponEnd, bool bIsHit)
 {
 #if 1
 	
-	FColor HitColor = FColor::Red; 
+	FColor HitColor = FColor::Red;
+
+	UWorld* World = GetWorld();
 	
 	if (bIsHit)
 	{
@@ -149,6 +153,7 @@ void UBattleAbilityTask_HitCheck::DrawDebug(FVector& CurWeaponStart, FVector& Cu
 #endif
 }
 
+PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattleAbilityTask_HitCheck::TickTask(float DeltaTime)
 {

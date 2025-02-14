@@ -4,7 +4,7 @@
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
 #include "BattleAbilityTask_HitCheck.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHitCheckDelegate, const FHitResult, HitResult,const float, AttackTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHitCheckDelegate, const FHitResult&, HitResult,const float, AttackTime);
 
 UCLASS()
 class UBattleAbilityTask_HitCheck : public UAbilityTask

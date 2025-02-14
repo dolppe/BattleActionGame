@@ -217,13 +217,34 @@ void UBattleGameplayAbility_ComboAttack::OnRep_HasNextComboInput()
 
 void UBattleGameplayAbility_ComboAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
-	HitCheckTask = UBattleAbilityTask_HitCheck::CreateTask(this);
-	HitCheckTask->SetHitCheckData(CurrentComboAttackData->StartSocketName, CurrentComboAttackData->EndSocketName, CurrentComboAttackData->AttackRadius, CurrentComboAttackData->CollisionChannel);
-	HitCheckTask->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::SelectHitCheck);
-	HitCheckTask->ReadyForActivation();
+	
+	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
+	{
+		const FComboAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->ComboAttacks[AttackMode];
+
+		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData.CollisionMethod->CollisionMethodType);
+		CollisionMethod->SetCollisionData(CurrentAttackData.CollisionMethod, this);
+		CollisionMethod->StartCollisionCheck();
+	}
+
+	
+	/*
+	 * 처리 팔요
+	 */
+	// HitCheckTask = UBattleAbilityTask_HitCheck::CreateTask(this);
+	// HitCheckTask->SetHitCheckData(CurrentComboAttackData->StartSocketName, CurrentComboAttackData->EndSocketName, CurrentComboAttackData->AttackRadius, CurrentComboAttackData->CollisionChannel);
+	// HitCheckTask->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_ComboAttack::SelectHitCheck);
+	// HitCheckTask->ReadyForActivation();
+
+	
+
+	
 }
 
 void UBattleGameplayAbility_ComboAttack::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
-	HitCheckTask->EndTask();
+	const FComboAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->ComboAttacks[AttackMode];
+	UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData.CollisionMethod->CollisionMethodType);
+
+	CollisionMethod->EndCollisionCheck();
 }

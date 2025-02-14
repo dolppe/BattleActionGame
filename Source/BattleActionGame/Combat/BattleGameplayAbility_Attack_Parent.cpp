@@ -1,6 +1,7 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 
 #include "AbilitySystemComponent.h"
+#include "BattleCombatManagerComponent.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacter.h"

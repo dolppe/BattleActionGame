@@ -3,8 +3,78 @@
 #include "Engine/DataAsset.h"
 #include "BattleCombatData.generated.h"
 
+enum class ECollisionMethodType : uint8;
 enum class EAttackType : uint8;
 class UNiagaraSystem;
+
+UCLASS(Abstract, Blueprintable, EditInlineNew)
+class UAttackCollisionData : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	TEnumAsByte<ECollisionChannel> CollisionChannel;
+
+	ECollisionMethodType CollisionMethodType;
+	
+};
+
+UCLASS(Blueprintable, EditInlineNew)
+class UAttackCollisionData_SocketBasedLineTrace : public UAttackCollisionData
+{
+	GENERATED_BODY()
+
+public:
+
+	UAttackCollisionData_SocketBasedLineTrace();
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	FString StartSocketName = TEXT("weapon");
+
+	UPROPERTY(EditAnywhere, Category=CollisionData)
+	FString EndSocketName = TEXT("weapon_end");
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	float AttackRadius = 10.f;
+	
+};
+
+
+UCLASS(Blueprintable, EditInlineNew)
+class UAttackCollisionData_DirectionalSweep : public UAttackCollisionData
+{
+	GENERATED_BODY()
+	
+public:
+
+	UAttackCollisionData_DirectionalSweep();
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	FString StartSocketName = TEXT("weapon");
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	float AttackRadius = 10.f;
+
+	UPROPERTY(EditAnywhere, Category=CollisionData)
+	float AttackRange = 10.f;
+
+	UPROPERTY(EditAnywhere, Category=CollisionData)
+	float AttackRotationOffset;
+	
+};
+
+UCLASS(Blueprintable, EditInlineNew)
+class UAttackCollisionData_CircularAOE : public UAttackCollisionData
+{
+	GENERATED_BODY()
+
+public:
+	
+	UAttackCollisionData_CircularAOE();
+	
+};
 
 USTRUCT(BlueprintType)
 struct FAttackData
@@ -15,17 +85,8 @@ struct FAttackData
 	FString MontageSectionName = TEXT("Default");
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	FString StartSocketName = TEXT("weapon");
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	float AttackRadius = 10.f;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	TObjectPtr<UAnimMontage> Montage;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
-
+	
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	USoundBase* AttackSound;
 
@@ -34,50 +95,41 @@ struct FAttackData
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	UNiagaraSystem* HitEffect;
-	
+
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Attack")
+	UAttackCollisionData* CollisionMethod;
 	
 };
 
 USTRUCT()
-struct FHitCheckAttack : public FAttackData
+struct FBasicAttack : public FAttackData
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere, Category=HitCheck)
-	float AttackRange;
-
-	UPROPERTY(EditAnywhere, Category=HitCheck)
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
 	float AttackRate = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category=HitCheck)
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
 	float GroggyValue = 10.0f;
 	
 };
 
 USTRUCT()
-struct FSingleAttack : public FAttackData
+struct FComboStrongAttack : public FAttackData
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category=SingleAttack)
-	FString EndSocketName = TEXT("weapon_end");
 	
-	UPROPERTY(EditAnywhere, Category=SingleAttack)
+	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
 	float AttackRate = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category=SingleAttack)
-	float GroggyValue = 10.0f;
-	
-	
+	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
+	float GroggyValue = 10.0f;	
 };
 
 USTRUCT()
 struct FComboAttack : public FAttackData
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
-	FString EndSocketName = TEXT("weapon_end");
 	
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	uint8 MaxComboCount;
@@ -91,10 +143,11 @@ struct FComboAttack : public FAttackData
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> AttackRate;
 
-	UPROPERTY(EditAnywhere, Category=HitCheck)
+	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> GroggyValue;
 	
 };
+
 
 
 UCLASS(BlueprintType, Const)
@@ -104,16 +157,16 @@ class BATTLEACTIONGAME_API UBattleCombatData : public UPrimaryDataAsset
 public:
 
 	UBattleCombatData();
-
-	UPROPERTY(EditAnywhere, Category=SingleAttack)
-	TArray<FSingleAttack> SingleAttacks;
-
-	UPROPERTY(EditAnywhere, Category=HitCheckAttack)
-	TArray<FHitCheckAttack> HitCheckAttacks;
 	
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BasicAttack)
+	TArray<FBasicAttack> BasicAttacks;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboAttack)
 	TArray<FComboAttack> ComboAttacks;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboStrongAttack)
+	TArray<FComboStrongAttack> ComboStrongAttacks;
+
 	
 };
 

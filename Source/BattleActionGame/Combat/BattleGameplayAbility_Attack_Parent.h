@@ -1,12 +1,23 @@
 #pragma once
 
+#include "AttackCollisionMethod.h"
 #include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/Messages/BattleVerbMessage.h"
 #include "BattleGameplayAbility_Attack_Parent.generated.h"
 
-enum class EAttackType : uint8;
+enum class ECollisionMethodType : uint8;
 class UBattleCombatData;
+
+
+UENUM()
+enum class EAttackType : uint8
+{
+	Combo,
+	ComboStrong,
+	Basic,
+};
+
 
 UCLASS(Abstract)
 class UBattleGameplayAbility_Attack_Parent : public UBattleGameplayAbility
@@ -31,6 +42,9 @@ public:
 	{
 		return AttackType;
 	}
+
+	UFUNCTION()
+	virtual void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
 	
 protected:
 
@@ -40,8 +54,7 @@ protected:
 
 	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification);
 
-	UFUNCTION()
-	virtual void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
+
 	UFUNCTION()
 	virtual void OnCompleted();
 	UFUNCTION()

@@ -6,17 +6,13 @@
 #include "Item/BattleQuickBarComponent.h"
 #include "BattleCombatManagerComponent.generated.h"
 
+class UAttackCollisionMethod;
+enum class ECollisionMethodType : uint8;
 class UBattleGameplayAbility_ComboAttack;
 enum class EItemType : uint8;
 class UGameplayAbility;
+enum class EAttackType : uint8;
 
-UENUM()
-enum class EAttackType : uint8
-{
-	Single,
-	Combo,
-	HitCheck,
-};
 
 
 UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
@@ -40,19 +36,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetAttackMontage(EAttackType AttackType, int Idx) const
-	{
-		switch (AttackType)
-		{
-		case EAttackType::Single:
-			return CombatData->SingleAttacks[Idx].Montage;
-		case EAttackType::Combo:
-			return CombatData->ComboAttacks[Idx].Montage;
-		case EAttackType::HitCheck:
-			return CombatData->HitCheckAttacks[Idx].Montage;
-		}
-		return nullptr;
-	}
+	UAnimMontage* GetAttackMontage(EAttackType AttackType, int Idx) const;
 
 	int GetCurrentComboIndex();
 
@@ -60,6 +44,9 @@ public:
 
 	UFUNCTION()
 	void OnRep_CurrentUsedItemInfo();
+
+	UFUNCTION(BlueprintCallable)
+	UAttackCollisionMethod* GetCollisionMethod(ECollisionMethodType CollisionMethod);
 
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentUsedItemInfo, BlueprintReadWrite)
 	FBattleItemInfo CurrentUsedItemInfo;
@@ -78,7 +65,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	TMap<EItemType, TSubclassOf<UGameplayAbility>> ItemTypeToAbility;
 
-
+	UPROPERTY()
+	TMap<ECollisionMethodType, UAttackCollisionMethod*> InstancedCollisionMethod;
 	
 
 };

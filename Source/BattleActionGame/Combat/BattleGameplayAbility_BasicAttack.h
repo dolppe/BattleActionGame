@@ -3,7 +3,7 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 #include "GameplayMessageSubsystem.h"
 #include "GameplayTagContainer.h"
-#include "BattleGameplayAbility_HitCheckAttack.generated.h"
+#include "BattleGameplayAbility_BasicAttack.generated.h"
 
 
 
@@ -32,12 +32,12 @@ struct FBattleVerbMessage;
 struct FGameplayMessageListenerHandle;
 
 UCLASS()
-class UBattleGameplayAbility_HitCheckAttack : public UBattleGameplayAbility_Attack_Parent
+class UBattleGameplayAbility_BasicAttack : public UBattleGameplayAbility_Attack_Parent
 {
 	GENERATED_BODY()
 public:
 
-	UBattleGameplayAbility_HitCheckAttack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UBattleGameplayAbility_BasicAttack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -80,8 +80,8 @@ protected:
 	TArray<FHitResult> StartHitCheckByAreaRange();
 	
 	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
-
-
+	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
+	
 	EHitCheckAttackType HitCheckAttackType = EHitCheckAttackType::WeaponRange;
 
 	TArray<FAttackAreaData> AttackAreaData;
