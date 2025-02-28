@@ -819,22 +819,34 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	UBattleUtilityAction* BestAction = nullptr;
 
 	int Key = 0;
+
+	UtilityAIScoreDatas.Empty();
+	
 	for (UBattleUtilityAction* Action : InstancedActions)
 	{
-		float CurScore = Action->EvaluateScore(ConsiderList);
 
+		FUtilityAIScoreData UtilityAIScoreData;
+		UtilityAIScoreDatas.Add(UtilityAIScoreData);
+		
+		float CurScore = Action->EvaluateScore(ConsiderList);
+		
+		UtilityAIScoreDatas.Last().ActionScore = CurScore;		
+		
 		FString DebugString = FString::Printf(TEXT("%s: %f"), *Action->GetName(), CurScore);
 		GEngine->AddOnScreenDebugMessage(Key, 1.0f, FColor::Green, DebugString);
-
 		Key++;
 		
 		if (BestScore < CurScore)
 		{
 			BestScore = CurScore;
 			BestAction = Action;
-
 		}
 	}
+
+
+
+
+	
 	if (BestAction != nullptr)
 	{
 
@@ -846,6 +858,8 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction->StartAction();
 		bActionComplete = false;
 
+		OnScoreChanged.Broadcast(UtilityAIScoreDatas);
+
 	}
 	else if (bActionComplete)
 	{
@@ -855,6 +869,8 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction = BestAction;
 		ActiveAction->StartAction();
 		bActionComplete = false;
+
+		OnScoreChanged.Broadcast(UtilityAIScoreDatas);
 		
 	}
 	else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
@@ -865,7 +881,8 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction = BestAction;
 		ActiveAction->StartAction();
 		bActionComplete = false;
-		
+
+		OnScoreChanged.Broadcast(UtilityAIScoreDatas);
 		
 	}
 	

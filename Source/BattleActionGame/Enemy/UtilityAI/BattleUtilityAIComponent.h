@@ -52,6 +52,47 @@ enum class EAxisType : uint8
 
 DECLARE_ENUM_TO_STRING(EBattleConsiderType);
 
+
+
+USTRUCT(BlueprintType)
+struct FArrayFactorData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+	EAxisType AxisType;
+	UPROPERTY(BlueprintReadWrite)
+	TArray<float> ArrayFactorScoreOrigin;
+	UPROPERTY(BlueprintReadWrite)
+	TArray<float> ArrayFactorScoreFinal;
+};
+
+USTRUCT(BlueprintType)
+struct FUtilityAIScoreData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+	float ActionScore;
+
+	// [Factor1] [Factor2]
+	UPROPERTY(BlueprintReadWrite)
+	TArray<float> NormalFactorScoreOrigin;
+	UPROPERTY(BlueprintReadWrite)
+	TArray<float> NormalFactorScoreFinal;
+	UPROPERTY(BlueprintReadWrite)
+	TArray<EBattleConsiderType> NormalFactorConsiderType;
+
+	// [ArrayFactor1-Target1] [ArrayFactor1-Target2] [ArrayFactor2-Target1] ...
+	// [Target1-TargetFactor1/TargetFactor2/TargetFactor3] [Target2-TargetFactor1/TargetFactor2/TargetFactor3] [Spot1-SpotFactor1/SpotFactor2] [Spot2-SpotFactor1/SpotFactor2]
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FArrayFactorData> ArrayFactorScore;
+	
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUtilityAIScoreDelegate, const TArray<FUtilityAIScoreData>&,UtilityAIScoreDatas);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUtilityAIScoreDelegateTest, TArray<FUtilityAIScoreData>&,UtilityAIScoreDatas);
+
 UCLASS(BlueprintType)
 class UConsiderationFactors : public UObject
 {
@@ -165,7 +206,12 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void PostInitProperties() override;
-	
+
+	UFUNCTION(BlueprintCallable)
+	const UBattleUtilityAIData* GetUtilityAIData() const
+	{
+		return UtilityAIData;
+	}
 
 	void CollectConsiderFactors();
 	
@@ -177,6 +223,11 @@ public:
 
 	void BreakParts(FGameplayTag GameplayTag);
 
+	TArray<FUtilityAIScoreData>& GetUtilityAIScoreData()
+	{
+		return UtilityAIScoreDatas;
+	}
+
 	friend class UBattleUtilityAxis;
 	friend class UBattleUtilityArrayAxis;
 	friend class UBattleUtilityAction;
@@ -184,6 +235,12 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<UConsiderationFactors> ConsiderList;
+
+	UPROPERTY(BlueprintAssignable)
+	FUtilityAIScoreDelegate OnScoreChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FUtilityAIScoreDelegateTest OnTestTest;
 	
 protected:
 
@@ -211,9 +268,13 @@ protected:
 	float BestCombatTime = 10.0f;
 	UPROPERTY(EditAnywhere)
 	float ThreatCharacterNum = 3.0f;
+
+	TArray<FUtilityAIScoreData> UtilityAIScoreDatas;
 	
+	
+private:
 
-
+	bool NeedDebug = true;
 
 	
 	
