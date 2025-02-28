@@ -90,8 +90,27 @@ struct FUtilityAIScoreData
 	
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUtilityAIScoreDelegate, const TArray<FUtilityAIScoreData>&,UtilityAIScoreDatas);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUtilityAIScoreDelegateTest, TArray<FUtilityAIScoreData>&,UtilityAIScoreDatas);
+USTRUCT(BlueprintType)
+struct FUtilityAITotalData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FUtilityAIScoreData> UtilityAIScoreData;
+
+	UPROPERTY(BlueprintReadWrite)
+	FString ActiveActionName;
+
+	UPROPERTY(BlueprintReadWrite)
+	float CurTime;	
+};
+
+
+
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUtilityAIScoreDelegate, const TArray<FUtilityAIScoreData>&,UtilityAIScoreDatas);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUtilityAIScoreDelegate, const FUtilityAITotalData&,UtilityAIScoreDatas);
+
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUtilityAIScoreDelegateTest, TArray<FUtilityAIScoreData>&,UtilityAIScoreDatas);
 
 UCLASS(BlueprintType)
 class UConsiderationFactors : public UObject
@@ -238,9 +257,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FUtilityAIScoreDelegate OnScoreChanged;
-
-	UPROPERTY(BlueprintAssignable)
-	FUtilityAIScoreDelegateTest OnTestTest;
 	
 protected:
 

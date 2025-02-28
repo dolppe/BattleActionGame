@@ -14,6 +14,8 @@ public:
 	virtual void StartCollisionCheck() override;
 	virtual void EndCollisionCheck() override;
 	virtual void SetCollisionData(UAttackCollisionData* InAttackCollisionData, UBattleGameplayAbility_Attack_Parent* InGameplayAbility) override;
+
+	UFUNCTION()
 	virtual void SendHitResults(const FHitResult& HitResult, const float HitTime) override;
 
 protected:

@@ -11,6 +11,7 @@
 #include "BattleActionGame/Character/BattleHealthComponent.h"
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
+#include "GameFramework/GameStateBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAIComponent)
 
@@ -843,9 +844,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		}
 	}
 
-
-
-
+	FUtilityAITotalData UtilityAIDebugData;
 	
 	if (BestAction != nullptr)
 	{
@@ -858,7 +857,11 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction->StartAction();
 		bActionComplete = false;
 
-		OnScoreChanged.Broadcast(UtilityAIScoreDatas);
+		UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+		UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+		UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+		OnScoreChanged.Broadcast(UtilityAIDebugData);
 
 	}
 	else if (bActionComplete)
@@ -870,7 +873,11 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction->StartAction();
 		bActionComplete = false;
 
-		OnScoreChanged.Broadcast(UtilityAIScoreDatas);
+		UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+		UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+		UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+		OnScoreChanged.Broadcast(UtilityAIDebugData);
 		
 	}
 	else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
@@ -882,7 +889,11 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		ActiveAction->StartAction();
 		bActionComplete = false;
 
-		OnScoreChanged.Broadcast(UtilityAIScoreDatas);
+		UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+		UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+		UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+		OnScoreChanged.Broadcast(UtilityAIDebugData);
 		
 	}
 	
