@@ -47,11 +47,20 @@ void UBattleUtilityAction::InitAxis(TArray<FAxisConfig> AxisConfigs, UBattleUtil
 
 float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderList)
 {
+	
+	TArray<FUtilityAIScoreData>& UtilityAIScoreDatas = CachedAIComponent->GetUtilityAIScoreData();
+		
 	float Result = 1.0f; 
 	for (UBattleUtilityAxis* UtilityAxis : AxisArray)
 	{
 		float FactorValue = UtilityAxis->GetValue();
-		Result = Result * UtilityAxis->CalcValue(FactorValue);
+		float CalcValue = UtilityAxis->CalcValue(FactorValue);
+
+		UtilityAIScoreDatas.Last().NormalFactorScoreOrigin.Add(FactorValue);
+		UtilityAIScoreDatas.Last().NormalFactorScoreFinal.Add(CalcValue);
+		UtilityAIScoreDatas.Last().NormalFactorConsiderType.Add(UtilityAxis->GetConsiderFactor());
+		
+		Result = Result * CalcValue;
 	}
 
 	TArray<bool> CompletedTypes;
@@ -103,17 +112,28 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 		// AxisIdx는 Target을 의미하고 IndexArrayIdx는 Axis를 의미함.
 		for (int AxisIdx = 0; AxisIdx < Size; AxisIdx++)
 		{
+			// 하나의 Target에 대한 최종값
 			float MultiplyValue = 1.0f;
+			FArrayFactorData ArrayFactorData;
+			
 			for (int IndexArrayIdx = 0; IndexArrayIdx < IndexArray.Num();IndexArrayIdx++)
 			{
 				// IndexArrayIdx는 같은 Type의 ArrayAxis가 어떤 것들이 있는지 접근
 				// 따라서 같은 Target의 Hp를 담당하는 ArrayAxis, 같은 Target의 Distance를 담당하는 ArrayAxis에 각각 접근
 				// 정해진 함수 규칙에 따라서 값을 계산하고, 각 값은 곱해서 관리
+				// Target(AxisIdx)에 대해서 Axis(IndexArrayIdx) 하나의 원본 값
+				
+				//ArrayFactorData.AxisType = ArrayAxisArray[IndexArray[IndexArrayIdx]]->GetConsiderFactor();
+				ArrayFactorData.AxisType = CurrentType;
 				float FactorValue = ArrayAxisArray[IndexArray[IndexArrayIdx]]->GetArrayValue()[AxisIdx];
-				FactorValue = ArrayAxisArray[IndexArray[IndexArrayIdx]]->CalcValue(FactorValue);
+				ArrayFactorData.ArrayFactorScoreOrigin.Add(FactorValue);
+				// Target(AxisIdx)에 대해서 Axis(IndexArrayIdx) 하나의 계산된 값
+				float CalcValue = ArrayAxisArray[IndexArray[IndexArrayIdx]]->CalcValue(FactorValue);
+				ArrayFactorData.ArrayFactorScoreFinal.Add(CalcValue);
 				// 각 Axis의 값들이 곱해지는 것
-				MultiplyValue *= FactorValue;
+				MultiplyValue *= CalcValue;
 			}
+			UtilityAIScoreDatas.Last().ArrayFactorScore.Add(ArrayFactorData);
 			
 			if (BestScore < MultiplyValue)
 			{
