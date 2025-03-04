@@ -109,12 +109,16 @@ UBattleUtilityAction_PatrolAround::UBattleUtilityAction_PatrolAround()
 	Priority = 1;
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 void UBattleUtilityAction_PatrolAround::StartAction()
 {
 	Super::StartAction();
 
-	float PatrolRadius = 1000.0f;
-	MyCharacter = CachedAIComponent->ConsiderList->MyCharacter;
+	RequestResult = EPathFollowingRequestResult::Type::Failed;
+	
+	float PatrolRadius = 10000.0f;
+	ABattleCharacterBase* MyCharacter = CachedAIComponent->ConsiderList->MyCharacter;
 
 	FVector CharacterLocation = MyCharacter->GetActorLocation();
 
@@ -128,16 +132,19 @@ void UBattleUtilityAction_PatrolAround::StartAction()
 		if (NavSystem->GetRandomPointInNavigableRadius(CharacterLocation, PatrolRadius, NavLocation))
 		{
 			RandomLocation = NavLocation.Location;
+			//RandomLocation = FVector(3000,3000,0);
 
-			AAIController* AIController = Cast<AAIController>(MyCharacter->GetController());
+			AIController = Cast<AAIController>(MyCharacter->GetController());
 			if (AIController)
 			{
-				AIController->MoveToLocation(RandomLocation);
+				RequestResult = AIController->MoveToLocation(RandomLocation);
 			}
 		}
 	}
 	
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattleUtilityAction_PatrolAround::EndAction()
 {
@@ -146,7 +153,24 @@ void UBattleUtilityAction_PatrolAround::EndAction()
 
 bool UBattleUtilityAction_PatrolAround::TickAction(float DeltaTime)
 {
-	return false;
+	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
+	{
+		return true;
+	}
+
+	if (AIController)
+	{
+		if (UPathFollowingComponent* PathFollowingComponent = AIController->GetPathFollowingComponent())
+		{
+			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
+			{
+				return false;
+			}
+		}
+	}
+	
+	return true;
+	
 }
 
 UBattleUtilityAction_RunCombat::UBattleUtilityAction_RunCombat()

@@ -771,6 +771,7 @@ void UBattleUtilityAIComponent::BeginPlay()
 		NewAction->SetWeight(ActionConfig.Weight);
 
 		InstancedActions.Add(NewAction);
+		DebugActionsEnabled.Add(true);
 	}
 
 	ConsiderList = NewObject<UConsiderationFactors>(GetOwner(), UConsiderationFactors::StaticClass());
@@ -819,7 +820,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	float BestScore = 0.0f;
 	UBattleUtilityAction* BestAction = nullptr;
 
-	int Key = 0;
+	int ActionIdx = 0;
 
 	UtilityAIScoreDatas.Empty();
 	
@@ -830,12 +831,17 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		UtilityAIScoreDatas.Add(UtilityAIScoreData);
 		
 		float CurScore = Action->EvaluateScore(ConsiderList);
+
+		if (!DebugActionsEnabled[ActionIdx])
+		{
+			CurScore = 0.0f;
+		}
 		
 		UtilityAIScoreDatas.Last().ActionScore = CurScore;		
 		
 		FString DebugString = FString::Printf(TEXT("%s: %f"), *Action->GetName(), CurScore);
-		GEngine->AddOnScreenDebugMessage(Key, 1.0f, FColor::Green, DebugString);
-		Key++;
+		GEngine->AddOnScreenDebugMessage(ActionIdx, 1.0f, FColor::Green, DebugString);
+		ActionIdx++;
 		
 		if (BestScore < CurScore)
 		{
@@ -848,54 +854,54 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	
 	if (BestAction != nullptr)
 	{
+		if (ActiveAction == nullptr)
+		{
+		
+			ActiveAction = BestAction;
+			ActiveAction->StartAction();
+			bActionComplete = false;
 
+			UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+			UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+			OnScoreChanged.Broadcast(UtilityAIDebugData);
+
+		}
+		else if (bActionComplete)
+		{
+			// 액션 수행
+			ActiveAction->EndAction();
+
+			ActiveAction = BestAction;
+			ActiveAction->StartAction();
+			bActionComplete = false;
+
+			UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+			UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+			OnScoreChanged.Broadcast(UtilityAIDebugData);
+		
+		}
+		else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
+		{
+			// 액션 수행
+			ActiveAction->EndAction();
+		
+			ActiveAction = BestAction;
+			ActiveAction->StartAction();
+			bActionComplete = false;
+
+			UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+			UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+			OnScoreChanged.Broadcast(UtilityAIDebugData);
+		
+		}
 	}
-	if (ActiveAction == nullptr)
-	{
-		
-		ActiveAction = BestAction;
-		ActiveAction->StartAction();
-		bActionComplete = false;
 
-		UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
-		UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
-		UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-		
-		OnScoreChanged.Broadcast(UtilityAIDebugData);
-
-	}
-	else if (bActionComplete)
-	{
-		// 액션 수행
-		ActiveAction->EndAction();
-
-		ActiveAction = BestAction;
-		ActiveAction->StartAction();
-		bActionComplete = false;
-
-		UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
-		UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
-		UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-		
-		OnScoreChanged.Broadcast(UtilityAIDebugData);
-		
-	}
-	else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
-	{
-		// 액션 수행
-		ActiveAction->EndAction();
-		
-		ActiveAction = BestAction;
-		ActiveAction->StartAction();
-		bActionComplete = false;
-
-		UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
-		UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
-		UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-		
-		OnScoreChanged.Broadcast(UtilityAIDebugData);
-		
-	}
 	
 	StartTimer();
 	

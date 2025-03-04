@@ -247,6 +247,15 @@ public:
 		return UtilityAIScoreDatas;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	void SetDebugActionsEnabled(int Index, bool bEnabled)
+	{
+		if (DebugActionsEnabled.IsValidIndex(Index))
+		{
+			DebugActionsEnabled[Index] = bEnabled;
+		}
+	}
+
 	friend class UBattleUtilityAxis;
 	friend class UBattleUtilityArrayAxis;
 	friend class UBattleUtilityAction;
@@ -291,6 +300,8 @@ protected:
 private:
 
 	bool NeedDebug = true;
+
+	TArray<bool> DebugActionsEnabled;
 
 	
 	
