@@ -125,6 +125,9 @@ void UBattleGameplayAbility_ComboStrongAttack::OnRep_AlreadyHitActors()
 
 void UBattleGameplayAbility_ComboStrongAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
+
+	AlreadyHitActors.Empty();
+	
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));

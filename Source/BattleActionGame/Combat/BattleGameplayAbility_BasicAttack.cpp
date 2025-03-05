@@ -47,7 +47,6 @@ void UBattleGameplayAbility_BasicAttack::ActivateAbility(const FGameplayAbilityS
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
 		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_BasicAttack::StartHitCheck);
-		
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -229,6 +228,8 @@ TArray<FHitResult> UBattleGameplayAbility_BasicAttack::StartHitCheckByAreaRange(
 void UBattleGameplayAbility_BasicAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
 
+	AlreadyHitActors.Empty();
+	
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
@@ -238,7 +239,6 @@ void UBattleGameplayAbility_BasicAttack::StartHitCheck(FGameplayTag Channel, con
 		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentBasicData.CollisionMethod->CollisionMethodType);
 		CollisionMethod->SetCollisionData(CurrentBasicData.CollisionMethod, this);
 		CollisionMethod->StartCollisionCheck();
-		
 	}
 	
 	// if (Notification.Target == GetAvatarActorFromActorInfo())
