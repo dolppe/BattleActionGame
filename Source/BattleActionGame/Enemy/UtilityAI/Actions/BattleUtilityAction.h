@@ -66,5 +66,4 @@ protected:
 
 	float Age = 1.0f;
 	
-	
 };

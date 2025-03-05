@@ -3,6 +3,13 @@
 #include "BattleUtilityAction.h"
 #include "BattleUtilityAction_Movement.generated.h"
 
+namespace EPathFollowingRequestResult
+{
+	enum Type : int;
+}
+
+class AAIController;
+
 UCLASS()
 class UBattleUtilityAction_MoveToTarget : public UBattleUtilityAction
 {
@@ -78,7 +85,8 @@ public:
 
 protected:
 
-	TObjectPtr<ABattleCharacterBase> MyCharacter;
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
 	
 };
 
