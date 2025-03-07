@@ -9,7 +9,60 @@ class UAbilitySystemComponent;
 struct FAttackAreaData;
 
 UCLASS()
-class UBattleUtilityAction_AttackSingle : public UBattleUtilityAction
+class UBattleUtilityAction_Attack : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+public:
+
+	UBattleUtilityAction_Attack();
+
+	/*
+	 * UtilityAction
+	 */
+
+	virtual void StartAction() override;
+
+	virtual bool TickAction(float DeltaTime) override;
+
+
+	/*
+	 * UtilityAction_Attack
+	 */
+	
+	virtual void StartAgeTimer();
+
+	virtual void StartAttack();
+
+protected:
+
+	UFUNCTION()
+	virtual void UpdateAge();
+	
+	FTimerHandle TimerHandle;
+
+	UPROPERTY(EditAnywhere)
+	float AgeCycleTime = 10.f;
+
+	UPROPERTY(EditAnywhere)
+	float AgeRate = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBattleGameplayAbility_Attack_Parent> GA_Attack;
+
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> ASC;
+
+	
+
+
+private:
+	
+	
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_AttackSingle : public UBattleUtilityAction_Attack
 {
 	GENERATED_BODY()
 
@@ -23,54 +76,63 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual void EndAction() override;
-
 	virtual bool TickAction(float DeltaTime) override;
 
-	virtual float EvaluateScore(const UConsiderationFactors* ConsiderList) override;
-
-	void UpdateAge();
+	/*
+	 * UtilityAction_Attack
+	 */
+	 
+	virtual void StartAttack() override;
+	virtual void StartAgeTimer() override;
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UBattleGameplayAbility_Attack_Parent> GA_Attack;
+	virtual void UpdateAge() override;
 
-	UPROPERTY()
-	TObjectPtr<UAbilitySystemComponent> ASC;
 	
-	UPROPERTY(EditDefaultsOnly)
-	float CoolTime = 7.0f;
+private:
+	
+
 	
 };
 
 
 UCLASS()
-class UBattleUtilityAction_AttackArea : public UBattleUtilityAction_AttackSingle
+class UBattleUtilityAction_AttackArea : public UBattleUtilityAction_Attack
 {
 	GENERATED_BODY()
 
 public:
 
 	UBattleUtilityAction_AttackArea();
-
-	TArray<FAttackAreaData> GetBestSpots();
+	
+	/*
+	* UtilityAction
+	*/
 
 	virtual void StartAction() override;
 
-	virtual void EndAction() override;
-
 	virtual bool TickAction(float DeltaTime) override;
+	
+	/*
+	 * UtilityAction_Attack
+	 */
+	 
+	virtual void StartAttack() override;
+	virtual void StartAgeTimer() override;
 
-	virtual float EvaluateScore(const UConsiderationFactors* ConsiderList) override;
-
-	void UpdateAge();
 
 protected:
+	virtual void UpdateAge() override;
 
 	UPROPERTY(EditAnywhere)
 	float AreaRadius = 1.0f;
 
 	UPROPERTY(EditAnywhere)
 	int AreaNum = 1;
+
+
+private:
+
+	TArray<FAttackAreaData> GetBestSpots() const;
 };

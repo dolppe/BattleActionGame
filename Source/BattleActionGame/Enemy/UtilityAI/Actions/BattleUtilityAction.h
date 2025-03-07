@@ -30,10 +30,16 @@ public:
 	UFUNCTION()
 	virtual bool TickAction(float DeltaTime);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual uint8 GetPriority()
 	{
 		return Priority;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetPriority(uint8 InPriority)
+	{
+		Priority = InPriority;
 	}
 
 	UFUNCTION()
@@ -54,6 +60,7 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UBattleUtilityArrayAxis>> ArrayAxisArray;
 
+	UPROPERTY(EditAnywhere)
 	uint8 Priority = 2;
 
 	float Weight;
@@ -64,6 +71,6 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> BestTargets;
 
-	float Age = 1.0f;
+	float ScoreMultiplier = 1.0f;
 	
 };

@@ -146,7 +146,7 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 		BestTargets.Add(ConsiderList->GetTargetPtr(CurrentType, BestIdx));
 	}
 	
-	return Result * Weight * Age;
+	return Result * Weight * ScoreMultiplier;
 }
 
 void UBattleUtilityAction::StartAction()

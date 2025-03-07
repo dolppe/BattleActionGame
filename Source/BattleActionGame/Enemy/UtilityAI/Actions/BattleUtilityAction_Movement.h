@@ -1,12 +1,8 @@
 #pragma once
 
 #include "BattleUtilityAction.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "BattleUtilityAction_Movement.generated.h"
-
-namespace EPathFollowingRequestResult
-{
-	enum Type : int;
-}
 
 class AAIController;
 
@@ -28,9 +24,6 @@ public:
 	virtual void EndAction() override;
 
 	virtual bool TickAction(float DeltaTime) override;
-
-	void UpdateAge();
-
 	
 protected:
 
@@ -41,8 +34,6 @@ protected:
 
 	bool bStartMovement;
 
-	float CoolTime = 5.0f;
-	
 };
 
 UCLASS()
