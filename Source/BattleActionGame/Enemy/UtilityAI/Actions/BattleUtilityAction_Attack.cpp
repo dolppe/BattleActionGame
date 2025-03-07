@@ -9,38 +9,38 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Attack)
 
-UBattleUtilityAction_AttackSingle::UBattleUtilityAction_AttackSingle()
+
+/*
+ *
+ *
+ *	UBattleUtilityAction_Attack
+ *
+ *
+ */
+
+
+UBattleUtilityAction_Attack::UBattleUtilityAction_Attack()
 {
-	Priority = 3;
 }
 
-void UBattleUtilityAction_AttackSingle::StartAction()
+void UBattleUtilityAction_Attack::StartAction()
 {
 	Super::StartAction();
 
 	ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
 
-	Age = 0.0f;
-
-	FTimerHandle TimerHandle;
-
-	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UBattleUtilityAction_AttackSingle::UpdateAge, CoolTime, false);
-	
-	if (ASC)
+	if (AgeRate >= 0.0f)
 	{
-		ASC->TryActivateAbilityByClass(GA_Attack);
+		ScoreMultiplier = ScoreMultiplier * AgeRate;
 	}
 	
+	StartAgeTimer();
+
+	StartAttack();
+	
 }
 
-void UBattleUtilityAction_AttackSingle::EndAction()
-{
-
-	Super::EndAction();
-}
-
-bool UBattleUtilityAction_AttackSingle::TickAction(float DeltaTime)
+bool UBattleUtilityAction_Attack::TickAction(float DeltaTime)
 {
 	if (ASC)
 	{
@@ -54,22 +54,146 @@ bool UBattleUtilityAction_AttackSingle::TickAction(float DeltaTime)
 	return true;
 }
 
-float UBattleUtilityAction_AttackSingle::EvaluateScore(const UConsiderationFactors* ConsiderList)
+void UBattleUtilityAction_Attack::StartAgeTimer()
 {
-	return Super::EvaluateScore(ConsiderList);
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+	
+	if (TimerManager.IsTimerActive(TimerHandle))
+	{
+		float RemainTime = TimerManager.GetTimerRemaining(TimerHandle);
+
+		TimerManager.ClearTimer(TimerHandle);
+		TimerManager.SetTimer(TimerHandle, this, &ThisClass::UpdateAge, AgeCycleTime + RemainTime, false);
+	}
+	else
+	{
+		TimerManager.SetTimer(TimerHandle, this, &ThisClass::UpdateAge, AgeCycleTime, false);
+	}
+}
+
+void UBattleUtilityAction_Attack::StartAttack()
+{
+	
+}
+
+void UBattleUtilityAction_Attack::UpdateAge()
+{
+	ScoreMultiplier = 1.0f;
+}
+
+
+/*
+ *
+ *
+ *	UBattleUtilityAction_AttackSingle
+ *
+ *
+ */
+
+
+
+
+
+UBattleUtilityAction_AttackSingle::UBattleUtilityAction_AttackSingle()
+{
+	Priority = 3;
+}
+
+void UBattleUtilityAction_AttackSingle::StartAction()
+{
+	Super::StartAction();
+	
+
+	
+}
+
+bool UBattleUtilityAction_AttackSingle::TickAction(float DeltaTime)
+{
+	return Super::TickAction(DeltaTime);
+}
+
+void UBattleUtilityAction_AttackSingle::StartAttack()
+{
+	if (ASC)
+	{
+		ASC->TryActivateAbilityByClass(GA_Attack);
+	}
+}
+
+void UBattleUtilityAction_AttackSingle::StartAgeTimer()
+{
+	Super::StartAgeTimer();
 }
 
 void UBattleUtilityAction_AttackSingle::UpdateAge()
 {
-	Age = 1.0f;
+	ScoreMultiplier = 1.0f;
 }
+
+
+/*
+ *
+ *
+ *	UBattleUtilityAction_AreaAttack
+ *
+ *
+ */
+
+
+
+
 
 UBattleUtilityAction_AttackArea::UBattleUtilityAction_AttackArea()
 {
 	Priority = 3;
 }
 
-TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots()
+
+void UBattleUtilityAction_AttackArea::StartAction()
+{
+	Super::StartAction();
+}
+
+bool UBattleUtilityAction_AttackArea::TickAction(float DeltaTime)
+{
+	return Super::TickAction(DeltaTime);
+}
+
+void UBattleUtilityAction_AttackArea::StartAttack()
+{
+	if (ASC)
+	{
+		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Attack))
+		{
+			// GA 하나 만들기 (Spot을 담고 있어야하며 전달 받은것으로 처리, Instancing은 Actor마다 있어야함.
+			if (UBattleGameplayAbility_BasicAttack* GA = Cast<UBattleGameplayAbility_BasicAttack>(AbilitySpec->Ability))
+			{
+				// Target Spot 찾는 함수
+				TArray<FAttackAreaData> AttackAreaData = GetBestSpots();
+				
+				// GA->SetTargetData(Target) => 해당 함수 만들어서 Spot 넘겨주기 
+				GA->SetHitCheckAttackType(EHitCheckAttackType::AreaRange);
+				GA->SetAttackAreaData(AttackAreaData);
+				
+				ASC->TryActivateAbility(AbilitySpec->Handle);
+			}
+		}
+	}
+}
+
+void UBattleUtilityAction_AttackArea::StartAgeTimer()
+{
+	Super::StartAgeTimer();
+}
+
+
+void UBattleUtilityAction_AttackArea::UpdateAge()
+{
+	ScoreMultiplier = 1.0f;
+}
+
+
+TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots() const
 {
 	TArray<FVector> Locations;
 	
@@ -189,58 +313,3 @@ TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots()
 	return Result;
 	
 }
-
-void UBattleUtilityAction_AttackArea::StartAction()
-{
-	Super::StartAction();
-
-	ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
-
-	Age = 0.0f;
-
-	FTimerHandle TimerHandle;
-
-	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UBattleUtilityAction_AttackSingle::UpdateAge, CoolTime, false);
-	
-	if (ASC)
-	{
-		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Attack))
-		{
-			// GA 하나 만들기 (Spot을 담고 있어야하며 전달 받은것으로 처리, Instancing은 Actor마다 있어야함.
-			if (UBattleGameplayAbility_BasicAttack* GA = Cast<UBattleGameplayAbility_BasicAttack>(AbilitySpec->Ability))
-			{
-				// Target Spot 찾는 함수
-				TArray<FAttackAreaData> AttackAreaData = GetBestSpots();
-				
-				// GA->SetTargetData(Target) => 해당 함수 만들어서 Spot 넘겨주기 
-				GA->SetHitCheckAttackType(EHitCheckAttackType::AreaRange);
-				GA->SetAttackAreaData(AttackAreaData);
-				
-				ASC->TryActivateAbility(AbilitySpec->Handle);
-			}
-		}
-		
-	}
-}
-
-void UBattleUtilityAction_AttackArea::EndAction()
-{
-	Super::EndAction();
-}
-
-bool UBattleUtilityAction_AttackArea::TickAction(float DeltaTime)
-{
-	return Super::TickAction(DeltaTime);
-}
-
-float UBattleUtilityAction_AttackArea::EvaluateScore(const UConsiderationFactors* ConsiderList)
-{
-	return Super::EvaluateScore(ConsiderList);
-}
-
-void UBattleUtilityAction_AttackArea::UpdateAge()
-{
-	Age = 1.0f;
-}
-

@@ -53,11 +53,6 @@ bool UBattleUtilityAction_MoveToTarget::TickAction(float DeltaTime)
 	}
 }
 
-void UBattleUtilityAction_MoveToTarget::UpdateAge()
-{
-	Age = 1.0f;
-}
-
 UBattleUtilityAction_TurnToTarget::UBattleUtilityAction_TurnToTarget()
 {
 }
