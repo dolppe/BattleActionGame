@@ -34,9 +34,6 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
-	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<UGameplayEffect>> SelfApplyEffects;
-
 	
 private:
 	// PawnExtensionComponent는 SubObject로 붙여둠.

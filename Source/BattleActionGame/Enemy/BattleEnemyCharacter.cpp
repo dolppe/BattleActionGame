@@ -24,9 +24,9 @@ ABattleEnemyCharacter::ABattleEnemyCharacter(const FObjectInitializer& ObjectIni
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	CreateDefaultSubobject<UBattleHealthSet>(TEXT("HealthSet"));
-	CreateDefaultSubobject<UBattleCombatSet>(TEXT("CombatSet"));
-	CreateDefaultSubobject<UBattleEnemySet>(TEXT("EnemySet"));
+	//CreateDefaultSubobject<UBattleHealthSet>(TEXT("HealthSet"));
+	//CreateDefaultSubobject<UBattleCombatSet>(TEXT("CombatSet"));
+	//CreateDefaultSubobject<UBattleEnemySet>(TEXT("EnemySet"));
 	
 	HealthComponent = CreateDefaultSubobject<UBattleHealthComponent>(TEXT("HealthComponent"));
 
@@ -53,9 +53,7 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
-	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
-
+	
 	if (EnemyData)
 	{
 		for (UBattleAbilitySet* AbilitySet : EnemyData->AbilitySets)
@@ -66,6 +64,8 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 			}
 		}
 	}
+
+	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 
 	FBreakablePart LeftLegBreakablePart = FBreakablePart(1, [this](FGameplayTag InGameplayTag)
 	{

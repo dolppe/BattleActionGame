@@ -71,16 +71,6 @@ void ABattleCharacter::OnAbilitySystemInitialized()
 	check(ASC);
 
 	HealthComponent->InitializeWithAbilitySystem(ASC);
-
-	if (HasAuthority())
-	{
-		for (TSubclassOf<UGameplayEffect> SelfGE : SelfApplyEffects)
-		{
-			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(SelfGE, 1.0f, ContextHandle);
-			ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}
-	}
 }
 
 void ABattleCharacter::OnAbilitySystemUninitialized()

@@ -1,6 +1,7 @@
 #include "BattleHealthSet.h"
 
 #include "GameplayEffectExtension.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 
