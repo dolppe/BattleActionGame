@@ -6,6 +6,7 @@
 #include "BattleGameplayAbility_BasicAttack.generated.h"
 
 
+struct FBasicAttack;
 
 UENUM()
 enum class EHitCheckAttackType : uint8
@@ -75,14 +76,13 @@ protected:
 	virtual void OnRep_AlreadyHitActors() override;
 
 	void AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification);
-
-	TArray<FHitResult> StartHitCheckByWeaponRange();
-	TArray<FHitResult> StartHitCheckByAreaRange();
 	
 	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 	
 	EHitCheckAttackType HitCheckAttackType = EHitCheckAttackType::WeaponRange;
+
+	const FBasicAttack* CurrentBasicAttackData;
 
 	TArray<FAttackAreaData> AttackAreaData;
 

@@ -110,6 +110,7 @@ void UBattleGameplayAbility_ComboAttack::GetLifetimeReplicatedProps(TArray<FLife
 
 FName UBattleGameplayAbility_ComboAttack::GetNextSection()
 {
+	BaseDamage = CurrentComboAttackData->BaseDamage[CurrentComboIndex];
 	AttackRate = CurrentComboAttackData->AttackRate[CurrentComboIndex];
 	GroggyValue = CurrentComboAttackData->GroggyValue[CurrentComboIndex];
 	CurrentComboIndex = FMath::Clamp(CurrentComboIndex+1,1,CurrentComboAttackData->MaxComboCount);
@@ -165,6 +166,20 @@ void UBattleGameplayAbility_ComboAttack::OnTargetDataReadyCallback(const FGamepl
 	// ServerOnly
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
+		for (TSubclassOf<UGameplayEffect> TargetGE : CurrentComboAttackData->AppliedEffectsToTarget)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(TargetGE, 1);
+
+			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);		
+		}
+
+		for (TSubclassOf<UGameplayEffect> SelfGE : CurrentComboAttackData->AppliedEffectsToSelf)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SelfGE, 1);
+
+			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
+		}
+		
 		OnTargetDataReady(InData);
 	}
 }
@@ -220,10 +235,8 @@ void UBattleGameplayAbility_ComboAttack::StartHitCheck(FGameplayTag Channel, con
 	
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
-		const FComboAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->ComboAttacks[AttackMode];
-
-		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData.CollisionMethod->CollisionMethodType);
-		CollisionMethod->SetCollisionData(CurrentAttackData.CollisionMethod, this);
+		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentComboAttackData->CollisionMethod->CollisionMethodType);
+		CollisionMethod->SetCollisionData(CurrentComboAttackData->CollisionMethod, this);
 		CollisionMethod->StartCollisionCheck();
 	}
 
@@ -243,8 +256,7 @@ void UBattleGameplayAbility_ComboAttack::StartHitCheck(FGameplayTag Channel, con
 
 void UBattleGameplayAbility_ComboAttack::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
-	const FComboAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->ComboAttacks[AttackMode];
-	UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData.CollisionMethod->CollisionMethodType);
+	UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentComboAttackData->CollisionMethod->CollisionMethodType);
 
 	CollisionMethod->EndCollisionCheck();
 }

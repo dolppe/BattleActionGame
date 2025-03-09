@@ -47,6 +47,8 @@ private:
 
 	UBattleAbilityTask_HitCheck* HitCheckTask;
 
+	const FComboStrongAttack* CurrentAttackData;
+
 
 };
 

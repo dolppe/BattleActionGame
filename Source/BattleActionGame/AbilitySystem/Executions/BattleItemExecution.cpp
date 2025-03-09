@@ -14,8 +14,6 @@ struct FItemStatics
 	FGameplayEffectAttributeCaptureDefinition HealingDef;
 	FGameplayEffectAttributeCaptureDefinition DamageDef;
 	
-	FGameplayEffectAttributeCaptureDefinition BaseHealDef;
-	FGameplayEffectAttributeCaptureDefinition BaseDamageDef;
 	FGameplayEffectAttributeCaptureDefinition AttackPowerDef;
 
 	FItemStatics()
@@ -25,8 +23,6 @@ struct FItemStatics
 		HealingDef = FGameplayEffectAttributeCaptureDefinition(UBattleHealthSet::GetHealingAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
 		DamageDef = FGameplayEffectAttributeCaptureDefinition(UBattleHealthSet::GetDamageAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
 		
-		BaseHealDef = FGameplayEffectAttributeCaptureDefinition(UBattleCombatSet::GetBaseHealAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
-		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UBattleCombatSet::GetBaseDamageAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
 		AttackPowerDef = FGameplayEffectAttributeCaptureDefinition(UBattleCombatSet::GetAttackPowerAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
 	}
 };
@@ -43,9 +39,7 @@ UBattleItemExecution::UBattleItemExecution()
 	RelevantAttributesToCapture.Add(ItemStatics().MaxStaminaDef);
 	RelevantAttributesToCapture.Add(ItemStatics().HealingDef);
 	RelevantAttributesToCapture.Add(ItemStatics().DamageDef);
-
-	RelevantAttributesToCapture.Add(ItemStatics().BaseHealDef);
-	RelevantAttributesToCapture.Add(ItemStatics().BaseDamageDef);
+	
 	RelevantAttributesToCapture.Add(ItemStatics().AttackPowerDef);
 }
 

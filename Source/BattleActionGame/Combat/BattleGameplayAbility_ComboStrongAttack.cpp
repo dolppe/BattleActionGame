@@ -26,13 +26,14 @@ void UBattleGameplayAbility_ComboStrongAttack::ActivateAbility(const FGameplayAb
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	const FComboStrongAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->ComboStrongAttacks[AttackMode];
+	CurrentAttackData = &CurrentCombatManager->GetAttackData()->ComboStrongAttacks[AttackMode];
 	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::ComboStrong, AttackMode);
+	
+	BaseDamage = CurrentAttackData->BaseDamage;
+	AttackRate = CurrentAttackData->AttackRate;
+	GroggyValue = CurrentAttackData->GroggyValue;
 
-	AttackRate = CurrentAttackData.AttackRate;
-	GroggyValue = CurrentAttackData.GroggyValue;
-
-	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData.MontageSectionName, CurrentCombatManager->GetCurrentComboIndex());
+	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, CurrentCombatManager->GetCurrentComboIndex());
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 1.0f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::OnCompleted);
@@ -99,6 +100,20 @@ void UBattleGameplayAbility_ComboStrongAttack::OnTargetDataReadyCallback(const F
 	
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
+		for (TSubclassOf<UGameplayEffect> TargetGE : CurrentAttackData->AppliedEffectsToTarget)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(TargetGE, 1);
+
+			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);		
+		}
+
+		for (TSubclassOf<UGameplayEffect> SelfGE : CurrentAttackData->AppliedEffectsToSelf)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SelfGE, 1);
+
+			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
+		}
+		
 		OnTargetDataReady(InData);
 	}
 }
@@ -132,10 +147,8 @@ void UBattleGameplayAbility_ComboStrongAttack::StartHitCheck(FGameplayTag Channe
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-		const FComboStrongAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->ComboStrongAttacks[AttackMode];
-
-		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData.CollisionMethod->CollisionMethodType);
-		CollisionMethod->SetCollisionData(CurrentAttackData.CollisionMethod, this);
+		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData->CollisionMethod->CollisionMethodType);
+		CollisionMethod->SetCollisionData(CurrentAttackData->CollisionMethod, this);
 		CollisionMethod->StartCollisionCheck();
 	}
 
@@ -154,8 +167,7 @@ void UBattleGameplayAbility_ComboStrongAttack::EndHitCheck(FGameplayTag Channel,
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
-		const FComboStrongAttack& CurrentAttackData = CurrentCombatManager->GetAttackData()->ComboStrongAttacks[AttackMode];
-		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData.CollisionMethod->CollisionMethodType);
+		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData->CollisionMethod->CollisionMethodType);
 		CollisionMethod->EndCollisionCheck();
 	}
 }

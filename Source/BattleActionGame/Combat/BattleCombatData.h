@@ -3,6 +3,7 @@
 #include "Engine/DataAsset.h"
 #include "BattleCombatData.generated.h"
 
+class UGameplayEffect;
 enum class ECollisionMethodType : uint8;
 enum class EAttackType : uint8;
 class UNiagaraSystem;
@@ -96,8 +97,16 @@ struct FAttackData
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	UNiagaraSystem* HitEffect;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
+	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToTarget;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
+	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToSelf;
+
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Attack")
 	UAttackCollisionData* CollisionMethod;
+
+
 	
 };
 
@@ -105,6 +114,9 @@ USTRUCT()
 struct FBasicAttack : public FAttackData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float BaseDamage = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category=BasicAttack)
 	float AttackRate = 1.0f;
@@ -118,6 +130,9 @@ USTRUCT()
 struct FComboStrongAttack : public FAttackData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
+	float BaseDamage = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
 	float AttackRate = 1.0f;
@@ -140,6 +155,9 @@ struct FComboAttack : public FAttackData
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> AllowInputFrameCount;
 
+	UPROPERTY(EditAnywhere, Category=ComboAttack)
+	TArray<float> BaseDamage;
+	
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> AttackRate;
 
