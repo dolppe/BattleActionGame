@@ -21,8 +21,6 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
                                                            const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
-	OnAttackStart();
 
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -46,8 +44,14 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 		// 테스크 실행
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
-		MessageSystem.UnregisterListener(StartListenerHandle);
-		MessageSystem.UnregisterListener(EndListenerHandle);
+		if (StartListenerHandle.IsValid())
+		{
+			MessageSystem.UnregisterListener(StartListenerHandle);
+		}
+		if (EndListenerHandle.IsValid())
+		{
+			MessageSystem.UnregisterListener(EndListenerHandle);
+		}
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -164,6 +168,7 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 
 void UBattleGameplayAbility_Attack_Parent::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
+	OnAttackStart();
 }
 
 void UBattleGameplayAbility_Attack_Parent::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)

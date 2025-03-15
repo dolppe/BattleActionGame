@@ -16,6 +16,7 @@ enum class EAttackType : uint8
 	Combo,
 	ComboStrong,
 	Basic,
+	Targeted,
 };
 
 
@@ -41,6 +42,11 @@ public:
 	EAttackType GetAttackType() const
 	{
 		return AttackType;
+	}
+
+	int GetAttackMode() const
+	{
+		return AttackMode;
 	}
 
 	UFUNCTION()

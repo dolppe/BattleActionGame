@@ -6,7 +6,6 @@
 enum class EAttackType : uint8;
 class UBattleGameplayAbility_Attack_Parent;
 class UAbilitySystemComponent;
-struct FAttackAreaData;
 
 UCLASS()
 class UBattleUtilityAction_Attack : public UBattleUtilityAction
@@ -125,14 +124,14 @@ public:
 protected:
 	virtual void UpdateAge() override;
 
-	UPROPERTY(EditAnywhere)
-	float AreaRadius = 1.0f;
-
-	UPROPERTY(EditAnywhere)
-	int AreaNum = 1;
-
-
 private:
 
-	TArray<FAttackAreaData> GetBestSpots() const;
+	void GetAreaData();
+	TArray<FVector> GetBestSpots() const;
+	TArray<FVector> GetTargetSpots() const;
+
+	float AreaRadius = 1.0f;
+	int AreaNum = 1;
+	bool IsSetAreaData = false;
+	
 };

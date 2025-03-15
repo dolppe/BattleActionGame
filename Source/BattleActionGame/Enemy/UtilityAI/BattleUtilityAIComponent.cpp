@@ -23,6 +23,7 @@ UConsiderationFactors::UConsiderationFactors()
 
 float UConsiderationFactors::GetTarget()
 {
+	// 현재 타겟에 대한 정보
 	// 1 => 존재, 0 => 없음
 	if (SelectedTarget == nullptr)
 	{
@@ -37,7 +38,7 @@ float UConsiderationFactors::GetTarget()
 float UConsiderationFactors::GetMyCombatPotential()
 {
 	// 전투 가능한 상태인지 0 => 전투 불가능 도주해야함, 1 => 전투 가능
-	// 내 Hp
+	// 현재는 내 Hp만 확인
 	// 추후에 궁극기 유무, 나한테 디버프 있는지, 주변의 적 수,
 	
 	return MyHp;
@@ -46,6 +47,7 @@ float UConsiderationFactors::GetMyCombatPotential()
 
 float UConsiderationFactors::GetIsTargetInSight()
 {
+	// Target이 나를 기준으로 어느 각도에 있는지
 	// 0.5 정면에 딱 맞게 있는것
 	// 0.0 왼쪽에 있는 것
 	// 1.0 오른쪽에 있는 것
@@ -79,7 +81,9 @@ float UConsiderationFactors::GetIsTargetInSight()
 
 float UConsiderationFactors::GetNearbyEnemyCount()
 {
-	// 0.4 정도면 가까운 것으로 침 =>
+	// 적들이 나한테 가까이 있는지 판정함
+	// 거리는 40%정도면 가까운 것으로 판정하고, 가까운 적이 ThreatCharacterNum보다 적은지 많은지 판단함
+	// ThreatCharacterNum보다 적이 더 많으면 1.0f가 나오게 됨.
 
 	if (TargetDistances.Num() == 0)
 	{
@@ -105,6 +109,7 @@ float UConsiderationFactors::GetNearbyEnemyCount()
 
 float UConsiderationFactors::GetThreatScore()
 {
+	// 현재 내 상태가 위험한지 판단.
 	// 1 => 위험한 상태
 	// NearbyEnemyCount가 높으면 위협이 큼, 싸울만 한 상태가 아니면 위협이 큼
 	
@@ -117,6 +122,7 @@ float UConsiderationFactors::GetThreatScore()
 
 float UConsiderationFactors::GetCombatDuration()
 {
+	// 전투 기간을 측정함.
 	// 전투 초기 혹은 비전투 => 0, BestCombat => 0.5, 
 	
 	if (!bIsInCombat)
@@ -217,18 +223,16 @@ float UConsiderationFactors::GetCanMovement()
 	// 0 => 움직일 수 없음 1 => 움직일 수 있음.
 	if (MyCharacter->GetAbilitySystemComponent()->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Groggy))
 	{
-		UE_LOG(LogTemp,Log, TEXT("GroggyGroggyGroggyGroggyGroggy"));
 		return 0.0f;
 	}
 	
-
-	UE_LOG(LogTemp,Log, TEXT("NOTNONOTOTNTOTNTOTNTOT"));
 	return 1.0f;
 	
 }
 
 float UConsiderationFactors::GetEnemyDensity()
 {
+	// 적들이 얼마나 밀집해 있는지 판단하는 것.
 	/*
 	 *  0.0에 가까울수록 밀집한 것, 0.2정도면 꽤 밀집한 상태.
 	 */
@@ -245,6 +249,7 @@ PRAGMA_ENABLE_OPTIMIZATION
 
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
 {
+	// 타겟들이 각각 얼마나 먼지 측정.
 	// 1 => 엄청 멈, 0 => 가까움
 	return TargetDistances;
 }
@@ -573,10 +578,10 @@ void UConsiderationFactors::SearchNearActors()
 	GetWorld()->OverlapMultiByChannel(OutOverlaps, Center, FQuat::Identity, Battle_TraceChannel_AttackToCharacter, FCollisionShape::MakeSphere(Radius));
 
 	ClearConsiderFactors();
-	
+
+	// 주변 Actor 탐색
 	if (!OutOverlaps.IsEmpty())
 	{
-
 		for (FOverlapResult& OverlapResult : OutOverlaps)
 		{
 			AActor* OverlappedActor = OverlapResult.GetActor();
@@ -594,6 +599,7 @@ void UConsiderationFactors::SearchNearActors()
 		}
 	}
 
+	// Combat을 처음 시작하는지 체크 
 	if (TargetActors.IsEmpty() && bIsInCombat == true)
 	{
 		bIsInCombat = false;
@@ -605,6 +611,7 @@ void UConsiderationFactors::SearchNearActors()
 		bIsInCombat = true;
 	}
 
+	//
 	if (!TargetActors.IsEmpty())
 	{
 		float MaxTargetDistance = UtilityAIComponent->MaxTargetDistance;
@@ -625,10 +632,7 @@ void UConsiderationFactors::SearchNearActors()
 			FVector Delta = Character->GetActorLocation() - Center;
 			TotalDistance += Delta.Size2D();
 
-			float Angle = FMath::Atan2(Delta.Y, Delta.X);
-			
-			UE_LOG(LogTemp, Log, TEXT("Angle: %f"), Angle);
-			
+			float Angle = FMath::Atan2(Delta.Y, Delta.X);			
 			Angles.Add(Angle);
 		}
 		

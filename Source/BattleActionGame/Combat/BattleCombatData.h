@@ -74,6 +74,12 @@ class UAttackCollisionData_CircularAOE : public UAttackCollisionData
 public:
 	
 	UAttackCollisionData_CircularAOE();
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	float AttackRadius = 100.f;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	int AttackNum = 1;
 	
 };
 
@@ -166,6 +172,26 @@ struct FComboAttack : public FAttackData
 	
 };
 
+USTRUCT()
+struct FTargetedAttack : public FAttackData
+{
+	GENERATED_BODY()
+
+	FTargetedAttack();
+
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float BaseDamage = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float AttackRate = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float GroggyValue = 10.0f;
+
+	
+	
+};
+
 
 
 UCLASS(BlueprintType, Const)
@@ -184,6 +210,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboStrongAttack)
 	TArray<FComboStrongAttack> ComboStrongAttacks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=TargetedAttack)
+	TArray<FTargetedAttack> TargetedAttacks;
 
 	
 };

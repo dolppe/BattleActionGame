@@ -28,6 +28,7 @@ class UBattleGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 
 	friend class UBattleAbilitySystemComponent;
+	
 public:
 	UBattleGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
