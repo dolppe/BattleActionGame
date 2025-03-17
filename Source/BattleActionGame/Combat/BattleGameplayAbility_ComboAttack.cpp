@@ -31,7 +31,7 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
 	CurrentComboAttackData = &CurrentCombatManager->GetAttackData()->ComboAttacks[AttackMode];
-	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Combo, AttackMode);
+	CurrentAttackMontage = CurrentComboAttackData->Montage;
 
 	FName MontageSectionName = GetNextSection();
 

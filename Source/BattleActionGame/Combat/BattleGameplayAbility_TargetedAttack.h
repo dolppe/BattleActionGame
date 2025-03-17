@@ -41,12 +41,15 @@ protected:
 	virtual void OnInterrupted() override;
 
 	virtual void OnRep_AlreadyHitActors() override;
-	
-	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
-	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 
 	UFUNCTION()
 	void OnRep_AreaCenterData();
+
+	UFUNCTION()
+	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
+	
+	UFUNCTION()
+	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 	
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_AreaCenterData)
 	TArray<FVector> AreaCenterData;

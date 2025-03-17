@@ -28,7 +28,7 @@ void UBattleGameplayAbility_TargetedAttack::ActivateAbility(const FGameplayAbili
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
 	CurrentAttackData = &CurrentCombatManager->GetAttackData()->TargetedAttacks[AttackMode];
-	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Basic, AttackMode);
+	CurrentAttackMontage = CurrentAttackData->Montage;
 
 	BaseDamage = CurrentAttackData->BaseDamage;
 	AttackRate = CurrentAttackData->AttackRate;

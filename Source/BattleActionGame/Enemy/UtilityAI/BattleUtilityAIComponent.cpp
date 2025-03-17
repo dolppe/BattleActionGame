@@ -843,8 +843,8 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		
 		UtilityAIScoreDatas.Last().ActionScore = CurScore;		
 		
-		FString DebugString = FString::Printf(TEXT("%s: %f"), *Action->GetName(), CurScore);
-		GEngine->AddOnScreenDebugMessage(ActionIdx, 1.0f, FColor::Green, DebugString);
+		// FString DebugString = FString::Printf(TEXT("%s: %f"), *Action->GetName(), CurScore);
+		// GEngine->AddOnScreenDebugMessage(ActionIdx, 1.0f, FColor::Green, DebugString);
 		ActionIdx++;
 		
 		if (BestScore < CurScore)

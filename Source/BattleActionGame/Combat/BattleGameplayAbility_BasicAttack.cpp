@@ -29,7 +29,7 @@ void UBattleGameplayAbility_BasicAttack::ActivateAbility(const FGameplayAbilityS
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
 	CurrentBasicAttackData = &CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
-	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Basic, AttackMode);
+	CurrentAttackMontage = CurrentBasicAttackData->Montage;
 
 	BaseDamage = CurrentBasicAttackData->BaseDamage;
 	AttackRate = CurrentBasicAttackData->AttackRate;

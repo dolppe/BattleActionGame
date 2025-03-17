@@ -5,8 +5,18 @@
 
 class UGameplayEffect;
 enum class ECollisionMethodType : uint8;
-enum class EAttackType : uint8;
 class UNiagaraSystem;
+
+
+UENUM()
+enum class EAttackType : uint8
+{
+	Combo,
+	ComboStrong,
+	Basic,
+	Targeted,
+	Spawn,
+};
 
 UCLASS(Abstract, Blueprintable, EditInlineNew)
 class UAttackCollisionData : public UObject
@@ -193,6 +203,31 @@ struct FTargetedAttack : public FAttackData
 };
 
 
+USTRUCT(BlueprintType)
+struct FSpecialSpawnData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	FString MontageSectionName = TEXT("Default");
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	TObjectPtr<UAnimMontage> Montage;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	USoundBase* MontageStartSound;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	TSubclassOf<AActor> SpawnedActor;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	int SpawnActorNum = 1;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	float SpawnRadius = 100.f;
+	
+};
+
 
 UCLASS(BlueprintType, Const)
 class BATTLEACTIONGAME_API UBattleCombatData : public UPrimaryDataAsset
@@ -213,7 +248,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=TargetedAttack)
 	TArray<FTargetedAttack> TargetedAttacks;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=SpawnAttack)
+	TArray<FSpecialSpawnData> SpawnDatas;
 	
 };
 

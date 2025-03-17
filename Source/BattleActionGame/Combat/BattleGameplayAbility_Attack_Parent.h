@@ -8,16 +8,9 @@
 
 enum class ECollisionMethodType : uint8;
 class UBattleCombatData;
+enum class EAttackType : uint8;
 
 
-UENUM()
-enum class EAttackType : uint8
-{
-	Combo,
-	ComboStrong,
-	Basic,
-	Targeted,
-};
 
 
 UCLASS(Abstract)

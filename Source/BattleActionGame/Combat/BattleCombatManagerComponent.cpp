@@ -36,26 +36,9 @@ void UBattleCombatManagerComponent::BeginPlay()
 	InstancedCollisionMethod.Add(ECollisionMethodType::CircularAOE, NewObject<UAttackCollisionMethod_CircularAOE>(this));
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
 void UBattleCombatManagerComponent::UseItem(EItemType Item)
 {
 	GetPawn<ABattleCharacterBase>()->GetAbilitySystemComponent()->TryActivateAbilityByClass(ItemTypeToAbility[Item]);
-}
-
-PRAGMA_ENABLE_OPTIMIZATION
-
-UAnimMontage* UBattleCombatManagerComponent::GetAttackMontage(EAttackType AttackType, int Idx) const
-{
-	switch (AttackType)
-	{
-	case EAttackType::ComboStrong:
-		return CombatData->ComboStrongAttacks[Idx].Montage;
-	case EAttackType::Combo:
-		return CombatData->ComboAttacks[Idx].Montage;
-	case EAttackType::Basic:
-		return CombatData->BasicAttacks[Idx].Montage;
-	}
-	return nullptr;
 }
 
 int UBattleCombatManagerComponent::GetCurrentComboIndex()

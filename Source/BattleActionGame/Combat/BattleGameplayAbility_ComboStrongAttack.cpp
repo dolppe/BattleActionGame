@@ -27,7 +27,7 @@ void UBattleGameplayAbility_ComboStrongAttack::ActivateAbility(const FGameplayAb
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
 	CurrentAttackData = &CurrentCombatManager->GetAttackData()->ComboStrongAttacks[AttackMode];
-	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::ComboStrong, AttackMode);
+	CurrentAttackMontage = CurrentAttackData->Montage;
 	
 	BaseDamage = CurrentAttackData->BaseDamage;
 	AttackRate = CurrentAttackData->AttackRate;

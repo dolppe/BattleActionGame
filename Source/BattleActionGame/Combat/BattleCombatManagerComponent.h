@@ -35,9 +35,6 @@ public:
 		return CombatData;
 	}
 
-	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetAttackMontage(EAttackType AttackType, int Idx) const;
-
 	int GetCurrentComboIndex();
 
 	void SetComboGA(UBattleGameplayAbility_ComboAttack* InComboAttack);
