@@ -30,6 +30,9 @@ void UBattleGameplayAbility_Special_Spawn::ActivateAbility(const FGameplayAbilit
 	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentSpawnData->MontageSectionName, 1);
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentSpawnMontage, 0.65f, MontageSectionName);
+	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_Special_Spawn::OnCompleted);
+	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_Special_Spawn::OnInterrupted);
+	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_Special_Spawn::OnBlendOut);
 	PlayAttackMontage->ReadyForActivation();
 
 	if (Character->IsLocallyControlled())
@@ -87,6 +90,27 @@ void UBattleGameplayAbility_Special_Spawn::GetLifetimeReplicatedProps(TArray<FLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, SpawnCenterData);
+}
+
+void UBattleGameplayAbility_Special_Spawn::OnCompleted()
+{
+	bool bReplicatedEndAbility = true;
+	bool bWasCancelled = false;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+}
+
+void UBattleGameplayAbility_Special_Spawn::OnInterrupted()
+{
+	bool bReplicatedEndAbility = true;
+	bool bWasCancelled = true;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+}
+
+void UBattleGameplayAbility_Special_Spawn::OnBlendOut()
+{
+	bool bReplicatedEndAbility = true;
+	bool bWasCancelled = true;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 }
 
 void UBattleGameplayAbility_Special_Spawn::OnRep_SpawnCenterData()

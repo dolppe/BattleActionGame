@@ -31,6 +31,13 @@ public:
 
 protected:
 
+	UFUNCTION()
+	virtual void OnCompleted();
+	UFUNCTION()
+	virtual void OnInterrupted();
+	UFUNCTION()
+	virtual void OnBlendOut();
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnSpawnStart();
 

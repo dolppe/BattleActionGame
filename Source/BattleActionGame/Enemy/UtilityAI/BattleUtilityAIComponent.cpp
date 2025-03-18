@@ -245,6 +245,13 @@ float UConsiderationFactors::GetEnemyAverageDistance()
 	return EnemyAverageDistance;
 }
 
+float UConsiderationFactors::GetIsFarFromTarget()
+{
+	// 선택된 타겟과의 거리를 나타냄
+	// 0.0f는 바로 앞에 있는 것이고, 1.0f는 아주 먼 상태임.
+	return SelectedTargetDistance;
+}
+
 PRAGMA_ENABLE_OPTIMIZATION
 
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
@@ -458,6 +465,12 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 			return GetEnemyAverageDistance();
 		};
 		break;
+	case EBattleConsiderType::IsFarFromTarget:
+		return [this]() -> float
+		{
+			return GetIsFarFromTarget();
+		};
+		break;		
 	default:
 		return [this]() -> float
 		{
@@ -691,6 +704,12 @@ void UConsiderationFactors::SearchNearActors()
 		
 		EnemyDensity = VarianceAngles;
 		EnemyAverageDistance = AverageDistance;
+
+		if (SelectedTarget)
+		{
+			float Distance = FMath::Clamp(FVector::Dist(SelectedTarget->GetActorLocation(), Center), 0.0f, MaxTargetDistance);
+			SelectedTargetDistance = FMath::GetRangePct(0.0f, MaxTargetDistance, Distance);
+		}
 		
 
 		UE_LOG(LogTemp, Log, TEXT("AverageDistance: %f      |    VarianceAngles: %f  | EnemyDensity: %f "), AverageDistance, VarianceAngles, EnemyDensity);
