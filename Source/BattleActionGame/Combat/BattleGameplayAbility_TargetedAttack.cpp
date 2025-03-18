@@ -1,23 +1,24 @@
-#include "BattleGameplayAbility_ComboStrongAttack.h"
+#include "BattleGameplayAbility_TargetedAttack.h"
 
-#include "BattleAbilityTask_HitCheck.h"
+#include "AttackCollisionMethod_CircularAOE.h"
+#include "BattleCombatData.h"
 #include "BattleCombatManagerComponent.h"
-#include "GameplayMessageSubsystem.h"
+#include "BattleGameplayAbility_BasicAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_ComboStrongAttack)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_TargetedAttack)
 
-UBattleGameplayAbility_ComboStrongAttack::UBattleGameplayAbility_ComboStrongAttack(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UBattleGameplayAbility_TargetedAttack::UBattleGameplayAbility_TargetedAttack(
+	const FObjectInitializer& ObjectInitializer)
 {
-	AttackType = EAttackType::ComboStrong;
+	AttackType = EAttackType::Targeted;
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+void UBattleGameplayAbility_TargetedAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
@@ -26,28 +27,28 @@ void UBattleGameplayAbility_ComboStrongAttack::ActivateAbility(const FGameplayAb
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentAttackData = &CurrentCombatManager->GetAttackData()->ComboStrongAttacks[AttackMode];
+	CurrentAttackData = &CurrentCombatManager->GetAttackData()->TargetedAttacks[AttackMode];
 	CurrentAttackMontage = CurrentAttackData->Montage;
-	
+
 	BaseDamage = CurrentAttackData->BaseDamage;
 	AttackRate = CurrentAttackData->AttackRate;
 	GroggyValue = CurrentAttackData->GroggyValue;
+	UAttackCollisionData_CircularAOE* CollisionMethod_CircularAoe = Cast<UAttackCollisionData_CircularAOE>(CurrentAttackData->CollisionMethod);
+	AttackRadius = CollisionMethod_CircularAoe->AttackRadius;
 
-	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, CurrentCombatManager->GetCurrentComboIndex());
+	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentAttackData->MontageSectionName, 1);
 
-	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 1.0f, MontageSectionName);
-	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::OnCompleted);
-	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::OnInterrupted);
-	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::OnBlendOut);
+	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 0.65f, MontageSectionName);
+	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_TargetedAttack::OnCompleted);
+	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_TargetedAttack::OnInterrupted);
+	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_TargetedAttack::OnBlendOut);
 	PlayAttackMontage->ReadyForActivation();
 
 	if (Character->IsLocallyControlled())
 	{
-
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
-		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_ComboStrongAttack::StartHitCheck);
-		EndListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_End, this, &UBattleGameplayAbility_ComboStrongAttack::EndHitCheck);
+		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_TargetedAttack::StartHitCheck);
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -57,7 +58,7 @@ void UBattleGameplayAbility_ComboStrongAttack::ActivateAbility(const FGameplayAb
 	
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::EndAbility(const FGameplayAbilitySpecHandle Handle,
+void UBattleGameplayAbility_TargetedAttack::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
@@ -66,6 +67,7 @@ void UBattleGameplayAbility_ComboStrongAttack::EndAbility(const FGameplayAbility
 	if (Character->IsLocallyControlled())
 	{
 		// 테스크 실행
+
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -76,28 +78,30 @@ void UBattleGameplayAbility_ComboStrongAttack::EndAbility(const FGameplayAbility
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UBattleGameplayAbility_TargetedAttack::GetLifetimeReplicatedProps(
+	TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, AreaCenterData);
 }
 
-
-void UBattleGameplayAbility_ComboStrongAttack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime)
+void UBattleGameplayAbility_TargetedAttack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult,
+	float HitCheckTime)
 {
 	Super::ServerRPCNotifyHit_Implementation(HitResult, HitCheckTime);
 }
 
-
-void UBattleGameplayAbility_ComboStrongAttack::AttackHitConfirm(const FHitResult& HitResult)
+void UBattleGameplayAbility_TargetedAttack::AttackHitConfirm(const FHitResult& HitResult)
 {
 	Super::AttackHitConfirm(HitResult);
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
-                                                              FGameplayTag ApplicationTag)
+void UBattleGameplayAbility_TargetedAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
+	FGameplayTag ApplicationTag)
 {
 	Super::OnTargetDataReadyCallback(InData, ApplicationTag);
-	
+
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		for (TSubclassOf<UGameplayEffect> TargetGE : CurrentAttackData->AppliedEffectsToTarget)
@@ -118,29 +122,31 @@ void UBattleGameplayAbility_ComboStrongAttack::OnTargetDataReadyCallback(const F
 	}
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
+void UBattleGameplayAbility_TargetedAttack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
 {
 	Super::SelectHitCheck(HitResult, AttackTime);
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::OnCompleted()
+void UBattleGameplayAbility_TargetedAttack::OnCompleted()
 {
 	Super::OnCompleted();
-	
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::OnInterrupted()
+void UBattleGameplayAbility_TargetedAttack::OnInterrupted()
 {
 	Super::OnInterrupted();
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::OnRep_AlreadyHitActors()
+void UBattleGameplayAbility_TargetedAttack::OnRep_AlreadyHitActors()
 {
+	Super::OnRep_AlreadyHitActors();
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
-{
 
+void UBattleGameplayAbility_TargetedAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+{
+	Super::StartHitCheck(Channel, Notification);
+	
 	AlreadyHitActors.Empty();
 	
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
@@ -148,26 +154,29 @@ void UBattleGameplayAbility_ComboStrongAttack::StartHitCheck(FGameplayTag Channe
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
 		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData->CollisionMethod->CollisionMethodType);
+		if (UAttackCollisionMethod_CircularAOE* CircularAOE = Cast<UAttackCollisionMethod_CircularAOE>(CollisionMethod))
+		{
+			CircularAOE->SetAreaCenterData(AreaCenterData);
+		}
 		CollisionMethod->SetCollisionData(CurrentAttackData->CollisionMethod, this);
 		CollisionMethod->StartCollisionCheck();
 	}
-
-	/*
-	 * 처리 팔요
-	 */
 	
-	// HitCheckTask = UBattleAbilityTask_HitCheck::CreateTask(this);
-	// HitCheckTask->SetHitCheckData(CurrentAttackData.StartSocketName, CurrentAttackData.EndSocketName, CurrentAttackData.AttackRadius, CurrentAttackData.CollisionChannel);
-	// HitCheckTask->OnHitChecked.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::SelectHitCheck);
-	// HitCheckTask->ReadyForActivation();
 }
 
-void UBattleGameplayAbility_ComboStrongAttack::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+void UBattleGameplayAbility_TargetedAttack::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
+
 		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentAttackData->CollisionMethod->CollisionMethodType);
+		
 		CollisionMethod->EndCollisionCheck();
+		
 	}
+}
+
+void UBattleGameplayAbility_TargetedAttack::OnRep_AreaCenterData()
+{
 }

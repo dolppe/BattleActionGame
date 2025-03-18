@@ -1,24 +1,18 @@
 #pragma once
 
 #include "BattleGameplayAbility_Attack_Parent.h"
-#include "GameplayMessageSubsystem.h"
-#include "GameplayTagContainer.h"
-#include "BattleGameplayAbility_BasicAttack.generated.h"
+#include "BattleGameplayAbility_TargetedAttack.generated.h"
 
-
-struct FBasicAttack;
-struct FHitCheckAttack;
-struct FBattleVerbMessage;
-struct FGameplayMessageListenerHandle;
+struct FTargetedAttack;
 
 UCLASS()
-class UBattleGameplayAbility_BasicAttack : public UBattleGameplayAbility_Attack_Parent
+class UBattleGameplayAbility_TargetedAttack : public UBattleGameplayAbility_Attack_Parent
 {
 	GENERATED_BODY()
 public:
 
-	UBattleGameplayAbility_BasicAttack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
+	UBattleGameplayAbility_TargetedAttack(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
@@ -27,6 +21,11 @@ public:
 	virtual void ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime) override;
 
 	virtual void AttackHitConfirm(const FHitResult& HitResult) override;
+
+	void SetAreaCenterData(const TArray<FVector>& InAreaCenterData)
+	{
+		AreaCenterData = InAreaCenterData;
+	}
 
 
 protected:
@@ -43,14 +42,27 @@ protected:
 
 	virtual void OnRep_AlreadyHitActors() override;
 
-	void AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification);
-	
+	UFUNCTION()
+	void OnRep_AreaCenterData();
+
+	UFUNCTION()
 	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
+	
+	UFUNCTION()
 	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
+	
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_AreaCenterData)
+	TArray<FVector> AreaCenterData;
+
+	UPROPERTY(BlueprintReadOnly)
+	float AttackRadius = 10.f;
 
 private:
 	
-	const FBasicAttack* CurrentBasicAttackData;
+	const FTargetedAttack* CurrentAttackData;
 
+	
+	
+	
 	
 };

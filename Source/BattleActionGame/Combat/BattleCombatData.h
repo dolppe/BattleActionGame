@@ -3,9 +3,20 @@
 #include "Engine/DataAsset.h"
 #include "BattleCombatData.generated.h"
 
+class UGameplayEffect;
 enum class ECollisionMethodType : uint8;
-enum class EAttackType : uint8;
 class UNiagaraSystem;
+
+
+UENUM()
+enum class EAttackType : uint8
+{
+	Combo,
+	ComboStrong,
+	Basic,
+	Targeted,
+	Spawn,
+};
 
 UCLASS(Abstract, Blueprintable, EditInlineNew)
 class UAttackCollisionData : public UObject
@@ -73,6 +84,12 @@ class UAttackCollisionData_CircularAOE : public UAttackCollisionData
 public:
 	
 	UAttackCollisionData_CircularAOE();
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	float AttackRadius = 100.f;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=CollisionData)
+	int AttackNum = 1;
 	
 };
 
@@ -96,8 +113,16 @@ struct FAttackData
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	UNiagaraSystem* HitEffect;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
+	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToTarget;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
+	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToSelf;
+
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Attack")
 	UAttackCollisionData* CollisionMethod;
+
+
 	
 };
 
@@ -105,6 +130,9 @@ USTRUCT()
 struct FBasicAttack : public FAttackData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float BaseDamage = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category=BasicAttack)
 	float AttackRate = 1.0f;
@@ -118,6 +146,9 @@ USTRUCT()
 struct FComboStrongAttack : public FAttackData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
+	float BaseDamage = 0.0f;
 	
 	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
 	float AttackRate = 1.0f;
@@ -141,6 +172,9 @@ struct FComboAttack : public FAttackData
 	TArray<float> AllowInputFrameCount;
 
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
+	TArray<float> BaseDamage;
+	
+	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> AttackRate;
 
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
@@ -148,6 +182,51 @@ struct FComboAttack : public FAttackData
 	
 };
 
+USTRUCT()
+struct FTargetedAttack : public FAttackData
+{
+	GENERATED_BODY()
+
+	FTargetedAttack();
+
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float BaseDamage = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float AttackRate = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category=BasicAttack)
+	float GroggyValue = 10.0f;
+
+	
+	
+};
+
+
+USTRUCT(BlueprintType)
+struct FSpecialSpawnData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	FString MontageSectionName = TEXT("Default");
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	TObjectPtr<UAnimMontage> Montage;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	USoundBase* MontageStartSound;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	TSubclassOf<AActor> SpawnedActor;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	int SpawnActorNum = 1;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Spawn)
+	float SpawnRadius = 100.f;
+	
+};
 
 
 UCLASS(BlueprintType, Const)
@@ -167,6 +246,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboStrongAttack)
 	TArray<FComboStrongAttack> ComboStrongAttacks;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=TargetedAttack)
+	TArray<FTargetedAttack> TargetedAttacks;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=SpawnAttack)
+	TArray<FSpecialSpawnData> SpawnDatas;
 	
 };
 

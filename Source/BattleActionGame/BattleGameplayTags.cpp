@@ -76,6 +76,9 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	 * GameplayEffectData
 	 */
 
+	
+
+	AddTag(GameplayEffect_Data_BaseDamage, "GameplayEffect.Data.BaseDamage", "");
 	AddTag(GameplayEffect_Data_AttackRate, "GameplayEffect.Data.AttackRate", "");
 	AddTag(GameplayEffect_Data_GroggyValue, "GameplayEffect.Data.GroggyValue", "");
 

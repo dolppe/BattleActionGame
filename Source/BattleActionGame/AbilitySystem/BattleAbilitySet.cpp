@@ -11,6 +11,19 @@ void FBattleAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbili
 	}
 }
 
+void FBattleAbilitySet_GrantedHandles::AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle)
+{
+	if (Handle.IsValid())
+	{
+		GameplayEffectHandles.Add(Handle);
+	}
+}
+
+void FBattleAbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* Set)
+{
+		GrantedAttributeSets.Add(Set);
+}
+
 void FBattleAbilitySet_GrantedHandles::TakeFromAbilitySystem(UBattleAbilitySystemComponent* BattleASC)
 {
 	check(BattleASC);
@@ -38,6 +51,8 @@ UBattleAbilitySet::UBattleAbilitySet(const FObjectInitializer& ObjectInitializer
 {
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* BattleASC,
 	FBattleAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
 {
@@ -48,6 +63,7 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 		return;
 	}
 
+	// GA
 	for (int32 AbilityIndex = 0; AbilityIndex < GrantedGameplayAbilities.Num(); ++ AbilityIndex)
 	{
 		const FBattleAbilitySet_GameplayAbility& AbilityToGrant = GrantedGameplayAbilities[AbilityIndex];
@@ -67,8 +83,74 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 		{
 			OutGrantedHandles->AddAbilitySpecHandle(AbilitySpecHandle);
 		}
+	}
+
+	// GE
+	for (int32 EffectIndex = 0; EffectIndex < GrantedGameplayEffects.Num(); ++EffectIndex)
+	{
+		const FBattleAbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
+
+		if (!IsValid(EffectToGrant.GameplayEffect))
+		{
+			continue;
+		}
+
+		const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
+		const FActiveGameplayEffectHandle GameplayEffectHandle = BattleASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, BattleASC->MakeEffectContext());
+
+		if (OutGrantedHandles)
+		{
+			OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
+		}
+	}
+
+	
+	// Attribute
+	for (int32 SetIndex = 0; SetIndex < GrantedAttributes.Num(); ++SetIndex)
+	{
+		const FBattleAbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
+
+		if (!IsValid(SetToGrant.AttributeSet))
+		{
+			continue;
+		}
+
+		const UAttributeSet* ConstAttributeSet = BattleASC->GetAttributeSet(SetToGrant.AttributeSet);
+
+		if (ConstAttributeSet)
+		{
+			UDataTable* InitData = SetToGrant.InitializationData.LoadSynchronous();
+			if (InitData)
+			{
+				UAttributeSet* AttributeSet = const_cast<UAttributeSet*>(ConstAttributeSet);
+				AttributeSet->InitFromMetaDataTable(InitData);
+			}
+		}
+
+		else
+		{
+			UAttributeSet* NewSet = NewObject<UAttributeSet>(BattleASC->GetOwner(), SetToGrant.AttributeSet);
+			if (!SetToGrant.InitializationData.IsNull())
+			{
+				UDataTable* InitData = SetToGrant.InitializationData.LoadSynchronous();
+				if (InitData)
+				{
+					NewSet->InitFromMetaDataTable(InitData);
+				}
+			}
+			
+			BattleASC->AddAttributeSetSubobject(NewSet);
+
+			if (OutGrantedHandles)
+			{
+				OutGrantedHandles->AddAttributeSet(NewSet);
+			}
+		}
 		
-		
+
 	}
 	
+	
 }
+
+PRAGMA_ENABLE_OPTIMIZATION

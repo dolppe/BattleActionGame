@@ -6,6 +6,8 @@
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "BattleActionGame/Combat/BattleGameplayAbility_Attack_Parent.h"
 #include "BattleActionGame/Combat/BattleGameplayAbility_BasicAttack.h"
+#include "BattleActionGame/Combat/BattleGameplayAbility_Special_Spawn.h"
+#include "BattleActionGame/Combat/BattleGameplayAbility_TargetedAttack.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Attack)
 
@@ -127,7 +129,7 @@ void UBattleUtilityAction_AttackSingle::StartAgeTimer()
 
 void UBattleUtilityAction_AttackSingle::UpdateAge()
 {
-	ScoreMultiplier = 1.0f;
+	Super::UpdateAge();
 }
 
 
@@ -161,21 +163,40 @@ bool UBattleUtilityAction_AttackArea::TickAction(float DeltaTime)
 
 void UBattleUtilityAction_AttackArea::StartAttack()
 {
+	if (!IsSetAreaData)
+	{
+		GetAreaData();
+		IsSetAreaData = true;
+	}
+	
 	if (ASC)
 	{
 		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Attack))
 		{
+			
 			// GA 하나 만들기 (Spot을 담고 있어야하며 전달 받은것으로 처리, Instancing은 Actor마다 있어야함.
-			if (UBattleGameplayAbility_BasicAttack* GA = Cast<UBattleGameplayAbility_BasicAttack>(AbilitySpec->Ability))
+			// Target Spot 찾는 함수
+			TArray<FVector> AttackAreaData = GetBestSpots();
+
+			if (AttackAreaData.IsEmpty())
 			{
-				// Target Spot 찾는 함수
-				TArray<FAttackAreaData> AttackAreaData = GetBestSpots();
+				AttackAreaData = GetTargetSpots();
 				
-				// GA->SetTargetData(Target) => 해당 함수 만들어서 Spot 넘겨주기 
-				GA->SetHitCheckAttackType(EHitCheckAttackType::AreaRange);
-				GA->SetAttackAreaData(AttackAreaData);
-				
-				ASC->TryActivateAbility(AbilitySpec->Handle);
+				if (AttackAreaData.IsEmpty())
+				{
+					EndAction();
+					return;
+				}
+			}
+			
+			// GA->SetTargetData(Target) => 해당 함수 만들어서 Spot 넘겨주기
+			if (UGameplayAbility* InstancedAbility = AbilitySpec->GetPrimaryInstance())
+			{
+				if (UBattleGameplayAbility_TargetedAttack* InstancedGA = Cast<UBattleGameplayAbility_TargetedAttack>(InstancedAbility))
+				{
+					InstancedGA->SetAreaCenterData(AttackAreaData);
+					ASC->TryActivateAbility(AbilitySpec->Handle);
+				}
 			}
 		}
 	}
@@ -189,11 +210,36 @@ void UBattleUtilityAction_AttackArea::StartAgeTimer()
 
 void UBattleUtilityAction_AttackArea::UpdateAge()
 {
-	ScoreMultiplier = 1.0f;
+	Super::UpdateAge();
+}
+
+void UBattleUtilityAction_AttackArea::GetAreaData()
+{
+	if (ASC)
+	{
+		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Attack))
+		{
+			UBattleGameplayAbility_Attack_Parent* GA = Cast<UBattleGameplayAbility_Attack_Parent>(AbilitySpec->Ability);
+			int AttackIdx = GA->GetAttackMode();
+
+			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+			{
+				UBattleCombatData* CombatData = CombatManagerComponent->GetAttackData();
+				if (CombatData->TargetedAttacks.IsValidIndex(AttackIdx))
+				{
+					if (UAttackCollisionData_CircularAOE* CircularAoe = Cast<UAttackCollisionData_CircularAOE>(CombatData->TargetedAttacks[AttackIdx].CollisionMethod))
+					{
+						AreaNum = CircularAoe->AttackNum;
+						AreaRadius = CircularAoe->AttackRadius;
+					}
+				}
+			}
+		}
+	}
 }
 
 
-TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots() const
+TArray<FVector> UBattleUtilityAction_AttackArea::GetBestSpots() const
 {
 	TArray<FVector> Locations;
 	
@@ -207,8 +253,9 @@ TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots() const
 
 	if (Locations.Num() <2)
 	{
-		return TArray<FAttackAreaData>();
+		return TArray<FVector>();
 	}
+	
 	// 점 2개 선택 (조건에 맞는)
 	TArray<TPair<FVector,FVector>> SelectedLocations;
 
@@ -230,7 +277,7 @@ TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots() const
 
 	if (SelectedLocations.IsEmpty())
 	{
-		return TArray<FAttackAreaData>();
+		return TArray<FVector>();
 	}
 
 	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(CachedAIComponent->GetOwner());
@@ -294,7 +341,7 @@ TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots() const
 		return A.Key > B.Key;
 	});
 
-	TArray<FAttackAreaData> Result;
+	TArray<FVector> Result;
 	
 	for (int Idx =0;Idx<CalcLocations.Num();Idx++)
 	{
@@ -302,14 +349,284 @@ TArray<FAttackAreaData> UBattleUtilityAction_AttackArea::GetBestSpots() const
 		{
 			break;
 		}
-		FAttackAreaData AreaData;
-
-		AreaData.Radius = AreaRadius;
-		AreaData.CenterLocation = CalcLocations[Idx].Value;
-
+		FVector AreaData = CalcLocations[Idx].Value;
+		
 		Result.Add(AreaData);
 	}
 
 	return Result;
 	
+}
+
+TArray<FVector> UBattleUtilityAction_AttackArea::GetTargetSpots() const
+{
+	TArray<FVector> Locations;
+	
+	for (ABattleCharacterBase* Character : CachedAIComponent->ConsiderList->TargetActors)
+	{
+		FVector CharacterLocation = Character->GetActorLocation();
+		CharacterLocation.Z = 0.0f;
+		Locations.Add(CharacterLocation);
+	}
+
+	if (Locations.IsEmpty())
+	{
+		return TArray<FVector>();
+	}
+
+	TArray<FVector> Result;
+
+	for (int Idx = 0; Idx<Locations.Num();Idx++)
+	{
+		if (Idx >= AreaNum)
+		{
+			break;
+		}
+		FVector AreaData = Locations[Idx];
+
+		Result.Add(AreaData);
+	}
+
+	return Result;
+
+}
+
+UBattleUtilityAction_SpawnActor::UBattleUtilityAction_SpawnActor()
+{
+	Priority = 3;
+}
+
+void UBattleUtilityAction_SpawnActor::StartAction()
+{
+	Super::StartAction();
+}
+
+bool UBattleUtilityAction_SpawnActor::TickAction(float DeltaTime)
+{
+	return Super::TickAction(DeltaTime);
+}
+
+void UBattleUtilityAction_SpawnActor::StartAgeTimer()
+{
+	Super::StartAgeTimer();
+}
+
+void UBattleUtilityAction_SpawnActor::StartAttack()
+{
+	if (!IsSetSpawnData)
+	{
+		GetSpawnData();
+		IsSetSpawnData = true;
+	}
+	
+	if (ASC)
+	{
+		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Spawn))
+		{
+			TArray<FVector> SpawnCenterData = GetBestSpots();
+
+			if (SpawnCenterData.IsEmpty())
+			{
+				SpawnCenterData = GetTargetSpots();
+				
+				if (SpawnCenterData.IsEmpty())
+				{
+					EndAction();
+					return;
+				}
+			}
+			
+			// GA->SetTargetData(Target) => 해당 함수 만들어서 Spot 넘겨주기
+			if (UGameplayAbility* InstancedAbility = AbilitySpec->GetPrimaryInstance())
+			{
+				if (UBattleGameplayAbility_Special_Spawn* InstancedGA = Cast<UBattleGameplayAbility_Special_Spawn>(InstancedAbility))
+				{
+					InstancedGA->SetSpawnCenterDAta(SpawnCenterData);
+					ASC->TryActivateAbility(AbilitySpec->Handle);
+				}
+			}
+		}
+	}
+	
+}
+
+void UBattleUtilityAction_SpawnActor::UpdateAge()
+{
+	Super::UpdateAge();
+}
+
+void UBattleUtilityAction_SpawnActor::GetSpawnData()
+{
+	if (ASC)
+	{
+		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Spawn))
+		{
+			UBattleGameplayAbility_Special_Spawn* GA = Cast<UBattleGameplayAbility_Special_Spawn>(AbilitySpec->Ability);
+			int SpawnIdx = GA->GetSpawnMode();
+
+			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+			{
+				UBattleCombatData* CombatData = CombatManagerComponent->GetAttackData();
+				if (CombatData->SpawnDatas.IsValidIndex(SpawnIdx))
+				{
+					const FSpecialSpawnData& SpawnData = CombatData->SpawnDatas[SpawnIdx];
+					SpawnActorNum = SpawnData.SpawnActorNum;
+					SpawnAreaRadius = SpawnData.SpawnRadius;
+				}
+			}
+		}
+	}
+}
+
+
+TArray<FVector> UBattleUtilityAction_SpawnActor::GetBestSpots() const
+{
+	TArray<FVector> Locations;
+	
+	for (ABattleCharacterBase* Character : CachedAIComponent->ConsiderList->TargetActors)
+	{
+		FVector CharacterLocation = Character->GetActorLocation();
+		CharacterLocation.Z = 0.0f;
+		Locations.Add(CharacterLocation);
+	}
+
+
+	if (Locations.Num() <2)
+	{
+		return TArray<FVector>();
+	}
+	
+	// 점 2개 선택 (조건에 맞는)
+	TArray<TPair<FVector,FVector>> SelectedLocations;
+
+	for (int i = 0; i<Locations.Num();i++)
+	{
+		FVector& StartLocation = Locations[i];
+		for (int j =i+1; j <Locations.Num();j++)
+		{
+			FVector& EndLocation = Locations[j];
+			
+			float Distance = FVector::Dist(StartLocation, EndLocation);
+
+			if (Distance <= SpawnAreaRadius * 2)
+			{
+				SelectedLocations.Add({StartLocation, EndLocation});
+			}
+		}
+	}
+
+	if (SelectedLocations.IsEmpty())
+	{
+		return TArray<FVector>();
+	}
+
+	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(CachedAIComponent->GetOwner());
+	UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
+
+	FAttackData AttackData;
+	
+	// 선택된 점 세트마다 원 2개 만들기
+	TSet<FVector> Centers;
+
+	for (TPair<FVector, FVector>& LocationPair : SelectedLocations)
+	{
+		FVector& StartVector = LocationPair.Key;
+		FVector& EndVector = LocationPair.Value;
+
+		FVector MidVector = (StartVector + EndVector) * 0.5f;
+
+		float HalfDistance = (StartVector - EndVector).Size2D() * 0.5f;
+
+		float MidToCenterDistance = FMath::Sqrt((SpawnAreaRadius * SpawnAreaRadius) - (HalfDistance * HalfDistance));
+
+		FVector MidUnit = (MidVector - StartVector).GetSafeNormal2D();
+
+		float CenterX1 = MidVector.X + MidToCenterDistance*MidUnit.Y;
+		float CenterY1 = MidVector.Y - MidToCenterDistance*MidUnit.X;
+		
+		float CenterX2 = MidVector.X - MidToCenterDistance*MidUnit.Y;
+		float CenterY2 = MidVector.Y + MidToCenterDistance*MidUnit.X;
+
+		FVector NewCenter = FVector(CenterX1, CenterY1, 0.0f);
+		FVector NewCenter2 = FVector(CenterX2, CenterY2, 0.0f);
+
+		Centers.Add(NewCenter);
+		Centers.Add(NewCenter2);
+	}
+	
+	// 원에 포함되는 점 개수 구하기
+	
+
+	const float AreaRadiusSquared = SpawnAreaRadius * SpawnAreaRadius;
+
+	TArray<TPair<int, FVector>> CalcLocations; 
+	int MaxCount = 0;
+	
+	for (FVector& Center : Centers)
+	{
+		int Count = 0;
+		for (FVector Location : Locations)
+		{
+			if (FVector::DistSquared2D(Location, Center) <= AreaRadiusSquared)
+			{
+				Count++;
+			}
+		}
+
+		CalcLocations.Add({Count, Center});
+	}
+
+	CalcLocations.Sort([](const TPair<int, FVector>& A, const TPair<int, FVector>& B)
+	{
+		return A.Key > B.Key;
+	});
+
+	TArray<FVector> Result;
+	
+	for (int Idx =0;Idx<CalcLocations.Num();Idx++)
+	{
+		if (Idx >= SpawnActorNum)
+		{
+			break;
+		}
+		FVector AreaData = CalcLocations[Idx].Value;
+		
+		Result.Add(AreaData);
+	}
+
+	return Result;
+	
+}
+
+TArray<FVector> UBattleUtilityAction_SpawnActor::GetTargetSpots() const
+{
+	TArray<FVector> Locations;
+	
+	for (ABattleCharacterBase* Character : CachedAIComponent->ConsiderList->TargetActors)
+	{
+		FVector CharacterLocation = Character->GetActorLocation();
+		CharacterLocation.Z = 0.0f;
+		Locations.Add(CharacterLocation);
+	}
+
+	if (Locations.IsEmpty())
+	{
+		return TArray<FVector>();
+	}
+
+	TArray<FVector> Result;
+
+	for (int Idx = 0; Idx<Locations.Num();Idx++)
+	{
+		if (Idx >= SpawnActorNum)
+		{
+			break;
+		}
+		FVector AreaData = Locations[Idx];
+
+		Result.Add(AreaData);
+	}
+
+	return Result;
+
 }

@@ -23,8 +23,8 @@ ABattlePlayerState::ABattlePlayerState(const FObjectInitializer& ObjectInitializ
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	CreateDefaultSubobject<UBattleHealthSet>(TEXT("HealthSet"));
-	CreateDefaultSubobject<UBattleCombatSet>(TEXT("CombatSet"));
+	//CreateDefaultSubobject<UBattleHealthSet>(TEXT("HealthSet"));
+	//CreateDefaultSubobject<UBattleCombatSet>(TEXT("CombatSet"));
 
 	NetUpdateFrequency = 100.0f;
 	

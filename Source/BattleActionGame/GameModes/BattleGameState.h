@@ -22,8 +22,8 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~End of IAbilitySystemInterface
 
-	UFUNCTION(BlueprintCallable, Category = "Lyra|GameState")
-	UBattleAbilitySystemComponent* GetLyraAbilitySystemComponent() const { return AbilitySystemComponent; }
+	UFUNCTION(BlueprintCallable, Category = "Battle|GameState")
+	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const { return AbilitySystemComponent; }
 
 private:
 	UPROPERTY()

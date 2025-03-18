@@ -8,15 +8,9 @@
 
 enum class ECollisionMethodType : uint8;
 class UBattleCombatData;
+enum class EAttackType : uint8;
 
 
-UENUM()
-enum class EAttackType : uint8
-{
-	Combo,
-	ComboStrong,
-	Basic,
-};
 
 
 UCLASS(Abstract)
@@ -41,6 +35,11 @@ public:
 	EAttackType GetAttackType() const
 	{
 		return AttackType;
+	}
+
+	int GetAttackMode() const
+	{
+		return AttackMode;
 	}
 
 	UFUNCTION()
@@ -83,6 +82,7 @@ protected:
 	TSubclassOf<UGameplayEffect> GameplayEffect_Damage;
 
 	float AcceptHitDistance = 1500.f;
+	float BaseDamage = 0.0f;
 	float AttackRate = 1.0f;
 	float GroggyValue = 1.0f; 
 

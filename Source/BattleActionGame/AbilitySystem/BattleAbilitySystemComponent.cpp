@@ -94,9 +94,9 @@ void UBattleAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 			}
 		}
 
-		if (UBattleAnimInstance* LyraAnimInst = Cast<UBattleAnimInstance>(ActorInfo->GetAnimInstance()))
+		if (UBattleAnimInstance* BattleAnimInst = Cast<UBattleAnimInstance>(ActorInfo->GetAnimInstance()))
 		{
-			LyraAnimInst->InitializeWithAbilitySystem(this);
+			BattleAnimInst->InitializeWithAbilitySystem(this);
 		}
 
 		TryActivateAbilitiesOnSpawn();

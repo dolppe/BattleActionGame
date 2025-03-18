@@ -45,6 +45,8 @@ void UBattleUtilityAction::InitAxis(TArray<FAxisConfig> AxisConfigs, UBattleUtil
 	
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderList)
 {
 	
@@ -148,6 +150,8 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 	
 	return Result * Weight * ScoreMultiplier;
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattleUtilityAction::StartAction()
 {

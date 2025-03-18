@@ -31,6 +31,8 @@ enum class EBattleConsiderType : uint8
 	CanMovement UMETA(DisplayName = "CanMovement"),
 	EnemyDensity UMETA(DisplayName = "EnemyDensity"),
 	EnemyAverageDistance UMETA(DisplayName = "EnemyAverageDistance"),
+	IsFarFromTarget UMETA(DisplayName = "IsFarFromTarget"),
+	
 	
 
 	// Array - Target
@@ -151,6 +153,8 @@ public:
 	float GetCanMovement();
 	float GetEnemyDensity();
 	float GetEnemyAverageDistance();
+	float GetIsFarFromTarget();
+	
 
 	
 
@@ -204,6 +208,8 @@ public:
 
 	float EnemyDensity;
 	float EnemyAverageDistance;
+
+	float SelectedTargetDistance;
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;

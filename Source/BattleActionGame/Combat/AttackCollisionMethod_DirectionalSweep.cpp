@@ -35,8 +35,6 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
 			SendHitResults(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
 		}
 
-		UWorld* World = GetWorld();
-
 #if 1
 
 		FVector TraceVector = End - Start;

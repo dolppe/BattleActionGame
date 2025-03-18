@@ -71,7 +71,7 @@ void UBattleExperienceManagerComponent::EndPlay(const EEndPlayReason::Type EndPl
 
 		if (NumExpectedPausers > 0)
 		{
-			UE_LOG(LogBattle, Error, TEXT("Actions that have asynchronous deactivation aren't fully supported yet in Lyra experiences"));
+			UE_LOG(LogBattle, Error, TEXT("Actions that have asynchronous deactivation aren't fully supported yet in experiences"));
 		}
 
 		if (NumExpectedPausers == NumObservedPausers)

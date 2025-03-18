@@ -78,6 +78,7 @@ public:
 	 * GameplayEffectData
 	 */
 	
+	FGameplayTag GameplayEffect_Data_BaseDamage;
 	FGameplayTag GameplayEffect_Data_AttackRate;
 	FGameplayTag GameplayEffect_Data_GroggyValue;
 

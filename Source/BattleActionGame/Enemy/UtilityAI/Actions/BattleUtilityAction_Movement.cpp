@@ -143,6 +143,11 @@ PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattleUtilityAction_PatrolAround::EndAction()
 {
+	if (AIController->IsFollowingAPath())
+	{
+		AIController->StopMovement();
+	}
+
 	Super::EndAction();
 }
 

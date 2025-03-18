@@ -28,13 +28,14 @@ void UBattleGameplayAbility_BasicAttack::ActivateAbility(const FGameplayAbilityS
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	const FBasicAttack& CurrentHitCheckData = CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
-	CurrentAttackMontage = CurrentCombatManager->GetAttackMontage(EAttackType::Basic, AttackMode);
+	CurrentBasicAttackData = &CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
+	CurrentAttackMontage = CurrentBasicAttackData->Montage;
 
-	AttackRate = CurrentHitCheckData.AttackRate;
-	GroggyValue = CurrentHitCheckData.GroggyValue;
+	BaseDamage = CurrentBasicAttackData->BaseDamage;
+	AttackRate = CurrentBasicAttackData->AttackRate;
+	GroggyValue = CurrentBasicAttackData->GroggyValue;
 
-	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentHitCheckData.MontageSectionName, 1);
+	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentBasicAttackData->MontageSectionName, 1);
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 0.65f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_BasicAttack::OnCompleted);
@@ -102,6 +103,20 @@ void UBattleGameplayAbility_BasicAttack::OnTargetDataReadyCallback(const FGamepl
 	
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
+		for (TSubclassOf<UGameplayEffect> TargetGE : CurrentBasicAttackData->AppliedEffectsToTarget)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(TargetGE, 1);
+
+			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);		
+		}
+
+		for (TSubclassOf<UGameplayEffect> SelfGE : CurrentBasicAttackData->AppliedEffectsToSelf)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SelfGE, 1);
+
+			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
+		}
+		
 		OnTargetDataReady(InData);
 	}
 }
@@ -130,101 +145,6 @@ void UBattleGameplayAbility_BasicAttack::AttackEvent(FGameplayTag Channel, const
 
 }
 
-TArray<FHitResult> UBattleGameplayAbility_BasicAttack::StartHitCheckByWeaponRange()
-{
-	TArray<FHitResult> HitResults;
-
-	ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
-	USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
-
-	const FRotator Rotation = CharacterBase->GetActorRotation();
-	const FRotator YawRotation(0,Rotation.Yaw,0);
-
-	FCollisionQueryParams Temp;
-
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		
-	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(CharacterBase->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
-	const FBasicAttack& CurrentHitCheckData = CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
-
-	/*
-	 * 처리 팔요
-	 */
-	
-	// FVector Start = SkeletalMesh->GetSocketLocation(*CurrentHitCheckData.StartSocketName);
-	// FVector End = Start + ForwardDirection*CurrentHitCheckData.AttackRange;
-	//
-	// float Radius = CurrentHitCheckData.AttackRadius;
-	// 	
-	// GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CurrentHitCheckData.CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
-
-	FColor HitColor = FColor::Red;
-
-	for (FHitResult HitResult : HitResults)
-	{
-		if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
-		{
-			HitColor = FColor::Green;
-		}
-	}
-	
-#if 0
-	
-	FVector TraceVector = End - Start;
-	FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
-	float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
-	FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
-	//	DrawDebugLine(GetWorld(), Start, End, HitColor, false, 10.f, 0, 0);
-	DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, HitColor,false, 10.f);
-#endif
-	
-	return HitResults;
-}
-
-TArray<FHitResult> UBattleGameplayAbility_BasicAttack::StartHitCheckByAreaRange()
-{
-	TArray<FHitResult> OutHitResults;
-
-	if (AttackAreaData.IsEmpty())
-	{
-		return TArray<FHitResult>();
-	}
-
-	ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
-	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(CharacterBase->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
-	const FBasicAttack& CurrentHitCheckData = CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
-
-	FVector OffSet = FVector(0.1f,0.1f,0.1f);
-	
-	for (FAttackAreaData AttackAreaDataItem : AttackAreaData)
-	{
-		TArray<FHitResult> HitResults;
-
-		/*
-	 * 처리 팔요
-	 */
-	
-		//GetWorld()->SweepMultiByChannel(HitResults, AttackAreaDataItem.CenterLocation, AttackAreaDataItem.CenterLocation + OffSet,FQuat::Identity, CurrentHitCheckData.CollisionChannel, FCollisionShape::MakeSphere(AttackAreaDataItem.Radius));
-
-		for (FHitResult HitResult : HitResults)
-		{
-			auto Pred = [&HitResult](const FHitResult& Other)
-			{
-				return Other.HitObjectHandle == HitResult.HitObjectHandle;
-			};
-
-			if (!OutHitResults.ContainsByPredicate(Pred))
-			{
-				OutHitResults.Add(HitResult);
-			}
-		}
-	}
-
-	return OutHitResults;
-
-	
-}
-
 void UBattleGameplayAbility_BasicAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
 
@@ -234,10 +154,8 @@ void UBattleGameplayAbility_BasicAttack::StartHitCheck(FGameplayTag Channel, con
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-		const FBasicAttack& CurrentBasicData = CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
-
-		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentBasicData.CollisionMethod->CollisionMethodType);
-		CollisionMethod->SetCollisionData(CurrentBasicData.CollisionMethod, this);
+		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentBasicAttackData->CollisionMethod->CollisionMethodType);
+		CollisionMethod->SetCollisionData(CurrentBasicAttackData->CollisionMethod, this);
 		CollisionMethod->StartCollisionCheck();
 	}
 	
@@ -272,9 +190,7 @@ void UBattleGameplayAbility_BasicAttack::EndHitCheck(FGameplayTag Channel, const
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-		const FBasicAttack& CurrentBasicData = CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
-
-		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentBasicData.CollisionMethod->CollisionMethodType);
+		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentBasicAttackData->CollisionMethod->CollisionMethodType);
 		
 		CollisionMethod->EndCollisionCheck();
 		
