@@ -24,6 +24,11 @@ public:
 	FGameplayTag InitState_DataInitialized;
 	FGameplayTag InitState_GameplayReady;
 
+	/*
+	 * GA
+	 */
+
+	FGameplayTag GameplayEvent_JustDash;
 
 	/*
 	 *	Enhanced Input Tags

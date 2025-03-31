@@ -116,24 +116,12 @@ bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(const FHi
 
 void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& HitResult)
 {
-	// 실제 데미지 처리, 서버에서 바로 호출되는 경우 거리에 따른 Hit 검사를 안함.
-
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		return;
 	}
 
 	AActor* HitActor = HitResult.GetActor();
-	if (IAbilitySystemInterface* AbilitySystemObject = Cast<IAbilitySystemInterface>(HitActor))
-	{
-		if (UAbilitySystemComponent* ASC = AbilitySystemObject->GetAbilitySystemComponent())
-		{
-			if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry))
-			{
-				return;
-			}
-		}
-	}
 	if (IsValid(HitActor))
 	{
 		AlreadyHitActors.Add(HitActor);
@@ -142,7 +130,25 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& Hi
 		FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
 		NewTargetData->HitResult = HitResult;
 		TargetData.Add(NewTargetData);
-				
+
+		if (IAbilitySystemInterface* AbilitySystemObject = Cast<IAbilitySystemInterface>(HitActor))
+		{
+			if (UAbilitySystemComponent* ASC = AbilitySystemObject->GetAbilitySystemComponent())
+			{
+				if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry))
+				{
+					FGameplayEventData Payload;
+					Payload.EventTag = FBattleGameplayTags::Get().GameplayEvent_JustDash;
+					Payload.Instigator = GetAvatarActorFromActorInfo();
+					Payload.Target = HitActor;
+					Payload.TargetData = TargetData;
+
+					ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+					return;
+				}
+			}
+		}
+		
 		OnTargetDataReadyCallback(TargetData, FGameplayTag());
 
 	}

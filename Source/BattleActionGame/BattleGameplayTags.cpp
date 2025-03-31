@@ -28,6 +28,12 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 
 	/*
+	 * GA - GameplayEvent
+	 */
+
+	AddTag(GameplayEvent_JustDash, "GameplayEvent.JustDash", "");
+
+	/*
 	*	EnhancedInput Tags
 	*/
 	AddTag(InputTag_Move, "InputTag.Move", "");

@@ -412,7 +412,6 @@ void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Directi
 			
 			AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
 			
-			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 			Character->GetCharacterMovement()->AirControl = 0.0f;
 			Character->LaunchCharacter(Direction*Strength, true, true);
 
@@ -459,8 +458,6 @@ void UBattleHeroComponent::OnKnockbackEnded(UAnimMontage* Montage, bool bInterru
 
 		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
 		{
-			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-			
 			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 			{
 				ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
