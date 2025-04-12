@@ -175,6 +175,8 @@ void UBattleGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle,
 	}
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 bool UBattleGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent,
 	const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
 	FGameplayTagContainer* OptionalRelevantTags) const
@@ -275,6 +277,8 @@ bool UBattleGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySys
 	
 	return true;
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 FGameplayEffectContextHandle UBattleGameplayAbility::MakeEffectContext(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo) const

@@ -16,6 +16,9 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
+	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
+	virtual float GetMaxSpeed() const override;
+	
 	
 };
 

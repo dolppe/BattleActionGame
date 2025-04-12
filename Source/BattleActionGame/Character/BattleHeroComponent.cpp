@@ -409,7 +409,9 @@ void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Directi
 		{
 			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 			AnimInstance->Montage_Play(KnockbackMontage, 2.f);
-			
+
+
+			AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
 			AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
 			
 			Character->GetCharacterMovement()->AirControl = 0.0f;

@@ -29,6 +29,7 @@ public:
 	 */
 
 	FGameplayTag GameplayEvent_JustDash;
+	FGameplayTag Ability_Type_Action_Groggy;
 
 	/*
 	 *	Enhanced Input Tags
@@ -53,6 +54,12 @@ public:
 
 	FGameplayTag Status_Groggy;
 
+	/*
+	 * Block
+	 */
+
+	FGameplayTag Block_Movement;
+
 
 	/*
 	 * Combat
@@ -61,6 +68,8 @@ public:
 	FGameplayTag Combat_Attack_Event_Start;
 	FGameplayTag Combat_Attack_Event_End;
 	FGameplayTag Combat_UseItem_AttributeBased;
+
+	FGameplayTag SpecialAction_Counter_Start;
 
 	/*
 	 * GE

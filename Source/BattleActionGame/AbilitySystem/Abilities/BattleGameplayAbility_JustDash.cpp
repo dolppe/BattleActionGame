@@ -4,6 +4,7 @@
 #include "GameplayTagsManager.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_JustDash)
 
@@ -35,6 +36,7 @@ void UBattleGameplayAbility_JustDash::ActivateAbility(const FGameplayAbilitySpec
                                                       const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 
 	if (HasAuthority(&ActivationInfo))
 	{

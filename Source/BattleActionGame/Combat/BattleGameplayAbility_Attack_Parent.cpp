@@ -143,6 +143,11 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& Hi
 					Payload.Target = HitActor;
 					Payload.TargetData = TargetData;
 
+					if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(HitActor->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+					{
+						CombatManagerComponent->SetCurrentTargetActor(GetAvatarActorFromActorInfo());
+					}
+					
 					ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
 					return;
 				}

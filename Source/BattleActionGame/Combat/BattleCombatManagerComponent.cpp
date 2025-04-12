@@ -25,6 +25,7 @@ void UBattleCombatManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetime
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ThisClass, CurrentUsedItemInfo);
+	DOREPLIFETIME(ThisClass, CurrentTargetActor);
 }
 
 void UBattleCombatManagerComponent::BeginPlay()
@@ -67,4 +68,8 @@ void UBattleCombatManagerComponent::OnRep_CurrentUsedItemInfo()
 UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(ECollisionMethodType CollisionMethod)
 {
 	return InstancedCollisionMethod[CollisionMethod];
+}
+
+void UBattleCombatManagerComponent::OnRep_CurrentTargetActor()
+{
 }

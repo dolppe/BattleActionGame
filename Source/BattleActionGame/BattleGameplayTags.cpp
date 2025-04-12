@@ -28,10 +28,12 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 
 	/*
-	 * GA - GameplayEvent
+	 * GA
 	 */
 
 	AddTag(GameplayEvent_JustDash, "GameplayEvent.JustDash", "");
+	AddTag(Ability_Type_Action_Groggy, "Ability.Type.Action.Groggy", "");
+	
 
 	/*
 	*	EnhancedInput Tags
@@ -52,8 +54,15 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(Status_Parry, "Status.Parry", "");
 	
 	AddTag(Status_KnockBack, "Status.KnockBack", "");
-	
 	AddTag(Status_Groggy, "Status.Groggy", "");
+	
+	/*
+     * Block
+     */
+
+
+	AddTag(Block_Movement, "Block.Movement", "");
+    
 	
 	
 	/*
@@ -62,9 +71,10 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(Combat_Attack_Event_Start, "Combat.Attack.Event.Start", "");
 	AddTag(Combat_Attack_Event_End, "Combat.Attack.Event.End", "");
-
 	AddTag(Combat_UseItem_AttributeBased, "Combat.UseItem.AttributeBased", "");
 
+	AddTag(SpecialAction_Counter_Start, "SpecialAction.Counter.Start", "");
+	
 	
 
 	AddTag(GameplayEffect_Caller_MaxHp, "GameplayEffect.Caller.MaxHp", "");

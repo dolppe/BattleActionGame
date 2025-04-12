@@ -41,10 +41,6 @@
 		{
 			"Name": "UIExtension",
 			"Enabled": true
-		},
-		{
-			"Name": "DisasterRecoveryClient",
-			"Enabled": true
 		}
 	]
 }
