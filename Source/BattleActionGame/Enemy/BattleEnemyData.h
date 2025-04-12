@@ -5,6 +5,7 @@
 #include "BattleEnemyData.generated.h"
 
 class UBattleAbilitySet;
+class UBattleAbilityTagRelationshipMapping;
 
 UCLASS()
 class UBattleEnemyData : public UPrimaryDataAsset
@@ -16,6 +17,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Battle|Abilities")
 	TArray<TObjectPtr<UBattleAbilitySet>> AbilitySets;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Battle|Abilities")
+	TObjectPtr<UBattleAbilityTagRelationshipMapping> TagRelationshipMapping;
 	
 };
 

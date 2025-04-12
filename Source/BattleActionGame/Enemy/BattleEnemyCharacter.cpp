@@ -63,6 +63,8 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 			}
 		}
+
+		AbilitySystemComponent->SetTagRelationshipMapping(EnemyData->TagRelationshipMapping);
 	}
 
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
@@ -130,7 +132,7 @@ void ABattleEnemyCharacter::HandleGroggyState(AActor* GEInstigator, AActor* GECa
 	//AbilitySystemComponent->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Groggy);
 
 	FGameplayTagContainer GameplayTags;
-	GameplayTags.AddTag(FBattleGameplayTags::Get().Status_Groggy);
+	GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_Groggy);
 	AbilitySystemComponent->TryActivateAbilitiesByTag(GameplayTags, false);
 	
 }

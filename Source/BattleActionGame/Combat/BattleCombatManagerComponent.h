@@ -26,6 +26,16 @@ public:
 
 	virtual void BeginPlay() override;
 
+	TObjectPtr<AActor> GetCurrentTargetActor()
+	{
+		return CurrentTargetActor;
+	}
+
+	void SetCurrentTargetActor(AActor* InCurrentTargetActor)
+	{
+		CurrentTargetActor = InCurrentTargetActor;
+	}
+
 	UFUNCTION(BlueprintCallable)
 	void UseItem(EItemType Item);
 	
@@ -52,7 +62,12 @@ public:
 	TObjectPtr<UBattleCombatData> CombatData;
 
 private:
-	
+
+	UFUNCTION()
+	void OnRep_CurrentTargetActor();
+
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentTargetActor)
+	TObjectPtr<AActor> CurrentTargetActor = nullptr;
 	
 	UPROPERTY()
 	UBattleGameplayAbility_ComboAttack* CurrentCombo = nullptr;

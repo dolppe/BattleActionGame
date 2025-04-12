@@ -683,6 +683,8 @@ void UConsiderationFactors::SearchNearActors()
 
 			Deviation = (1- FMath::Cos(Deviation));
 
+			// 0에 가까울수록 편차가 적은것이기 때문에 이를 변형하여 가중치로 활용
+			// 너무 편차가 커지지 않도록 설정함.v
 			float VarianceWeight = (1 / (Deviation + 1));
 
 			TotalWeight += VarianceWeight;

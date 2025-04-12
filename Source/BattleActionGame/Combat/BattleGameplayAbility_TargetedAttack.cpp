@@ -67,7 +67,9 @@ void UBattleGameplayAbility_TargetedAttack::EndAbility(const FGameplayAbilitySpe
 	if (Character->IsLocallyControlled())
 	{
 		// 테스크 실행
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
+		MessageSystem.UnregisterListener(StartListenerHandle);
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
