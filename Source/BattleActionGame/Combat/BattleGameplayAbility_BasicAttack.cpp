@@ -85,17 +85,6 @@ void UBattleGameplayAbility_BasicAttack::GetLifetimeReplicatedProps(
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-void UBattleGameplayAbility_BasicAttack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult,
-	float HitCheckTime)
-{
-	Super::ServerRPCNotifyHit_Implementation(HitResult, HitCheckTime);
-}
-
-void UBattleGameplayAbility_BasicAttack::AttackHitConfirm(const FHitResult& HitResult)
-{
-	Super::AttackHitConfirm(HitResult);
-}
-
 void UBattleGameplayAbility_BasicAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
 	FGameplayTag ApplicationTag)
 {
@@ -121,10 +110,6 @@ void UBattleGameplayAbility_BasicAttack::OnTargetDataReadyCallback(const FGamepl
 	}
 }
 
-void UBattleGameplayAbility_BasicAttack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
-{
-	Super::SelectHitCheck(HitResult, AttackTime);
-}
 
 void UBattleGameplayAbility_BasicAttack::OnCompleted()
 {

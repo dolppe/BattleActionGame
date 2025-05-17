@@ -84,79 +84,109 @@ void UBattleGameplayAbility_Attack_Parent::GetLifetimeReplicatedProps(TArray<FLi
 	DOREPLIFETIME(UBattleGameplayAbility_Attack_Parent, AlreadyHitActors);
 }
 
-void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult,
+void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(const TArray<FHitResult>& HitResults,
 	float HitCheckTime)
 {
-	AActor* HitActor = HitResult.GetActor();
-	if (IsValid(HitActor))
+	TArray<FHitResult> SelectedHitResults;
+	
+	for (const FHitResult& HitResult : HitResults)
 	{
-		if (!AlreadyHitActors.Contains(HitActor))
+		AActor* HitActor = HitResult.GetActor();
+		if (IsValid(HitActor))
 		{
-			const FVector HitLocation = HitResult.Location;
-			const FBox HitBox = HitActor->GetComponentsBoundingBox();
-			const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
+			if (!AlreadyHitActors.Contains(HitActor))
+			{
+				const FVector HitLocation = HitResult.Location;
+				const FBox HitBox = HitActor->GetComponentsBoundingBox();
+				const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
 			
-			if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
-			{
-				AttackHitConfirm(HitResult);
-
+				if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
+				{
+					SelectedHitResults.Add(HitResult);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Log, TEXT("Hit Rejected, %f <= %f"), FVector::DistSquared(HitLocation, ActorBoxCenter), AcceptHitDistance * AcceptHitDistance);
+				}
 			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Hit Rejected, %f <= %f"), FVector::DistSquared(HitLocation, ActorBoxCenter), AcceptHitDistance * AcceptHitDistance);
-			}
-		}
+		}	
 	}
+
+	AttackHitConfirm(SelectedHitResults);
+	
 }
 
-bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(const FHitResult& HitResult, float HitCheckTime)
+bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(const TArray<FHitResult>& HitResults, float HitCheckTime)
 {
 	return true;
 }
 
-void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FHitResult& HitResult)
+void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitResult>& HitResults)
 {
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		return;
 	}
 
-	AActor* HitActor = HitResult.GetActor();
-	if (IsValid(HitActor))
+	for (const FHitResult& HitResult : HitResults)
 	{
-		AlreadyHitActors.Add(HitActor);
-
-		FGameplayAbilityTargetDataHandle TargetData;
-		FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
-		NewTargetData->HitResult = HitResult;
-		TargetData.Add(NewTargetData);
-
-		if (IAbilitySystemInterface* AbilitySystemObject = Cast<IAbilitySystemInterface>(HitActor))
+		AActor* HitActor = HitResult.GetActor();
+		if (IsValid(HitActor))
 		{
-			if (UAbilitySystemComponent* ASC = AbilitySystemObject->GetAbilitySystemComponent())
-			{
-				if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry))
-				{
-					FGameplayEventData Payload;
-					Payload.EventTag = FBattleGameplayTags::Get().GameplayEvent_JustDash;
-					Payload.Instigator = GetAvatarActorFromActorInfo();
-					Payload.Target = HitActor;
-					Payload.TargetData = TargetData;
+			AlreadyHitActors.Add(HitActor);
 
-					if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(HitActor->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+			BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s"), *HitActor->GetName());
+
+			FGameplayAbilityTargetDataHandle TargetData;
+			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+			NewTargetData->HitResult = HitResult;
+			TargetData.Add(NewTargetData);
+
+			if (IAbilitySystemInterface* AbilitySystemObject = Cast<IAbilitySystemInterface>(HitActor))
+			{
+				if (UAbilitySystemComponent* HitActorASC = AbilitySystemObject->GetAbilitySystemComponent())
+				{
+					if (bAllowJustClash && HitActorASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry_JustClash))
 					{
-						CombatManagerComponent->SetCurrentTargetActor(GetAvatarActorFromActorInfo());
+						UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
+
+						if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(GetAvatarActorFromActorInfo()->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+						{
+							CombatManagerComponent->SetCurrentTargetActor(GetAvatarActorFromActorInfo());
+						}
+
+						OwnerASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Ability_Trigger_JustClash);
+						
+						bool bReplicatedEndAbility = true;
+						bool bWasCancelled = true;
+						EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 					}
 					
-					ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
-					return;
+					if (bAllowJustDash && HitActorASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry_JustDash))
+					{
+						FGameplayEventData Payload;
+						Payload.EventTag = FBattleGameplayTags::Get().GameplayEvent_JustDash;
+						Payload.Instigator = GetAvatarActorFromActorInfo();
+						Payload.Target = HitActor;
+						Payload.TargetData = TargetData;
+
+						if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(HitActor->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+						{
+							CombatManagerComponent->SetCurrentTargetActor(GetAvatarActorFromActorInfo());
+						}
+						
+						HitActorASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+						continue;
+					}
 				}
 			}
-		}
-		
-		OnTargetDataReadyCallback(TargetData, FGameplayTag());
+			
+			OnTargetDataReadyCallback(TargetData, FGameplayTag());
 
+		}
 	}
+
+
 	
 }
 
@@ -187,19 +217,18 @@ void UBattleGameplayAbility_Attack_Parent::EndHitCheck(FGameplayTag Channel, con
 }
 
 
-void UBattleGameplayAbility_Attack_Parent::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
+void UBattleGameplayAbility_Attack_Parent::SelectHitCheck(const TArray<FHitResult>& HitResults, const float AttackTime)
 {
-	if (!AlreadyHitActors.Contains(HitResult.GetActor()))
+
+	if (GetWorld()->GetNetMode() == NM_Client)
 	{
-		if (GetWorld()->GetNetMode() == NM_Client)
-		{
-			ServerRPCNotifyHit(HitResult, AttackTime);
-		}
-		else
-		{
-			AttackHitConfirm(HitResult);
-		}
+		ServerRPCNotifyHit(HitResults, AttackTime);
 	}
+	else
+	{
+		AttackHitConfirm(HitResults);
+	}
+
 }
 
 void UBattleGameplayAbility_Attack_Parent::OnCompleted()

@@ -88,17 +88,6 @@ void UBattleGameplayAbility_TargetedAttack::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(ThisClass, AreaCenterData);
 }
 
-void UBattleGameplayAbility_TargetedAttack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult,
-	float HitCheckTime)
-{
-	Super::ServerRPCNotifyHit_Implementation(HitResult, HitCheckTime);
-}
-
-void UBattleGameplayAbility_TargetedAttack::AttackHitConfirm(const FHitResult& HitResult)
-{
-	Super::AttackHitConfirm(HitResult);
-}
-
 void UBattleGameplayAbility_TargetedAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
 	FGameplayTag ApplicationTag)
 {
@@ -122,11 +111,6 @@ void UBattleGameplayAbility_TargetedAttack::OnTargetDataReadyCallback(const FGam
 		
 		OnTargetDataReady(InData);
 	}
-}
-
-void UBattleGameplayAbility_TargetedAttack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
-{
-	Super::SelectHitCheck(HitResult, AttackTime);
 }
 
 void UBattleGameplayAbility_TargetedAttack::OnCompleted()

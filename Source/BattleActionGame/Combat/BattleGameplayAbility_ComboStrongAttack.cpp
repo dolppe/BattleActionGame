@@ -81,18 +81,6 @@ void UBattleGameplayAbility_ComboStrongAttack::GetLifetimeReplicatedProps(TArray
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-
-void UBattleGameplayAbility_ComboStrongAttack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime)
-{
-	Super::ServerRPCNotifyHit_Implementation(HitResult, HitCheckTime);
-}
-
-
-void UBattleGameplayAbility_ComboStrongAttack::AttackHitConfirm(const FHitResult& HitResult)
-{
-	Super::AttackHitConfirm(HitResult);
-}
-
 void UBattleGameplayAbility_ComboStrongAttack::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
                                                               FGameplayTag ApplicationTag)
 {
@@ -116,11 +104,6 @@ void UBattleGameplayAbility_ComboStrongAttack::OnTargetDataReadyCallback(const F
 		
 		OnTargetDataReady(InData);
 	}
-}
-
-void UBattleGameplayAbility_ComboStrongAttack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
-{
-	Super::SelectHitCheck(HitResult, AttackTime);
 }
 
 void UBattleGameplayAbility_ComboStrongAttack::OnCompleted()

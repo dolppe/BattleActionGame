@@ -30,10 +30,9 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
 
 		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
 
-		for (FHitResult HitResult : HitResults)
-		{
-			SendHitResults(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
-		}
+
+		SendHitResults(HitResults, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
+		
 
 #if 1
 
@@ -64,7 +63,7 @@ void UAttackCollisionMethod_DirectionalSweep::SetCollisionData(UAttackCollisionD
 	Super::SetCollisionData(InAttackCollisionData, InGameplayAbility);
 }
 
-void UAttackCollisionMethod_DirectionalSweep::SendHitResults(const FHitResult& HitResult, const float HitTime)
+void UAttackCollisionMethod_DirectionalSweep::SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime)
 {
-	Super::SendHitResults(HitResult, HitTime);
+	Super::SendHitResults(HitResults, HitTime);
 }
