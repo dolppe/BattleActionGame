@@ -13,6 +13,8 @@ UBattleGameplayAbility_SpecialAction_Parent::UBattleGameplayAbility_SpecialActio
 	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 void UBattleGameplayAbility_SpecialAction_Parent::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
@@ -23,18 +25,21 @@ void UBattleGameplayAbility_SpecialAction_Parent::ActivateAbility(const FGamepla
 	
 	UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	if (CombatManagerComponent == nullptr)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
-	if (CombatManagerComponent->GetCurrentTargetActor() == nullptr)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
 
-	TargetActor = CombatManagerComponent->GetCurrentTargetActor();
+	if (TriggerEventData->Target != nullptr)
+	{
+		TargetActor = TriggerEventData->Target;
+	}
+	else if (CombatManagerComponent->GetCurrentTargetActor() != nullptr)
+	{
+		TargetActor = CombatManagerComponent->GetCurrentTargetActor();
+	}
+	else
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+	
 
 	MoveToBestSpot();
 
@@ -42,6 +47,8 @@ void UBattleGameplayAbility_SpecialAction_Parent::ActivateAbility(const FGamepla
 
 	PlayStartCue();
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattleGameplayAbility_SpecialAction_Parent::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,

@@ -132,8 +132,7 @@ void UBattleGameplayAbility_BasicAttack::AttackEvent(FGameplayTag Channel, const
 
 void UBattleGameplayAbility_BasicAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
-
-	AlreadyHitActors.Empty();
+	Super::StartHitCheck(Channel, Notification);
 	
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
@@ -171,6 +170,8 @@ void UBattleGameplayAbility_BasicAttack::StartHitCheck(FGameplayTag Channel, con
 
 void UBattleGameplayAbility_BasicAttack::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
+	Super::EndHitCheck(Channel, Notification);
+	
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
 		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));

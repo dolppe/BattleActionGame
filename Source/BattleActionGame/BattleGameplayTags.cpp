@@ -33,6 +33,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(GameplayEvent_JustDash, "GameplayEvent.JustDash", "");
 	AddTag(Ability_Type_Action_Groggy, "Ability.Type.Action.Groggy", "");
+	AddTag(Ability_Trigger_JustClash, "Ability.Trigger.JustClash", "");
 	
 
 	/*
@@ -51,7 +52,8 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(Status_Attack_Attacking, "Status.Attack.Attacking", "");
 	AddTag(Status_Poisoned, "Status.Poisoned", "");
-	AddTag(Status_Parry, "Status.Parry", "");
+	AddTag(Status_Parry_JustClash, "Status.Parry.JustClash", "");
+	AddTag(Status_Parry_JustDash, "Status.Parry.JustDash", "");
 	
 	AddTag(Status_KnockBack, "Status.KnockBack", "");
 	AddTag(Status_Groggy, "Status.Groggy", "");

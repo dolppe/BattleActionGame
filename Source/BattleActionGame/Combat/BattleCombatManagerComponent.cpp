@@ -5,6 +5,7 @@
 #include "AttackCollisionMethod_DirectionalSweep.h"
 #include "AttackCollisionMethod_SocketBasedLineTrace.h"
 #include "BattleGameplayAbility_ComboAttack.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "Item/BattleGameplayAbility_UseItem_AttributeBased.h"
 #include "Item/BattleItemData.h"
@@ -72,4 +73,5 @@ UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(EColli
 
 void UBattleCombatManagerComponent::OnRep_CurrentTargetActor()
 {
+	BA_DEFAULT_LOG(LogBattle,Log,TEXT("CurrentTargetActor Rep"));
 }

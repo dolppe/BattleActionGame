@@ -11,6 +11,7 @@ void UAttackCollisionMethod::EndCollisionCheck()
 {
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
 void UAttackCollisionMethod::SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime)
 {
 	if (HitResults.Num() >0)
@@ -31,6 +32,7 @@ void UAttackCollisionMethod::SendHitResults(const TArray<FHitResult>& HitResults
 		OriginGameplayAbility->SelectHitCheck(HitResultsForSend, HitTime);
 	}
 }
+PRAGMA_ENABLE_OPTIMIZATION
 
 void UAttackCollisionMethod::SetCollisionData(UAttackCollisionData* InAttackCollisionData,
                                               UBattleGameplayAbility_Attack_Parent* InGameplayAbility)

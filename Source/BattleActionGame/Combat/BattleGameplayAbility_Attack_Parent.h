@@ -29,6 +29,9 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void ServerRPCNotifyHit(const TArray<FHitResult>& HitResults, float HitCheckTime);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCClearAlreadyHitActors();
 	
 	virtual void AttackHitConfirm(const TArray<FHitResult>& HitResults);
 

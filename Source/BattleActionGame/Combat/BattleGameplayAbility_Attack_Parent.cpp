@@ -22,6 +22,8 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	BA_DEFAULT_LOG(LogBattle,Log,TEXT("%s => AttackStart"), *GetAvatarActorFromActorInfo()->GetName());
+	
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
@@ -121,6 +123,12 @@ bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(const TAr
 	return true;
 }
 
+
+void UBattleGameplayAbility_Attack_Parent::ServerRPCClearAlreadyHitActors_Implementation()
+{
+	AlreadyHitActors.Empty();	
+}
+
 void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitResult>& HitResults)
 {
 	if (GetWorld()->GetNetMode() == NM_Client)
@@ -148,18 +156,27 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitRes
 				{
 					if (bAllowJustClash && HitActorASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry_JustClash))
 					{
-						UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
-
-						if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(GetAvatarActorFromActorInfo()->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+						
+						if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(HitActor->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
 						{
 							CombatManagerComponent->SetCurrentTargetActor(GetAvatarActorFromActorInfo());
 						}
 
-						OwnerASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Ability_Trigger_JustClash);
+						FGameplayEventData Payload;
+						Payload.EventTag = FBattleGameplayTags::Get().Ability_Trigger_JustClash;
+						Payload.Instigator = GetAvatarActorFromActorInfo();
+						Payload.Target = GetAvatarActorFromActorInfo();
+						Payload.TargetData = TargetData;
+
+						BA_DEFAULT_LOG(LogBattle, Log, TEXT("JustClashTag Add"));
+						//HitActorASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Ability_Trigger_JustClash);
+
+						HitActorASC->HandleGameplayEvent(Payload.EventTag, &Payload);
 						
 						bool bReplicatedEndAbility = true;
 						bool bWasCancelled = true;
 						EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+						return;
 					}
 					
 					if (bAllowJustDash && HitActorASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Parry_JustDash))
@@ -210,23 +227,47 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 void UBattleGameplayAbility_Attack_Parent::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
 	OnAttackStart();
+
+	if (GetWorld()->GetNetMode() == NM_Client)
+	{
+		ServerRPCClearAlreadyHitActors();
+	}
+	else
+	{
+		AlreadyHitActors.Empty();	
+	}
 }
 
 void UBattleGameplayAbility_Attack_Parent::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
+	AlreadyHitActors.Empty();
 }
 
 
 void UBattleGameplayAbility_Attack_Parent::SelectHitCheck(const TArray<FHitResult>& HitResults, const float AttackTime)
 {
+	TArray<FHitResult> SelectHitResults;
 
+	for (const FHitResult& HitResult : HitResults)
+	{
+		if (!AlreadyHitActors.Contains(HitResult.HitObjectHandle.FetchActor()))
+		{
+			SelectHitResults.Add(HitResult);
+		}
+	}
+
+	if (SelectHitResults.IsEmpty())
+	{
+		return;
+	}		
+	
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
-		ServerRPCNotifyHit(HitResults, AttackTime);
+		ServerRPCNotifyHit(SelectHitResults, AttackTime);
 	}
 	else
 	{
-		AttackHitConfirm(HitResults);
+		AttackHitConfirm(SelectHitResults);
 	}
 
 }
