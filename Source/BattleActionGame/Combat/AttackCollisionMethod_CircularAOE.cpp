@@ -22,10 +22,9 @@ void UAttackCollisionMethod_CircularAOE::StartCollisionCheck()
 			TArray<FHitResult> HitResults;
 			GetWorld()->SweepMultiByChannel(HitResults, AttackAreaDataItem,AttackAreaDataItem, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(CollisionData->AttackRadius), FCollisionQueryParams());
 
-			for (FHitResult HitResult : HitResults)
-			{
-				SendHitResults(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
-			}
+
+			SendHitResults(HitResults, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
+			
 
 #if 1
 			FVector Start = AttackAreaDataItem;
@@ -62,7 +61,7 @@ void UAttackCollisionMethod_CircularAOE::SetAreaCenterData(TArray<FVector> InAre
 	AreaCenterData = InAreaCenterData;
 }
 
-void UAttackCollisionMethod_CircularAOE::SendHitResults(const FHitResult& HitResult, const float HitTime)
+void UAttackCollisionMethod_CircularAOE::SendHitResults(const TArray<FHitResult>& HitResult, const float HitTime)
 {
 	Super::SendHitResults(HitResult, HitTime);
 }

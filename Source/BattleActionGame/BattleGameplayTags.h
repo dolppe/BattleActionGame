@@ -29,6 +29,8 @@ public:
 	 */
 
 	FGameplayTag GameplayEvent_JustDash;
+
+	FGameplayTag Ability_Trigger_JustClash;	
 	FGameplayTag Ability_Type_Action_Groggy;
 
 	/*
@@ -48,7 +50,8 @@ public:
 	
 	FGameplayTag Status_Attack_Attacking;
 	FGameplayTag Status_Poisoned;
-	FGameplayTag Status_Parry;
+	FGameplayTag Status_Parry_JustDash;
+	FGameplayTag Status_Parry_JustClash;
 
 	FGameplayTag Status_KnockBack;
 

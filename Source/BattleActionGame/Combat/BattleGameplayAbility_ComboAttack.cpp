@@ -190,21 +190,6 @@ void UBattleGameplayAbility_ComboAttack::ServerRPCMontageSectionChanged_Implemen
 	CurrentComboIndex = InCurrentComboIndex;
 }
 
-void UBattleGameplayAbility_ComboAttack::SelectHitCheck(const FHitResult HitResult, const float AttackTime)
-{
-	Super::SelectHitCheck(HitResult, AttackTime);
-}
-
-void UBattleGameplayAbility_ComboAttack::ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime)
-{
-	Super::ServerRPCNotifyHit_Implementation(HitResult, HitCheckTime);
-}
-
-void UBattleGameplayAbility_ComboAttack::AttackHitConfirm(const FHitResult& HitResult)
-{
-	Super::AttackHitConfirm(HitResult);
-}
-
 void UBattleGameplayAbility_ComboAttack::OnCompleted()
 {
 	if (bHasNextComboInput)

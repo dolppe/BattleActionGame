@@ -114,17 +114,23 @@ void UBattleAbilityTask_HitCheck::PerformHitCheck(FVector& CurWeaponStart, FVect
 bool UBattleAbilityTask_HitCheck::HandleHit(TArray<FHitResult>& HitResults)
 {
 	bool bIsHit = false;
+
+	TArray<FHitResult> SelectedHitResult;
+	
 	for (FHitResult& HitResult : HitResults)
 	{
 		if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
 		{
-			OnHitChecked.Broadcast(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
+			SelectedHitResult.Add(HitResult);
+			
 			if (!bIsHit)
 			{
 				bIsHit = true;
 			}
 		}
 	}
+
+	OnHitChecked.Broadcast(SelectedHitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
 
 	return bIsHit;
 	

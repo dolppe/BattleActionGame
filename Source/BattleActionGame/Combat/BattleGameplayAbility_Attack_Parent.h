@@ -28,9 +28,12 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	virtual void ServerRPCNotifyHit(const FHitResult& HitResult, float HitCheckTime);
+	virtual void ServerRPCNotifyHit(const TArray<FHitResult>& HitResults, float HitCheckTime);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCClearAlreadyHitActors();
 	
-	virtual void AttackHitConfirm(const FHitResult& HitResult);
+	virtual void AttackHitConfirm(const TArray<FHitResult>& HitResults);
 
 	EAttackType GetAttackType() const
 	{
@@ -43,7 +46,7 @@ public:
 	}
 
 	UFUNCTION()
-	virtual void SelectHitCheck(const FHitResult HitResult, const float AttackTime);
+	virtual void SelectHitCheck(const TArray<FHitResult>& HitResults, const float AttackTime);
 	
 protected:
 
@@ -92,6 +95,12 @@ protected:
 	FGameplayMessageListenerHandle EndListenerHandle;
 
 	EAttackType AttackType;
+
+	UPROPERTY(EditAnywhere)
+	bool bAllowJustDash = true;
+
+	UPROPERTY(EditAnywhere)
+	bool bAllowJustClash = false;
 	
 };
 

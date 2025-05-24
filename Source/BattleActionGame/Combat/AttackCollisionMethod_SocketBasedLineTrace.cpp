@@ -31,7 +31,7 @@ void UAttackCollisionMethod_SocketBasedLineTrace::SetCollisionData(UAttackCollis
 	Super::SetCollisionData(InAttackCollisionData, InGameplayAbility);
 }
 
-void UAttackCollisionMethod_SocketBasedLineTrace::SendHitResults(const FHitResult& HitResult, const float HitTime)
+void UAttackCollisionMethod_SocketBasedLineTrace::SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime)
 {
-	Super::SendHitResults(HitResult, HitTime);
+	Super::SendHitResults(HitResults, HitTime);
 }

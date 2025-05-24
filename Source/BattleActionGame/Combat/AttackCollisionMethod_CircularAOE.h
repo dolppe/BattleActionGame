@@ -14,7 +14,7 @@ public:
 	virtual void EndCollisionCheck() override;
 	virtual void SetCollisionData(UAttackCollisionData* InAttackCollisionData, UBattleGameplayAbility_Attack_Parent* InGameplayAbility) override;
 	virtual void SetAreaCenterData(TArray<FVector> InAreaCenterData);
-	virtual void SendHitResults(const FHitResult& HitResult, const float HitTime) override;
+	virtual void SendHitResults(const TArray<FHitResult>& HitResult, const float HitTime) override;
 
 
 protected:

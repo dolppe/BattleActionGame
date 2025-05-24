@@ -18,10 +18,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void ServerRPCNotifyHit_Implementation(const FHitResult& HitResult, float HitCheckTime) override;
-
-	virtual void AttackHitConfirm(const FHitResult& HitResult) override;
-
 	void SetAreaCenterData(const TArray<FVector>& InAreaCenterData)
 	{
 		AreaCenterData = InAreaCenterData;
@@ -34,8 +30,6 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
-
-	virtual void SelectHitCheck(const FHitResult HitResult, const float AttackTime) override;
 
 	virtual void OnCompleted() override;
 	virtual void OnInterrupted() override;

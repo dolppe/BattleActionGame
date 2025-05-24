@@ -26,7 +26,7 @@ public:
 
 protected:
 
-	virtual void SendHitResults(const FHitResult& HitResult, const float HitTime);
+	virtual void SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime);
 
 	UAttackCollisionData* AttackCollisionData;
 	UBattleGameplayAbility_Attack_Parent* OriginGameplayAbility;

@@ -39,8 +39,8 @@ protected:
 	UFUNCTION()
 	virtual void OnBlendOut();
 	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Action")
-	AActor* TargetActor;
+	UPROPERTY(BlueprintReadWrite, Category="Action")
+	TObjectPtr<const AActor> TargetActor;
 	
 };
 
