@@ -45,6 +45,8 @@ public class BattleActionGame : ModuleRules
 			"PhysicsCore",
 			// Effect
 			"Niagara",
+			// Navigation
+			"Navmesh",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
