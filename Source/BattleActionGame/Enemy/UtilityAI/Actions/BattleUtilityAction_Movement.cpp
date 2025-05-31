@@ -3,6 +3,8 @@
 #include "AIController.h"
 #include "NavigationSystem.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
+#include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
+#include "BattleActionGame/Environment/BattleWorldInfoSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Movement)
 
@@ -215,3 +217,108 @@ bool UBattleUtilityAction_RunCombat::TickAction(float DeltaTime)
 	}
 	
 }
+
+UBattleUtilityAction_MoveToLocation::UBattleUtilityAction_MoveToLocation()
+{
+}
+
+void UBattleUtilityAction_MoveToLocation::StartAction()
+{
+	Super::StartAction();
+	
+	RequestResult = EPathFollowingRequestResult::Type::Failed;
+
+	ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(CachedAIComponent->ConsiderList->MyCharacter);
+	AIController = Cast<AAIController>(EnemyCharacter->GetController());
+	
+	FVector TargetLocation = GetLocation();
+
+	if (TargetLocation.ContainsNaN())
+	{
+		EndAction();
+	}
+	else
+	{
+		RequestResult = AIController->MoveToLocation(TargetLocation);
+	}
+}
+
+void UBattleUtilityAction_MoveToLocation::EndAction()
+{
+	if (AIController->IsFollowingAPath())
+	{
+		AIController->StopMovement();
+	}
+	Super::EndAction();
+}
+
+bool UBattleUtilityAction_MoveToLocation::TickAction(float DeltaTime)
+{
+	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
+	{
+		return true;
+	}
+
+	if (AIController)
+	{
+		if (UPathFollowingComponent* PathFollowingComponent = AIController->GetPathFollowingComponent())
+		{
+			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+FVector UBattleUtilityAction_MoveToLocation::GetLocation()
+{
+	return FVector(NAN,NAN,NAN);
+}
+
+UBattleUtilityAction_MoveToBestSpot::UBattleUtilityAction_MoveToBestSpot()
+{
+	Priority = 3;
+}
+
+FVector UBattleUtilityAction_MoveToBestSpot::GetLocation()
+{
+	return CachedAIComponent->ConsiderList->BestSpotLocation;
+}
+
+UBattleUtilityAction_MoveToWater::UBattleUtilityAction_MoveToWater()
+{
+	Priority = 4;
+}
+
+FVector UBattleUtilityAction_MoveToWater::GetLocation()
+{
+	UBattleWorldInfoSubsystem* WorldInfoSubsystem = GetWorld()->GetSubsystem<UBattleWorldInfoSubsystem>();
+	return WorldInfoSubsystem->GetUtilitySpot(EUtilitySpotType::ChargePoison)->GetActorLocation();
+}
+
+
+UBattleUtilityAction_MoveToElectricity::UBattleUtilityAction_MoveToElectricity()
+{
+	Priority = 4;
+}
+
+FVector UBattleUtilityAction_MoveToElectricity::GetLocation()
+{
+	UBattleWorldInfoSubsystem* WorldInfoSubsystem = GetWorld()->GetSubsystem<UBattleWorldInfoSubsystem>();
+	return WorldInfoSubsystem->GetUtilitySpot(EUtilitySpotType::ChargeElectricity)->GetActorLocation();
+}
+
+UBattleUtilityAction_MoveToCave::UBattleUtilityAction_MoveToCave()
+{
+	Priority = 4;
+}
+
+FVector UBattleUtilityAction_MoveToCave::GetLocation()
+{
+	UBattleWorldInfoSubsystem* WorldInfoSubsystem = GetWorld()->GetSubsystem<UBattleWorldInfoSubsystem>();
+	return WorldInfoSubsystem->GetUtilitySpot(EUtilitySpotType::Resting)->GetActorLocation();
+}
+
+

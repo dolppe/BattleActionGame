@@ -13,6 +13,9 @@ enum class ETerrainType : uint8
 	Cave,
 	Electricity,
 	RestingArea,
+	Corner,
+	HighArea,
+	LowArea,
 };
 
 /*
@@ -59,14 +62,90 @@ public:
 	{
 		return TerrainType;
 	}
-
-
-
 protected:
 
 	ETerrainType TerrainType;
 	
+};
+
+UCLASS()
+class UBattleNavArea_Cave : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_Cave(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 };
 
+
+UCLASS()
+class UBattleNavArea_Electricity : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_Electricity(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+};
+
+
+
+UCLASS()
+class UBattleNavArea_Forest : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_Forest(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+};
+
+
+
+UCLASS()
+class UBattleNavArea_Plain : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_Plain(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+};
+
+
+
+UCLASS()
+class UBattleNavArea_RestingArea : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_RestingArea(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+};
+
+UCLASS()
+class UBattleNavArea_Water : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_Water(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+};
+
+UCLASS()
+class UBattleNavArea_Corner : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_Corner(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+};
+
+UCLASS()
+class UBattleNavArea_HighArea : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_HighArea(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+};
+
+UCLASS()
+class UBattleNavArea_LowArea : public UBattleNavArea
+{
+	GENERATED_BODY()
+public:
+	UBattleNavArea_LowArea(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+};
 

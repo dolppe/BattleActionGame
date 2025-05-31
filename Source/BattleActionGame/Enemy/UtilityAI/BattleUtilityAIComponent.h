@@ -32,8 +32,16 @@ enum class EBattleConsiderType : uint8
 	EnemyDensity UMETA(DisplayName = "EnemyDensity"),
 	EnemyAverageDistance UMETA(DisplayName = "EnemyAverageDistance"),
 	IsFarFromTarget UMETA(DisplayName = "IsFarFromTarget"),
-	
-	
+	PoisonAmount UMETA(DisplayName = "PoisonAmount"),
+	ElectricityAmount UMETA(DisplayName = "ElectricityAmount"),
+	NearByCave UMETA(DisplayName = "NearByCave"),
+	NearByElectricity UMETA(DisplayName = "NearByElectricity"),
+	NearByWater UMETA(DisplayName = "NearByWater"),
+	NearByBestCombatSpot UMETA(DisplayName = "NearByBestCombatSpot"),
+	NeedCombatAreaChange UMETA(DisplayName = "NeedCombatAreaChange"),
+	NeedCombatReposition UMETA(DisplayName = "NeedCombatReposition"),
+	SurroundedRisk UMETA(DisplayName = "SurroundedRisk"),
+	PositionalDisadvantage UMETA(DisplayName = "PositionalDisadvantage"),
 
 	// Array - Target
 	TargetDistanceNearly UMETA(DisplayName = "TargetDistanceNearly"),
@@ -154,9 +162,19 @@ public:
 	float GetEnemyDensity();
 	float GetEnemyAverageDistance();
 	float GetIsFarFromTarget();
-	
 
-	
+	float GetPoisonAmount();
+	float GetElectricityAmount();
+	float GetNearByCave();
+	float GetNearByElectricity();
+	float GetNearByWater();
+	float GetNearByBestCombatSpot();
+	float GetNeedCombatAreaChange();
+	float GetNeedCombatReposition();
+	float GetSurroundedRisk();
+	float GetPositionalDisadvantage();
+
+		
 
 	TFunction<float()> GetConsiderFunction(EBattleConsiderType ConsiderType);
 	TFunction<TArray<float>()> GetArrayConsiderFunction(EBattleConsiderType ConsiderType);
@@ -172,6 +190,7 @@ public:
 	 */
 
 	void GetConsiderListData();
+	void SearchNearSpots();
 	void SearchNearActors();
 
 	UFUNCTION()
@@ -216,6 +235,11 @@ public:
 
 	bool bBreakRightLeg = false;
 	bool bBreakLeftLeg = false;
+
+	uint16 TotalAreaFlags = 0;
+	uint16 MyCharacterAreaFlag = 0;
+
+	FVector BestSpotLocation;
 	
 };
 

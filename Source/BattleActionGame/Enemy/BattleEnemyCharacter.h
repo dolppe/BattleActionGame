@@ -2,9 +2,11 @@
 
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "BattleActionGame/Environment/BattleUtilitySpot.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleEnemyCharacter.generated.h"
 
+class ABattleUtilitySpot;
 class UBattleEnemyData;
 class UBattleHealthComponent;
 class UBattleAbilitySystemComponent;
@@ -50,7 +52,6 @@ public:
 	void AttackBreakablePart(FGameplayTag InGameplayTag);
 
 	void HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude);
-	
 
 protected:
 	

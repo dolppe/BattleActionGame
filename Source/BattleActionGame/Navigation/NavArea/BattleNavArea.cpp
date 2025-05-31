@@ -6,3 +6,91 @@ UBattleNavArea::UBattleNavArea(const FObjectInitializer& ObjectInitializer)
 {
 	TerrainType = ETerrainType::Plain;
 }
+
+UBattleNavArea_Cave::UBattleNavArea_Cave(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Purple;
+
+	AreaFlags = AREA_Cave;
+	TerrainType = ETerrainType::Cave;
+	
+}
+
+UBattleNavArea_Electricity::UBattleNavArea_Electricity(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Yellow;
+
+	AreaFlags = AREA_Electricity;
+	TerrainType = ETerrainType::Electricity;
+}
+
+UBattleNavArea_Forest::UBattleNavArea_Forest(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Green;
+
+	AreaFlags = AREA_Forest;
+	TerrainType = ETerrainType::Forest;
+}
+
+UBattleNavArea_Plain::UBattleNavArea_Plain(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Silver;
+
+	AreaFlags = AREA_Plain;
+	TerrainType = ETerrainType::Plain;
+}
+
+UBattleNavArea_RestingArea::UBattleNavArea_RestingArea(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Emerald;
+
+	AreaFlags = AREA_RestingArea;
+	TerrainType = ETerrainType::RestingArea;
+}
+
+UBattleNavArea_Water::UBattleNavArea_Water(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Blue;
+
+	AreaFlags = AREA_Water;
+	TerrainType = ETerrainType::Water;
+}
+
+UBattleNavArea_Corner::UBattleNavArea_Corner(const FObjectInitializer& ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Black;
+
+	AreaFlags = AREA_Corner;
+	TerrainType = ETerrainType::Corner;
+}
+
+UBattleNavArea_HighArea::UBattleNavArea_HighArea(const FObjectInitializer& ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+    DrawColor = FColor::Turquoise;
+
+    AreaFlags = AREA_HighArea;
+    TerrainType = ETerrainType::HighArea;
+}
+
+UBattleNavArea_LowArea::UBattleNavArea_LowArea(const FObjectInitializer& ObjectInitializer)
+{
+	DefaultCost = 1.0f;
+	DrawColor = FColor::Orange;
+
+	AreaFlags = AREA_LowArea;
+	TerrainType = ETerrainType::LowArea;
+}

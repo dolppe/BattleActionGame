@@ -3,15 +3,21 @@
 #include "AbilitySystemComponent.h"
 #include "BattleActionGame/Enemy/UtilityAI/Actions/BattleUtilityAction.h"
 #include "BattleUtilityAIData.h"
+#include "NavigationSystem.h"
 #include "Actions/BattleUtilityAction_Attack.h"
+#include "AI/NavigationSystemBase.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
+#include "BattleActionGame/Enemy/BattleEnemyController.h"
+#include "BattleActionGame/Navigation/NavArea/BattleNavArea.h"
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "GameFramework/GameStateBase.h"
+#include "NavMesh/RecastNavMesh.h"
+#include "Navmesh/Public/Detour/DetourNavMeshQuery.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAIComponent)
 
@@ -252,6 +258,165 @@ float UConsiderationFactors::GetIsFarFromTarget()
 	return SelectedTargetDistance;
 }
 
+float UConsiderationFactors::GetPoisonAmount()
+{
+	// 내가 Poison을 얼마나 가지고 있는지를 나타냄
+	// 0.0f이면 아예 없는 것, 1.0f는 가득 찬 것
+	return 0.0f;
+}
+
+float UConsiderationFactors::GetElectricityAmount()
+{
+	// 내가 Poison을 얼마나 가지고 있는지를 나타냄
+	// 0.0f이면 아예 없는 것, 1.0f는 가득 찬 것
+	return 0.0f;
+}
+
+float UConsiderationFactors::GetNearByCave()
+{
+	// 주변에 CaveArea가 탐지 되는지를 나타냄
+	// 0.0f => 미탐지, 1.0f => 탐지
+	
+	if ((TotalAreaFlags & AREA_Cave) != 0 )
+	{
+		return 1.0f;
+	}
+	return 0.0f;
+}
+
+float UConsiderationFactors::GetNearByElectricity()
+{
+	// 주변에 ElectricityArea가 탐지 되는지를 나타냄
+	// 0.0f => 미탐지, 1.0f => 탐지
+	if ((TotalAreaFlags & AREA_Electricity) != 0 )
+	{
+		return 1.0f;
+	}
+	return 0.0f;
+}
+
+float UConsiderationFactors::GetNearByWater()
+{
+	// 주변에 WaterArea가 탐지 되는지를 나타냄
+	// 0.0f => 미탐지, 1.0f => 탐지
+	if ((TotalAreaFlags & AREA_Water) != 0 )
+	{
+		return 1.0f;
+	}
+	return 0.0f;
+}
+
+float UConsiderationFactors::GetNearByBestCombatSpot()
+{
+	// 주변에 Corner나 HighArea와 같이 좋은 Spot이 있는지를 나타냄
+	// 0.0f => 미탐지, 1.0f => 탐지
+	if ((TotalAreaFlags & AREA_Corner) != 0  || (TotalAreaFlags & AREA_HighArea) != 0)
+	{
+		return 1.0f;
+	}
+	return 0.0f;
+}
+
+float UConsiderationFactors::GetNeedCombatAreaChange()
+{
+	// 0.0f면 지역이동을 할 필요가 없는 것, 1.0f면 지역 이동이 필요함
+	// 전투가 오래 지속되어야 함, 리소스가 부족해야함, 위험 수치가 높음
+	// 추후 리소스 부족 이런것들 추가
+
+	float Result = GetCombatDuration();
+
+	Result += GetThreatScore()*0.3;
+
+	Result = FMath::Clamp(Result, 0.0f,1.0f);
+
+	return Result;
+}
+
+float UConsiderationFactors::GetNeedCombatReposition()
+{
+	// 0.0f면 자리이동을 할 필요가 없는 것, 1.0f면 자리 이동이 필요함
+	// 자리가 별로일수록, 포위당해있을수록 바꾸는게 좋음
+
+	float PositionDisadvantage = GetPositionalDisadvantage();
+
+	if (PositionDisadvantage == 0.0f)
+	{
+		return 0.0f;
+	}
+
+	float Result = PositionDisadvantage*0.5f + GetSurroundedRisk()*0.7f;
+
+	Result = FMath::Clamp(Result, 0.0f,1.0f);
+
+	return Result;	
+}
+
+float UConsiderationFactors::GetSurroundedRisk()
+{
+
+	FVector ActorLocation = MyCharacter->GetActorLocation();
+	FVector ForwardVector = MyCharacter->GetActorForwardVector();
+
+	bool HasForwardTarget = false;
+	int HasRightTarget = false;
+	int HasLeftTarget = false;
+	int HasBackTarget = false;
+	int ResultCount = 0;
+	
+	for (AActor* TargetActor : TargetActors)
+	{
+		FVector DirectionToTarget =  (TargetActor->GetActorLocation() - ActorLocation).GetSafeNormal2D();
+
+		float AngleRad = FMath::Acos(FVector::DotProduct(ForwardVector, DirectionToTarget));
+		float AngleDeg = FMath::RadiansToDegrees(AngleRad);
+
+		float Cross = FVector::CrossProduct(ForwardVector, DirectionToTarget).Z;
+		float FinalAngle = (Cross >= 0.f) ? AngleDeg : -AngleDeg;
+
+		if (!HasForwardTarget && FinalAngle >= -45.f && FinalAngle <= 45.f)
+		{
+			HasForwardTarget = true;
+			ResultCount++;
+		}
+		else if (!HasRightTarget && FinalAngle >= 45.f && FinalAngle <= 135.f)
+		{
+			HasRightTarget = true;
+			ResultCount++;
+		}
+		else if (!HasLeftTarget && FinalAngle <= -45.f && FinalAngle >= -135.f)
+		{
+			HasLeftTarget = true;
+			ResultCount++;
+		}
+		else if (!HasBackTarget)
+		{
+			HasBackTarget = true;
+			ResultCount++;
+		}
+		if (ResultCount == 4)
+		{
+			break;
+		}
+	}
+
+	return ResultCount * 0.25f;	
+}
+
+float UConsiderationFactors::GetPositionalDisadvantage()
+{
+	// 0.0f면 자리에 불리함이 없는 것 1.0f는 자리가 불리한 것
+	if ((MyCharacterAreaFlag & AREA_LowArea) != 0)
+	{
+		return 1.f;
+	}
+	if ((MyCharacterAreaFlag & AREA_Corner) != 0 || (MyCharacterAreaFlag & AREA_HighArea) != 0)
+	{
+		return 0.0f;
+	}
+
+	return 0.5f;
+}
+
 PRAGMA_ENABLE_OPTIMIZATION
 
 TArray<float> UConsiderationFactors::GetTargetDistanceNearly()
@@ -470,7 +635,69 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 		{
 			return GetIsFarFromTarget();
 		};
-		break;		
+		break;
+	case EBattleConsiderType::PoisonAmount:
+		return [this]() -> float
+		{
+			return GetPoisonAmount();
+		};
+		break;
+	case EBattleConsiderType::ElectricityAmount:
+		return [this]() -> float
+		{
+			return GetElectricityAmount();
+		};
+		break;
+	case EBattleConsiderType::NearByCave:
+		return [this]() -> float
+		{
+			return GetNearByCave();
+		};
+		break;
+	case EBattleConsiderType::NearByElectricity:
+		return [this]() -> float
+		{
+			return GetNearByElectricity();
+		};
+		break;
+	case EBattleConsiderType::NearByWater:
+		return [this]() -> float
+		{
+			return GetNearByWater();
+		};
+		break;
+	case EBattleConsiderType::NearByBestCombatSpot:
+		return [this]() -> float
+		{
+			return GetNearByBestCombatSpot();
+		};
+		break;
+	case EBattleConsiderType::NeedCombatAreaChange:
+		return [this]() -> float
+		{
+			return GetNeedCombatAreaChange();
+		};
+		break;
+	case EBattleConsiderType::NeedCombatReposition:
+		return [this]() -> float
+		{
+			return GetNeedCombatReposition();
+		};
+		break;
+	case EBattleConsiderType::SurroundedRisk:
+		return [this]() -> float
+		{
+			return GetSurroundedRisk();
+		};
+		break;
+	case EBattleConsiderType::PositionalDisadvantage:
+		return [this]() -> float
+		{
+			return GetPositionalDisadvantage();
+		};
+		break;
+
+		
 	default:
 		return [this]() -> float
 		{
@@ -478,6 +705,7 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 		};		
 	}
 }
+
 
 TFunction<TArray<float>()> UConsiderationFactors::GetArrayConsiderFunction(EBattleConsiderType ConsiderType)
 {
@@ -576,7 +804,87 @@ void UConsiderationFactors::GetConsiderListData()
 {
 	SearchNearActors();
 
+	SearchNearSpots();
+
 	MyHp = MyCharacter->GetHealthComponent()->GetHealthNormalized();
+}
+
+void UConsiderationFactors::SearchNearSpots()
+{
+	if (UNavigationSystemV1* NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld()))
+	{
+		const ANavigationData* NavData = NavSystem->GetDefaultNavDataInstance();
+		if (const ARecastNavMesh* NavMesh = Cast<ARecastNavMesh>(NavData))
+		{
+			FBox Box;
+
+			FVector CharacterLocation = MyCharacter->GetActorLocation();
+			double BoxHalfSize = 3000.f;
+
+			Box.Max = FVector(CharacterLocation.X + BoxHalfSize, CharacterLocation.Y + BoxHalfSize, CharacterLocation.Z + (BoxHalfSize*2));
+			Box.Min = FVector(CharacterLocation.X - BoxHalfSize, CharacterLocation.Y - BoxHalfSize, CharacterLocation.Z - (BoxHalfSize*2));
+
+			TArray<FNavPoly> OutPolys;
+
+			NavMesh->GetPolysInBox(Box, OutPolys);
+
+			TSet<uint16> AreaFlags;
+			DrawDebugBox(GetWorld(), Box.GetCenter(), Box.GetExtent(), FColor::Purple, false, 10.0f);
+			BA_DEFAULT_LOG(LogBattle, Log, TEXT("%d"), OutPolys.Num());
+
+			FVector CornerOrHighAreaLocation = FVector(NAN,NAN,NAN);
+			FVector AlternationLocation = FVector(NAN,NAN,NAN);;
+			bool bFindBestLocation = false;
+			
+
+			for (FNavPoly& Poly : OutPolys)
+			{
+				uint32 AreaId = NavMesh->GetPolyAreaID(Poly.Ref);
+				const UClass* AreaClass = NavMesh->GetAreaClass(AreaId);
+				UNavArea* NavArea = Cast<UNavArea>(AreaClass->GetDefaultObject());
+				
+				uint16 AreaFlag = NavArea->GetAreaFlags();
+				DrawDebugPoint(GetWorld(), Poly.Center, 10.0f, FColor::Red, false, 10.f);
+				AreaFlags.Add(AreaFlag);
+
+				if (!bFindBestLocation && (AreaFlag & AREA_Corner) != 0|| (AreaFlag & AREA_HighArea) != 0)
+				{
+					CornerOrHighAreaLocation = Poly.Center;
+					bFindBestLocation = true;
+				}
+				else if (!bFindBestLocation && (AreaFlag & AREA_LowArea) ==0)
+				{
+					AlternationLocation = Poly.Center;
+				}
+			}
+
+			for (uint16 AreaFlag : AreaFlags)
+			{
+				TotalAreaFlags |= AreaFlag;
+			}
+
+			if (bFindBestLocation)
+			{
+				BestSpotLocation = CornerOrHighAreaLocation;
+			}
+			else
+			{
+				BestSpotLocation = AlternationLocation;
+			}
+
+			NavNodeRef NearestPoly = NavMesh->FindNearestPoly(CharacterLocation, FVector(1000.f));
+			uint32 AreaId = NavMesh->GetPolyAreaID(NearestPoly);
+			const UClass* AreaClass = NavMesh->GetAreaClass(AreaId);
+			UNavArea* NavArea = Cast<UNavArea>(AreaClass->GetDefaultObject());
+			MyCharacterAreaFlag = NavArea->GetAreaFlags();
+			
+		}
+	
+		
+	}
+
+	
+	
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
