@@ -284,22 +284,22 @@ float UConsiderationFactors::GetNearByCave()
 	return 0.0f;
 }
 
-float UConsiderationFactors::GetNearByElectricity()
+float UConsiderationFactors::GetNearByDesert()
 {
 	// 주변에 ElectricityArea가 탐지 되는지를 나타냄
 	// 0.0f => 미탐지, 1.0f => 탐지
-	if ((TotalAreaFlags & AREA_Electricity) != 0 )
+	if ((TotalAreaFlags & AREA_Desert) != 0 )
 	{
 		return 1.0f;
 	}
 	return 0.0f;
 }
 
-float UConsiderationFactors::GetNearByWater()
+float UConsiderationFactors::GetNearByRuin()
 {
 	// 주변에 WaterArea가 탐지 되는지를 나타냄
 	// 0.0f => 미탐지, 1.0f => 탐지
-	if ((TotalAreaFlags & AREA_Water) != 0 )
+	if ((TotalAreaFlags & AREA_Ruin) != 0 )
 	{
 		return 1.0f;
 	}
@@ -654,16 +654,16 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 			return GetNearByCave();
 		};
 		break;
-	case EBattleConsiderType::NearByElectricity:
+	case EBattleConsiderType::NearByDesert:
 		return [this]() -> float
 		{
-			return GetNearByElectricity();
+			return GetNearByDesert();
 		};
 		break;
-	case EBattleConsiderType::NearByWater:
+	case EBattleConsiderType::NearByRuin:
 		return [this]() -> float
 		{
-			return GetNearByWater();
+			return GetNearByRuin();
 		};
 		break;
 	case EBattleConsiderType::NearByBestCombatSpot:

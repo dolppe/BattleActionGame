@@ -28,7 +28,6 @@ void UBattleBotCreationComponent::SpawnOneBot(TSubclassOf<ABattleEnemyCharacter>
 		if (UWorld* World = GetWorld())
 		{
 			FActorSpawnParameters EnemySpawnParams;
-			FVector SpawnLocation(100.f, 100.f, 50.f);
 			EnemySpawnParams.Name = FName(*EnemyClass->GetName());
 			EnemySpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			ABattleEnemyCharacter* SpawnedEnemy = World->SpawnActor<ABattleEnemyCharacter>(EnemyClass, SpawnLocation, FRotator::ZeroRotator, EnemySpawnParams);

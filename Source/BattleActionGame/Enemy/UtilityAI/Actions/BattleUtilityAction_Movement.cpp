@@ -287,24 +287,24 @@ FVector UBattleUtilityAction_MoveToBestSpot::GetLocation()
 	return CachedAIComponent->ConsiderList->BestSpotLocation;
 }
 
-UBattleUtilityAction_MoveToWater::UBattleUtilityAction_MoveToWater()
+UBattleUtilityAction_MoveToRuin::UBattleUtilityAction_MoveToRuin()
 {
 	Priority = 4;
 }
 
-FVector UBattleUtilityAction_MoveToWater::GetLocation()
+FVector UBattleUtilityAction_MoveToRuin::GetLocation()
 {
 	UBattleWorldInfoSubsystem* WorldInfoSubsystem = GetWorld()->GetSubsystem<UBattleWorldInfoSubsystem>();
 	return WorldInfoSubsystem->GetUtilitySpot(EUtilitySpotType::ChargePoison)->GetActorLocation();
 }
 
 
-UBattleUtilityAction_MoveToElectricity::UBattleUtilityAction_MoveToElectricity()
+UBattleUtilityAction_MoveToDesert::UBattleUtilityAction_MoveToDesert()
 {
 	Priority = 4;
 }
 
-FVector UBattleUtilityAction_MoveToElectricity::GetLocation()
+FVector UBattleUtilityAction_MoveToDesert::GetLocation()
 {
 	UBattleWorldInfoSubsystem* WorldInfoSubsystem = GetWorld()->GetSubsystem<UBattleWorldInfoSubsystem>();
 	return WorldInfoSubsystem->GetUtilitySpot(EUtilitySpotType::ChargeElectricity)->GetActorLocation();

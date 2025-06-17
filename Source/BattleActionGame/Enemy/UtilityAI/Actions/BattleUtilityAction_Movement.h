@@ -147,13 +147,13 @@ protected:
 
 
 UCLASS()
-class UBattleUtilityAction_MoveToWater : public UBattleUtilityAction_MoveToLocation
+class UBattleUtilityAction_MoveToRuin : public UBattleUtilityAction_MoveToLocation
 {
 	GENERATED_BODY()
 
 public:
 
-	UBattleUtilityAction_MoveToWater();
+	UBattleUtilityAction_MoveToRuin();
 
 protected:
 
@@ -165,13 +165,13 @@ protected:
 };
 
 UCLASS()
-class UBattleUtilityAction_MoveToElectricity : public UBattleUtilityAction_MoveToLocation
+class UBattleUtilityAction_MoveToDesert : public UBattleUtilityAction_MoveToLocation
 {
 	GENERATED_BODY()
 
 public:
 
-	UBattleUtilityAction_MoveToElectricity();
+	UBattleUtilityAction_MoveToDesert();
 
 protected:
 

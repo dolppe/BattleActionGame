@@ -18,14 +18,14 @@ UBattleNavArea_Cave::UBattleNavArea_Cave(const FObjectInitializer& ObjectInitial
 	
 }
 
-UBattleNavArea_Electricity::UBattleNavArea_Electricity(const FObjectInitializer& ObjectInitializer)
+UBattleNavArea_Desert::UBattleNavArea_Desert(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	DefaultCost = 1.0f;
 	DrawColor = FColor::Yellow;
 
-	AreaFlags = AREA_Electricity;
-	TerrainType = ETerrainType::Electricity;
+	AreaFlags = AREA_Desert;
+	TerrainType = ETerrainType::Desert;
 }
 
 UBattleNavArea_Forest::UBattleNavArea_Forest(const FObjectInitializer& ObjectInitializer)
@@ -58,14 +58,14 @@ UBattleNavArea_RestingArea::UBattleNavArea_RestingArea(const FObjectInitializer&
 	TerrainType = ETerrainType::RestingArea;
 }
 
-UBattleNavArea_Water::UBattleNavArea_Water(const FObjectInitializer& ObjectInitializer)
+UBattleNavArea_Ruin::UBattleNavArea_Ruin(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	DefaultCost = 1.0f;
 	DrawColor = FColor::Blue;
 
-	AreaFlags = AREA_Water;
-	TerrainType = ETerrainType::Water;
+	AreaFlags = AREA_Ruin;
+	TerrainType = ETerrainType::Ruin;
 }
 
 UBattleNavArea_Corner::UBattleNavArea_Corner(const FObjectInitializer& ObjectInitializer)

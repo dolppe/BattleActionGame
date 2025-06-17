@@ -35,8 +35,8 @@ enum class EBattleConsiderType : uint8
 	PoisonAmount UMETA(DisplayName = "PoisonAmount"),
 	ElectricityAmount UMETA(DisplayName = "ElectricityAmount"),
 	NearByCave UMETA(DisplayName = "NearByCave"),
-	NearByElectricity UMETA(DisplayName = "NearByElectricity"),
-	NearByWater UMETA(DisplayName = "NearByWater"),
+	NearByDesert UMETA(DisplayName = "NearByDesert"),
+	NearByRuin UMETA(DisplayName = "NearByRuin"),
 	NearByBestCombatSpot UMETA(DisplayName = "NearByBestCombatSpot"),
 	NeedCombatAreaChange UMETA(DisplayName = "NeedCombatAreaChange"),
 	NeedCombatReposition UMETA(DisplayName = "NeedCombatReposition"),
@@ -166,8 +166,8 @@ public:
 	float GetPoisonAmount();
 	float GetElectricityAmount();
 	float GetNearByCave();
-	float GetNearByElectricity();
-	float GetNearByWater();
+	float GetNearByDesert();
+	float GetNearByRuin();
 	float GetNearByBestCombatSpot();
 	float GetNeedCombatAreaChange();
 	float GetNeedCombatReposition();
