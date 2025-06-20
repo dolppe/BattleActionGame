@@ -102,3 +102,102 @@ protected:
 	
 };
 
+UCLASS()
+class UBattleUtilityAction_MoveToLocation : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToLocation();
+
+	virtual void StartAction() override;
+
+	virtual void EndAction() override;
+
+	virtual bool TickAction(float DeltaTime) override;
+
+protected:
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+	virtual FVector GetLocation();
+
+	
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_MoveToBestSpot : public UBattleUtilityAction_MoveToLocation
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToBestSpot();
+
+protected:
+
+	virtual FVector GetLocation() override;
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+	
+};
+
+
+UCLASS()
+class UBattleUtilityAction_MoveToRuin : public UBattleUtilityAction_MoveToLocation
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToRuin();
+
+protected:
+
+	virtual FVector GetLocation() override;
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_MoveToDesert : public UBattleUtilityAction_MoveToLocation
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToDesert();
+
+protected:
+
+	virtual FVector GetLocation() override;
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_MoveToCave : public UBattleUtilityAction_MoveToLocation
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToCave();
+
+protected:
+
+	virtual FVector GetLocation() override;
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+	
+};
+
+

@@ -32,6 +32,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<ABattleEnemyController> DefaultEnemyControllerClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	FVector SpawnLocation;
 	
 };
 
