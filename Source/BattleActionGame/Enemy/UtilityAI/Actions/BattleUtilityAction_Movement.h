@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BattleUtilityAction.h"
+#include "GameplayAbilitySpec.h"
 #include "GameplayTagContainer.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "BattleUtilityAction_Movement.generated.h"
@@ -138,6 +139,35 @@ protected:
 	
 };
 
+
+UCLASS()
+class UBattleUtilityAction_MoveToBestSpotWithRushAttack : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToBestSpotWithRushAttack();
+
+	virtual void StartAction() override;
+
+	virtual bool TickAction(float DeltaTime) override;
+
+protected:
+
+	FGameplayAbilitySpec* AbilitySpec;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBattleGameplayAbility> RushAttackGA;
+	
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+
+	bool bAbilityCompleted;
+	
+};
+
+
 UCLASS()
 class UBattleUtilityAction_MoveToLocation : public UBattleUtilityAction
 {
@@ -180,6 +210,30 @@ protected:
 	EPathFollowingRequestResult::Type RequestResult;
 	
 };
+
+UCLASS()
+class UBattleUtilityAction_MoveToBestSpotWithRoar : public UBattleUtilityAction_MoveToBestSpot
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToBestSpotWithRoar();
+
+	virtual void StartAction() override;
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBattleGameplayAbility> RoarGA;
+
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+	
+};
+
+
 
 
 UCLASS()
