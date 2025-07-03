@@ -70,8 +70,8 @@ UBattleNavArea_Ruin::UBattleNavArea_Ruin(const FObjectInitializer& ObjectInitial
 
 UBattleNavArea_Corner::UBattleNavArea_Corner(const FObjectInitializer& ObjectInitializer)
 {
-	DefaultCost = 1.0f;
-	DrawColor = FColor::Black;
+	DefaultCost = 20.f;
+	DrawColor = FColor::White;
 
 	AreaFlags = AREA_Corner;
 	TerrainType = ETerrainType::Corner;
@@ -79,7 +79,7 @@ UBattleNavArea_Corner::UBattleNavArea_Corner(const FObjectInitializer& ObjectIni
 
 UBattleNavArea_HighArea::UBattleNavArea_HighArea(const FObjectInitializer& ObjectInitializer)
 {
-	DefaultCost = 1.0f;
+	DefaultCost = 20.f;
     DrawColor = FColor::Turquoise;
 
     AreaFlags = AREA_HighArea;
@@ -88,7 +88,7 @@ UBattleNavArea_HighArea::UBattleNavArea_HighArea(const FObjectInitializer& Objec
 
 UBattleNavArea_LowArea::UBattleNavArea_LowArea(const FObjectInitializer& ObjectInitializer)
 {
-	DefaultCost = 1.0f;
+	DefaultCost = 20.f;
 	DrawColor = FColor::Orange;
 
 	AreaFlags = AREA_LowArea;

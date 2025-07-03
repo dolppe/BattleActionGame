@@ -52,6 +52,9 @@ struct FActionConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
 	float Weight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Action")
+	bool IsActive;
 	
 };
 

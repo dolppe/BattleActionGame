@@ -26,11 +26,13 @@ public:
 
 	virtual void BeginPlay() override;
 
-	TObjectPtr<AActor> GetCurrentTargetActor()
+	UFUNCTION(BlueprintCallable)
+	AActor* GetCurrentTargetActor()
 	{
 		return CurrentTargetActor;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	void SetCurrentTargetActor(AActor* InCurrentTargetActor)
 	{
 		CurrentTargetActor = InCurrentTargetActor;

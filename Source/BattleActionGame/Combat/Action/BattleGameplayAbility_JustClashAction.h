@@ -1,11 +1,11 @@
 #pragma once
 
-#include "BattleGameplayAbility_SpecialAction_Parent.h"
+#include "BattleGameplayAbility_TargetedAction_Parent.h"
 #include "BattleGameplayAbility_JustClashAction.generated.h"
 
 
 UCLASS()
-class UBattleGameplayAbility_JustClashAction : public UBattleGameplayAbility_SpecialAction_Parent
+class UBattleGameplayAbility_JustClashAction : public UBattleGameplayAbility_TargetedAction_Parent
 {
 	GENERATED_BODY()
 public:

@@ -185,6 +185,7 @@ void UBattleHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager*
 			PawnData = PawnExtensionComponent->GetPawnData<UBattlePawnData>();
 
 			PawnExtensionComponent->InitializeAbilitySystem(BattlePS->GetBattleAbilitySystemComponent(), BattlePS);
+			CachedASC = BattlePS->GetBattleAbilitySystemComponent();
 		}
 
 		if (ABattlePlayerController* BattlePC = GetController<ABattlePlayerController>())
@@ -320,7 +321,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
-	if (!bAllowedInput)
+	if (!bAllowedInput || CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
 	{
 		return;
 	}

@@ -7,6 +7,7 @@
 #include "BattleActionGame/Input/BattleInputConfig.h"
 #include "BattleHeroComponent.generated.h"
 
+class UAbilitySystemComponent;
 class UBattleCameraMode;
 struct FGameplayAbilitySpecHandle;
 struct FBattleMappableConfigPair;
@@ -80,6 +81,8 @@ protected:
 
 protected:
 
+	UAbilitySystemComponent* CachedASC;
+	
 	bool bAllowedInput = true;
 
 	UPROPERTY(EditAnywhere)

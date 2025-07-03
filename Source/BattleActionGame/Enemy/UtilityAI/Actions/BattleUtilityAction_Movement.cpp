@@ -1,12 +1,61 @@
 #include "BattleUtilityAction_Movement.h"
 
+#include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "NavigationSystem.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
+#include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/Environment/BattleWorldInfoSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Movement)
+
+UBattleUtilityAction_AbilityAction::UBattleUtilityAction_AbilityAction()
+{
+	Priority = 2;
+}
+
+void UBattleUtilityAction_AbilityAction::StartAction()
+{
+	Super::StartAction();
+
+	ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
+
+	if (ASC)
+	{
+		AbilitySpec = ASC->FindAbilitySpecFromClass(AbilityAction);
+		if (AbilitySpec)
+		{
+			ASC->TryActivateAbility(AbilitySpec->Handle);
+		}
+	}
+	
+}
+
+bool UBattleUtilityAction_AbilityAction::TickAction(float DeltaTime)
+{
+
+	if (AbilitySpec->IsActive())
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+void UBattleUtilityAction_AbilityAction::EndAction()
+{
+	if (AbilitySpec->IsActive())
+	{
+		ASC->CancelAbility(AbilitySpec->Ability);
+	}
+}
+
+void UBattleUtilityAction_AbilityAction::OnEndAbility()
+{
+}
 
 UBattleUtilityAction_MoveToTarget::UBattleUtilityAction_MoveToTarget()
 {

@@ -22,6 +22,7 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	BA_DEFAULT_LOG(LogBattle,Log,TEXT("%s => AttackStart"), *GetAvatarActorFromActorInfo()->GetName());
 	
 	if (GetWorld()->GetNetMode() != NM_Client)
@@ -31,6 +32,11 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 		if (ASC)
 		{
 			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+		}
+
+		if (!bAllowMovement)
+		{
+			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		}
 	}
 }
@@ -64,6 +70,10 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 		if (ASC)
 		{
 			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+		}
+		if (!bAllowMovement)
+		{
+			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 		}
 	}
 	

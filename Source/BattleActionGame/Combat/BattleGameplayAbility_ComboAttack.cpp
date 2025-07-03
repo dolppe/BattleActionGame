@@ -55,8 +55,6 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-
 		AlreadyHitActors.Reset();
 
 	}
@@ -92,8 +90,6 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
-
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 		CurrentCombatManager->SetComboGA(nullptr);
 	}
 

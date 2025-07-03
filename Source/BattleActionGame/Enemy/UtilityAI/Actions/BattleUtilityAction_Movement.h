@@ -1,10 +1,46 @@
 #pragma once
 
 #include "BattleUtilityAction.h"
+#include "GameplayTagContainer.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "BattleUtilityAction_Movement.generated.h"
 
+class UBattleGameplayAbility;
+class UAbilitySystemComponent;
 class AAIController;
+
+struct FGameplayAbilitySpec;
+
+UCLASS()
+class UBattleUtilityAction_AbilityAction : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_AbilityAction();
+
+	/*
+	 *	UtilityAction
+	 */
+	
+	virtual void StartAction() override;
+	virtual bool TickAction(float DeltaTime) override;
+	virtual void EndAction() override;
+
+
+	virtual void OnEndAbility();
+
+protected:
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBattleGameplayAbility> AbilityAction;
+
+	FGameplayAbilitySpec* AbilitySpec;
+
+	UAbilitySystemComponent* ASC;
+	
+};
 
 UCLASS()
 class UBattleUtilityAction_MoveToTarget : public UBattleUtilityAction

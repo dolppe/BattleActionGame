@@ -6,6 +6,7 @@
 #include "GameplayMessageSubsystem.h"
 #include "NativeGameplayTags.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Abilities/Tasks/AbilityTask_ApplyRootMotionMoveToForce.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
@@ -49,7 +50,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::ActivateAbility(const FGamep
 				PlayMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_UseItem_AttributeBased::OnInterrupted);
 				PlayMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_UseItem_AttributeBased::OnBlendOut);
 				PlayMontage->ReadyForActivation();
-
+				
 				if (CharacterBase->IsLocallyControlled())
 				{
 					UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());

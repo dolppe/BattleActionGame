@@ -405,16 +405,12 @@ float UConsiderationFactors::GetSurroundedRisk()
 float UConsiderationFactors::GetPositionalDisadvantage()
 {
 	// 0.0f면 자리에 불리함이 없는 것 1.0f는 자리가 불리한 것
-	if ((MyCharacterAreaFlag & AREA_LowArea) != 0)
-	{
-		return 1.f;
-	}
 	if ((MyCharacterAreaFlag & AREA_Corner) != 0 || (MyCharacterAreaFlag & AREA_HighArea) != 0)
 	{
 		return 0.0f;
 	}
 
-	return 0.5f;
+	return 1.0f;
 }
 
 PRAGMA_ENABLE_OPTIMIZATION
@@ -844,7 +840,7 @@ void UConsiderationFactors::SearchNearSpots()
 				UNavArea* NavArea = Cast<UNavArea>(AreaClass->GetDefaultObject());
 				
 				uint16 AreaFlag = NavArea->GetAreaFlags();
-				DrawDebugPoint(GetWorld(), Poly.Center, 10.0f, FColor::Red, false, 10.f);
+				//DrawDebugPoint(GetWorld(), Poly.Center, 10.0f, FColor::Red, false, 10.f);
 				AreaFlags.Add(AreaFlag);
 
 				if (!bFindBestLocation && (AreaFlag & AREA_Corner) != 0|| (AreaFlag & AREA_HighArea) != 0)
@@ -866,17 +862,24 @@ void UConsiderationFactors::SearchNearSpots()
 			if (bFindBestLocation)
 			{
 				BestSpotLocation = CornerOrHighAreaLocation;
+				DrawDebugPoint(GetWorld(), BestSpotLocation, 10.0f, FColor::Red, false, 10.f);
 			}
 			else
 			{
 				BestSpotLocation = AlternationLocation;
+				DrawDebugPoint(GetWorld(), BestSpotLocation, 10.0f, FColor::Green, false, 10.f);
 			}
 
 			NavNodeRef NearestPoly = NavMesh->FindNearestPoly(CharacterLocation, FVector(1000.f));
+			FVector NearestPolyCenter;
+			NavMesh->GetPolyCenter(NearestPoly, NearestPolyCenter);
+			DrawDebugPoint(GetWorld(), NearestPolyCenter, 10.0f, FColor::Purple, false, 10.f);
 			uint32 AreaId = NavMesh->GetPolyAreaID(NearestPoly);
 			const UClass* AreaClass = NavMesh->GetAreaClass(AreaId);
 			UNavArea* NavArea = Cast<UNavArea>(AreaClass->GetDefaultObject());
+			
 			MyCharacterAreaFlag = NavArea->GetAreaFlags();
+			UE_LOG(LogTemp, Log, TEXT("%d"), MyCharacterAreaFlag);
 			
 		}
 	
@@ -1165,7 +1168,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		
 		float CurScore = Action->EvaluateScore(ConsiderList);
 
-		if (!DebugActionsEnabled[ActionIdx])
+		if (!DebugActionsEnabled[ActionIdx] || !UtilityAIData->ActionConfigs[ActionIdx].IsActive)
 		{
 			CurScore = 0.0f;
 		}
