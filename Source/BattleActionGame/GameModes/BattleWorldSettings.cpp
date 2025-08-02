@@ -1,6 +1,7 @@
 #include "BattleWorldSettings.h"
 
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Navigation/WorldRiskGridMap.h"
 #include "Engine/AssetManager.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleWorldSettings)
@@ -24,5 +25,13 @@ FPrimaryAssetId ABattleWorldSettings::GetDefaultGameplayExperience() const
 		}
 	}
 	return Result;
+	
+}
+
+void ABattleWorldSettings::BeginPlay()
+{
+	Super::BeginPlay();
+
+
 	
 }

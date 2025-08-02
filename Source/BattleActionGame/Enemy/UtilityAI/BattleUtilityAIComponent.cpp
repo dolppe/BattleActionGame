@@ -825,7 +825,7 @@ void UConsiderationFactors::SearchNearSpots()
 			NavMesh->GetPolysInBox(Box, OutPolys);
 
 			TSet<uint16> AreaFlags;
-			DrawDebugBox(GetWorld(), Box.GetCenter(), Box.GetExtent(), FColor::Purple, false, 10.0f);
+			//DrawDebugBox(GetWorld(), Box.GetCenter(), Box.GetExtent(), FColor::Purple, false, 10.0f);
 			BA_DEFAULT_LOG(LogBattle, Log, TEXT("%d"), OutPolys.Num());
 
 			FVector CornerOrHighAreaLocation = FVector(NAN,NAN,NAN);
@@ -873,7 +873,7 @@ void UConsiderationFactors::SearchNearSpots()
 			NavNodeRef NearestPoly = NavMesh->FindNearestPoly(CharacterLocation, FVector(1000.f));
 			FVector NearestPolyCenter;
 			NavMesh->GetPolyCenter(NearestPoly, NearestPolyCenter);
-			DrawDebugPoint(GetWorld(), NearestPolyCenter, 10.0f, FColor::Purple, false, 10.f);
+			//DrawDebugPoint(GetWorld(), NearestPolyCenter, 10.0f, FColor::Purple, false, 10.f);
 			uint32 AreaId = NavMesh->GetPolyAreaID(NearestPoly);
 			const UClass* AreaClass = NavMesh->GetAreaClass(AreaId);
 			UNavArea* NavArea = Cast<UNavArea>(AreaClass->GetDefaultObject());

@@ -169,6 +169,30 @@ protected:
 
 
 UCLASS()
+class UBattleUtilityAction_MoveToLocationWithGridMap : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToLocationWithGridMap();
+
+	virtual void StartAction() override;
+
+	virtual void EndAction() override;
+
+	virtual bool TickAction(float DeltaTime) override;
+
+protected:
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+
+	
+	
+};
+
+UCLASS()
 class UBattleUtilityAction_MoveToLocation : public UBattleUtilityAction
 {
 	GENERATED_BODY()
@@ -188,9 +212,26 @@ protected:
 	TObjectPtr<AAIController> AIController;
 	EPathFollowingRequestResult::Type RequestResult;
 	virtual FVector GetLocation();
+};
 
-	
-	
+
+UCLASS()
+class UBattleUtilityAction_MoveToSelectedSpot : public UBattleUtilityAction_MoveToLocation
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_MoveToSelectedSpot();
+
+protected:
+
+	TObjectPtr<AAIController> AIController;
+	EPathFollowingRequestResult::Type RequestResult;
+	virtual FVector GetLocation() override;
+
+	UPROPERTY(EditAnywhere)
+	FVector SelectedSpot;
 };
 
 UCLASS()

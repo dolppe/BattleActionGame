@@ -11,6 +11,7 @@
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
 #include "BattleActionGame/Character/BattleCharacterMovementComponent.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
+#include "BattleActionGame/Navigation/GridRiskMapComponent.h"
 #include "UtilityAI/BattleUtilityAIComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleEnemyCharacter)
