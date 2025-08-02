@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/WorldSettings.h"
+#include "BattleActionGame/Navigation/WorldRiskGridMap.h"
 #include "BattleWorldSettings.generated.h"
 
 class UBattleExperienceDefinition;
@@ -17,9 +18,20 @@ public:
 
 	FPrimaryAssetId GetDefaultGameplayExperience() const;
 
+	virtual void BeginPlay() override;
+
+	const FGridMapInitData& GetGridMapInitData()
+	{
+		return GridMapInitData;
+	}
+	
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category=GameMode)
 	TSoftClassPtr<UBattleExperienceDefinition> DefaultGameplayExperience;
+
+	UPROPERTY(EditAnywhere, Category=GameMode)
+	FGridMapInitData GridMapInitData;
 	
 	
 };

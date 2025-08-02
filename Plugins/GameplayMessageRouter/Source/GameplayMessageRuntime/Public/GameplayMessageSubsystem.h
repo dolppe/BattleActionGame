@@ -77,6 +77,8 @@ struct FGameplayMessageListenerData
  *
  */
 
+struct FBattleVerbMessage;
+
 UCLASS()
 class GAMEPLAYMESSAGERUNTIME_API UGameplayMessageSubsystem : public UGameInstanceSubsystem
 {
@@ -99,7 +101,7 @@ public:
 		const UScriptStruct* StructType = TBaseStructure<FMessageStructType>::Get();
 		BroadcastMessageInternal(Channel, StructType, &Message);
 	}
-
+	
 	template <typename FMessageStructType, typename TOwner = UObject>
 	FGameplayMessageListenerHandle RegisterListener(FGameplayTag Channel, TOwner* Object, void(TOwner::* Function)(FGameplayTag, const FMessageStructType&))
 	{

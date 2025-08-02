@@ -2,6 +2,7 @@
 
 
 #include "BattleUtilitySpot.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "BattleWorldInfoSubsystem.generated.h"
 
 class ABattleUtilitySpot;

@@ -51,7 +51,6 @@ void UBattleGameplayAbility_BasicAttack::ActivateAbility(const FGameplayAbilityS
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		AlreadyHitActors.Reset();
 	}
 	
@@ -73,7 +72,6 @@ void UBattleGameplayAbility_BasicAttack::EndAbility(const FGameplayAbilitySpecHa
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

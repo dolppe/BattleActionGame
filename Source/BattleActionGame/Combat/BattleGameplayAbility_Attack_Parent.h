@@ -101,6 +101,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	bool bAllowJustClash = false;
+
+	UPROPERTY(EditAnywhere)
+	bool bAllowMovement = false;
 	
 };
 

@@ -48,8 +48,6 @@ void UBattleGameplayAbility_Special_Spawn::ActivateAbility(const FGameplayAbilit
 		{
 			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
 		}
-
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 }
 
@@ -78,8 +76,7 @@ void UBattleGameplayAbility_Special_Spawn::EndAbility(const FGameplayAbilitySpec
 		{
 			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
 		}
-
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

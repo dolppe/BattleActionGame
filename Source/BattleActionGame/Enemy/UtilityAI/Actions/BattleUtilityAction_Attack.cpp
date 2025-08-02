@@ -35,6 +35,14 @@ void UBattleUtilityAction_Attack::StartAction()
 	{
 		ScoreMultiplier = ScoreMultiplier * AgeRate;
 	}
+
+	if (CachedAIComponent->ConsiderList->SelectedTarget != nullptr)
+	{
+		if (UBattleCombatManagerComponent* CombatManager = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+		{
+			CombatManager->SetCurrentTargetActor(CachedAIComponent->ConsiderList->SelectedTarget);
+		}
+	}
 	
 	StartAgeTimer();
 

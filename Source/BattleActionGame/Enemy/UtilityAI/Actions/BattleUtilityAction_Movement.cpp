@@ -1,12 +1,64 @@
 #include "BattleUtilityAction_Movement.h"
 
+#include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "NavigationSystem.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
+#include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
+#include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "BattleActionGame/Environment/BattleWorldInfoSubsystem.h"
+#include "BattleActionGame/Navigation/FindPathFunction.h"
+#include "BattleActionGame/Navigation/WorldRiskGridMap.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Movement)
+
+UBattleUtilityAction_AbilityAction::UBattleUtilityAction_AbilityAction()
+{
+	Priority = 2;
+}
+
+void UBattleUtilityAction_AbilityAction::StartAction()
+{
+	Super::StartAction();
+
+	ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
+
+	if (ASC)
+	{
+		AbilitySpec = ASC->FindAbilitySpecFromClass(AbilityAction);
+		if (AbilitySpec)
+		{
+			ASC->TryActivateAbility(AbilitySpec->Handle);
+		}
+	}
+	
+}
+
+bool UBattleUtilityAction_AbilityAction::TickAction(float DeltaTime)
+{
+
+	if (AbilitySpec->IsActive())
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+void UBattleUtilityAction_AbilityAction::EndAction()
+{
+	if (AbilitySpec->IsActive())
+	{
+		ASC->CancelAbility(AbilitySpec->Ability);
+	}
+}
+
+void UBattleUtilityAction_AbilityAction::OnEndAbility()
+{
+}
 
 UBattleUtilityAction_MoveToTarget::UBattleUtilityAction_MoveToTarget()
 {
@@ -218,6 +270,7 @@ bool UBattleUtilityAction_RunCombat::TickAction(float DeltaTime)
 	
 }
 
+
 UBattleUtilityAction_MoveToLocation::UBattleUtilityAction_MoveToLocation()
 {
 }
@@ -240,6 +293,7 @@ void UBattleUtilityAction_MoveToLocation::StartAction()
 	else
 	{
 		RequestResult = AIController->MoveToLocation(TargetLocation);
+		//RequestResult = AIController->MoveToLocation(TargetLocation, -1, true, true, false, true, UNavQueryFilter_CustomCost::StaticClass());
 	}
 }
 
@@ -277,6 +331,15 @@ FVector UBattleUtilityAction_MoveToLocation::GetLocation()
 	return FVector(NAN,NAN,NAN);
 }
 
+UBattleUtilityAction_MoveToSelectedSpot::UBattleUtilityAction_MoveToSelectedSpot()
+{
+}
+
+FVector UBattleUtilityAction_MoveToSelectedSpot::GetLocation()
+{
+	return SelectedSpot;
+}
+
 UBattleUtilityAction_MoveToBestSpot::UBattleUtilityAction_MoveToBestSpot()
 {
 	Priority = 3;
@@ -285,6 +348,175 @@ UBattleUtilityAction_MoveToBestSpot::UBattleUtilityAction_MoveToBestSpot()
 FVector UBattleUtilityAction_MoveToBestSpot::GetLocation()
 {
 	return CachedAIComponent->ConsiderList->BestSpotLocation;
+}
+
+UBattleUtilityAction_MoveToBestSpotWithRoar::UBattleUtilityAction_MoveToBestSpotWithRoar()
+{
+	Priority = 4;
+}
+
+void UBattleUtilityAction_MoveToBestSpotWithRoar::StartAction()
+{
+	UAbilitySystemComponent* ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
+
+	if (ASC)
+	{
+		ASC->TryActivateAbilityByClass(RoarGA);
+	}
+	
+	Super::StartAction();
+}
+
+UBattleUtilityAction_MoveToBestSpotWithRushAttack::UBattleUtilityAction_MoveToBestSpotWithRushAttack()
+{
+	Priority =4;
+}
+
+void UBattleUtilityAction_MoveToBestSpotWithRushAttack::StartAction()
+{
+	Super::StartAction();
+
+	bAbilityCompleted = false;
+	
+	UAbilitySystemComponent* ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
+
+	FVector TargetLocation = CachedAIComponent->ConsiderList->BestSpotLocation;
+
+	ABattleCharacterBase* SelectedTargetActor = nullptr;
+	float MinDistance = BIG_NUMBER; 
+	
+
+	for (ABattleCharacterBase* TargetActor : CachedAIComponent->ConsiderList->TargetActors)
+	{
+		FVector TargetActorLocation = TargetActor->GetActorLocation();
+
+		float Distance = (TargetActorLocation - TargetLocation).SizeSquared();
+		if (Distance < MinDistance)
+		{
+			MinDistance = Distance;
+			SelectedTargetActor = TargetActor;
+		}
+	}
+
+	if (SelectedTargetActor != nullptr)
+	{
+		if (UBattleCombatManagerComponent* CombatManager =Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+		{
+			CombatManager->SetCurrentTargetActor(SelectedTargetActor);
+		}
+	}
+
+	if (ASC)
+	{
+		AbilitySpec = ASC ->FindAbilitySpecFromClass(RushAttackGA);
+		ASC->TryActivateAbility(AbilitySpec->Handle);
+	}
+	
+	
+}
+
+bool UBattleUtilityAction_MoveToBestSpotWithRushAttack::TickAction(float DeltaTime)
+{
+	if (AbilitySpec->IsActive())
+	{
+		return false;
+	}
+	else if (!bAbilityCompleted)
+	{
+		RequestResult = EPathFollowingRequestResult::Type::Failed;
+
+		ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(CachedAIComponent->ConsiderList->MyCharacter);
+		AIController = Cast<AAIController>(EnemyCharacter->GetController());
+	
+		FVector TargetLocation = CachedAIComponent->ConsiderList->BestSpotLocation;
+
+		if (TargetLocation.ContainsNaN())
+		{
+			EndAction();
+			return true;
+		}
+		else
+		{
+			RequestResult = AIController->MoveToLocation(TargetLocation);
+		}
+		bAbilityCompleted = true;
+		return false;
+	}
+
+
+	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
+	{
+		return true;	
+	}
+	else if (AIController)
+	{
+		if (UPathFollowingComponent* PathFollowingComponent = AIController->GetPathFollowingComponent())
+		{
+			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+UBattleUtilityAction_MoveToLocationWithGridMap::UBattleUtilityAction_MoveToLocationWithGridMap()
+{
+}
+
+void UBattleUtilityAction_MoveToLocationWithGridMap::StartAction()
+{
+	Super::StartAction();
+	
+	RequestResult = EPathFollowingRequestResult::Type::Failed;
+
+	ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(CachedAIComponent->ConsiderList->MyCharacter);
+	AIController = Cast<AAIController>(EnemyCharacter->GetController());
+	
+	FVector TargetLocation = CachedAIComponent->ConsiderList->BestSpotLocation;
+
+	if (TargetLocation.ContainsNaN())
+	{
+		EndAction();
+	}
+	else
+	{
+		UWorldRiskGridMapSubSystem* GridMapSubSystem = GetWorld()->GetSubsystem<UWorldRiskGridMapSubSystem>();
+		GridMapSubSystem->UpdateRisk(CachedAIComponent->ConsiderList->MyCharacter->GetActorLocation());
+		
+		RequestResult = AIController->MoveToLocation(TargetLocation);
+		//RequestResult = AIController->MoveToLocation(TargetLocation, -1, true, true, false, true, UNavQueryFilter_CustomCost::StaticClass());
+	}
+}
+
+void UBattleUtilityAction_MoveToLocationWithGridMap::EndAction()
+{
+	if (AIController->IsFollowingAPath())
+	{
+		AIController->StopMovement();
+	}
+	Super::EndAction();
+}
+
+bool UBattleUtilityAction_MoveToLocationWithGridMap::TickAction(float DeltaTime)
+{
+	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
+	{
+		return true;
+	}
+
+	if (AIController)
+	{
+		if (UPathFollowingComponent* PathFollowingComponent = AIController->GetPathFollowingComponent())
+		{
+			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
+			{
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 UBattleUtilityAction_MoveToRuin::UBattleUtilityAction_MoveToRuin()
