@@ -41,6 +41,9 @@ public:
 	bool HasStatTag(FGameplayTag Tag) const;
 
 	static const FName NAME_BattleAbilityReady;
+
+	UFUNCTION(Server, Reliable)
+	void Server_ToggleReady();
 	
 protected:
 
@@ -50,6 +53,8 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_PawnData)
 	TObjectPtr<const UBattlePawnData> PawnData;
 
+	
+
 private:
 	
 	UPROPERTY(VisibleAnywhere, Category="Battle|PlayerState")
@@ -57,4 +62,6 @@ private:
 
 	UPROPERTY(Replicated)
 	FBattleGameplayTagStackContainer StatTags;
+	
+	bool bIsReady = false;
 };

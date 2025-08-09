@@ -305,6 +305,8 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 					// 바인딩을 진행하면, 이후 Input 이벤트에 따라 멤버 함수가 트리거됨.
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Move, ETriggerEvent::Triggered, this,&ThisClass::Input_Move, false);
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this,&ThisClass::Input_LookMouse, false);
+					ABattlePlayerState* PS = GetPlayerState<ABattlePlayerState>();
+					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_ReadyToggle, ETriggerEvent::Triggered, PS, &ABattlePlayerState::Server_ToggleReady, false);
 				}
 				
 			}

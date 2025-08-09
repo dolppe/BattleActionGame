@@ -31,7 +31,14 @@ void UBattleUtilityAction_SearchTarget::StartAction()
 	if (SelectTarget == nullptr)
 	{
 		// 도주시 거리가 멀어져서 Distance 안쪽으로 Target이 없는 경우 캐싱해둔 Target 제거
-		CachedAIComponent->ConsiderList->SelectedTarget = nullptr;
+
+		for (AActor* Target : CachedAIComponent->ConsiderList->TargetActors)
+		{
+			SelectTarget = Target;
+			break;
+		}
+		
+		CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(SelectTarget);
 	}
 	else
 	{

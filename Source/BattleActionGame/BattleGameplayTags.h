@@ -39,6 +39,7 @@ public:
 	
 	FGameplayTag InputTag_Move;
 	FGameplayTag InputTag_Look_Mouse;
+	FGameplayTag InputTag_ReadyToggle;
 
 	/*
 	 *	Status
@@ -104,6 +105,14 @@ public:
 	 */
 	FGameplayTag Gameplay_Breakable_LeftLeg;
 	FGameplayTag Gameplay_Breakable_RightLeg;
+
+
+	/*
+	 * 
+	 */
+
+	FGameplayTag Gameplay_Message_Ready;
+	FGameplayTag Gameplay_Message_Unready;
 	
 
 protected:

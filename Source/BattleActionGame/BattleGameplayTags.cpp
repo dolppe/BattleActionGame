@@ -41,6 +41,9 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	*/
 	AddTag(InputTag_Move, "InputTag.Move", "");
 	AddTag(InputTag_Look_Mouse, "InputTag.Look.Mouse", "");
+	AddTag(InputTag_ReadyToggle, "InputTag.ReadyToggle", "");
+	
+	
 
 	/*
 	 *	Status
@@ -104,6 +107,10 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(Gameplay_Breakable_LeftLeg, "Gameplay.Breakable.LeftLeg", "");
 	AddTag(Gameplay_Breakable_RightLeg, "Gameplay.Breakable.RightLeg", "");
+
+	AddTag(Gameplay_Message_Ready, "Gameplay.Message.Ready", "");
+	AddTag(Gameplay_Message_Unready, "Gameplay.Message.Unready", "");
+	
 	
 	
 }

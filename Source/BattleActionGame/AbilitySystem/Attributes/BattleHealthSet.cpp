@@ -7,15 +7,16 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleHealthSet)
 
+UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_DamageImmunity, "Gameplay.DamageImmunity");
+
 UBattleHealthSet::UBattleHealthSet()
 	: Health(100.0f)
 	, MaxHealth(100.0f)
 	, Stamina(100.0f)
 	, MaxStamina(100.0f)
+	, bOutOfHealth(false)
 {
-	bOutOfHealth = false;
-
-
+	
 }
 
 void UBattleHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
@@ -36,6 +37,28 @@ void UBattleHealthSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
 void UBattleHealthSet::OnRep_MaxStamina(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UBattleHealthSet, MaxStamina, OldValue);
+}
+
+bool UBattleHealthSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+{
+	if (!Super::PreGameplayEffectExecute(Data))
+	{
+		return false;
+	}
+
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		if (Data.EvaluatedData.Magnitude > 0.0f)
+		{
+			if(Data.Target.HasMatchingGameplayTag(TAG_Gameplay_DamageImmunity))
+			{
+				Data.EvaluatedData.Magnitude = 0.0f;
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 void UBattleHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
