@@ -29,6 +29,7 @@ public:
 	 */
 
 	FGameplayTag GameplayEvent_JustDash;
+	FGameplayTag GameplayEvent_Death;
 
 	FGameplayTag Ability_Trigger_JustClash;	
 	FGameplayTag Ability_Type_Action_Groggy;

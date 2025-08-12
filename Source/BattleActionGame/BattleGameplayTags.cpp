@@ -32,6 +32,8 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	 */
 
 	AddTag(GameplayEvent_JustDash, "GameplayEvent.JustDash", "");
+	AddTag(GameplayEvent_Death, "GameplayEvent.Death", "");
+	
 	AddTag(Ability_Type_Action_Groggy, "Ability.Type.Action.Groggy", "");
 	AddTag(Ability_Trigger_JustClash, "Ability.Trigger.JustClash", "");
 	
