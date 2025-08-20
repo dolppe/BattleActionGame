@@ -42,6 +42,9 @@ public:
 
 	static const FName NAME_BattleAbilityReady;
 
+	UFUNCTION()
+	void ToggleReady();
+
 	UFUNCTION(Server, Reliable)
 	void Server_ToggleReady();
 	

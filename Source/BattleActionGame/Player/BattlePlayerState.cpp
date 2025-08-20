@@ -136,6 +136,31 @@ bool ABattlePlayerState::HasStatTag(FGameplayTag Tag) const
 	return StatTags.ContainsTag(Tag);
 }
 
+void ABattlePlayerState::ToggleReady()
+{
+	bIsReady = !bIsReady;
+	
+	FBattleVerbMessage Message;
+	Message.Instigator = this;
+	
+	if (bIsReady)
+	{
+		Message.Verb = FBattleGameplayTags::Get().Gameplay_Message_Ready;	
+	}
+	else
+	{
+		Message.Verb = FBattleGameplayTags::Get().Gameplay_Message_Unready;	
+	}
+
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(Message.Verb, Message);
+	
+	if (!HasAuthority())
+	{
+		Server_ToggleReady();
+	}
+}
+
 void ABattlePlayerState::Server_ToggleReady_Implementation()
 {
 	BA_LOG(LogBattle,Log,TEXT("%s"), bIsReady?TEXT("IsReady"):TEXT("IsNotReady"));

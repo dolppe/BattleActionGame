@@ -8,6 +8,9 @@
 class UBattleExperienceManagerComponent;
 class UBattleAbilitySystemComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerAddedOnlyServer, APlayerState*, PlayerState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerRemovedOnlyServer, APlayerState*, PlayerState);
+
 UCLASS()
 class ABattleGameState : public AModularGameStateBase, public IAbilitySystemInterface
 {
@@ -25,11 +28,40 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Battle|GameState")
 	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const { return AbilitySystemComponent; }
 
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerAddedOnlyServer OnPlayerAddedOnlyServer;
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerRemovedOnlyServer OnPlayerRemovedOnlyServer;
+
+	UFUNCTION()
+	void OnRep_GameReadyNum();
+
+	UFUNCTION(BlueprintCallable)
+	void SetGameReadyNum(int InGameReadyNum)
+	{
+		GameReadyNum = InGameReadyNum;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	int GetGameReadyNum() const
+	{
+		return GameReadyNum;
+	}
+	
+
 private:
 	UPROPERTY()
 	TObjectPtr<UBattleExperienceManagerComponent> ExperienceManagerComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Battle|GameState")
 	TObjectPtr<UBattleAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(ReplicatedUsing= OnRep_GameReadyNum)
+	int GameReadyNum = 0;
+
+	
 	
 };

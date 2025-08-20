@@ -306,7 +306,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Move, ETriggerEvent::Triggered, this,&ThisClass::Input_Move, false);
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this,&ThisClass::Input_LookMouse, false);
 					ABattlePlayerState* PS = GetPlayerState<ABattlePlayerState>();
-					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_ReadyToggle, ETriggerEvent::Triggered, PS, &ABattlePlayerState::Server_ToggleReady, false);
+					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_ReadyToggle, ETriggerEvent::Triggered, PS, &ABattlePlayerState::ToggleReady, false);
 				}
 				
 			}

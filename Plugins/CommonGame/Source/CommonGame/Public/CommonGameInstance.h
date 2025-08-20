@@ -3,6 +3,7 @@
 #include "Engine/GameInstance.h"
 #include "CommonGameInstance.generated.h"
 
+
 UCLASS(Abstract)
 class COMMONGAME_API UCommonGameInstance : public UGameInstance
 {
@@ -14,5 +15,6 @@ public:
 	virtual bool RemoveLocalPlayer(ULocalPlayer* ExistingPlayer) override;
 
 	// 메인 로컬 플레이어를 캐싱함.
+	UPROPERTY(BlueprintReadWrite)
 	TWeakObjectPtr<ULocalPlayer> PrimaryPlayer;
 };
