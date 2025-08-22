@@ -20,6 +20,7 @@
 
 const FName ABattlePlayerState::NAME_BattleAbilityReady("BattleAbilitiesReady");
 
+
 ABattlePlayerState::ABattlePlayerState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -109,6 +110,7 @@ void ABattlePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, PawnData, SharedParams);
 
 	DOREPLIFETIME(ThisClass, StatTags);
+	DOREPLIFETIME(ThisClass, CombatStat);
 }
 
 UAbilitySystemComponent* ABattlePlayerState::GetAbilitySystemComponent() const
@@ -159,6 +161,10 @@ void ABattlePlayerState::ToggleReady()
 	{
 		Server_ToggleReady();
 	}
+}
+
+void ABattlePlayerState::OnRep_CombatStat()
+{
 }
 
 void ABattlePlayerState::Server_ToggleReady_Implementation()

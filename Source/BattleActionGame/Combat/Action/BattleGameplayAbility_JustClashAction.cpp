@@ -7,6 +7,7 @@
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
+#include "BattleActionGame/Player/BattlePlayerState.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -43,7 +44,14 @@ void UBattleGameplayAbility_JustClashAction::ActivateAbility(const FGameplayAbil
 	ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(TargetActor);
 	UAbilitySystemComponent* TargetASC = TargetCharacter->GetAbilitySystemComponent();
 	TargetASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Ability_Trigger_JustClash);
-	
+
+	if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(ActorInfo->OwnerActor))
+		{
+			PS->CombatStat.JustClashCount++;
+		}	
+	}
 }
 
 PRAGMA_ENABLE_OPTIMIZATION

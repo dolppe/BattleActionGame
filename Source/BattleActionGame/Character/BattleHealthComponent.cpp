@@ -1,5 +1,6 @@
 #include "BattleHealthComponent.h"
 
+#include "BattleCharacter.h"
 #include "GameplayEffectExtension.h"
 #include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/BattleGameplayTags.h"
@@ -8,6 +9,7 @@
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemGlobals.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
 #include "BattleActionGame/Messages/BattleVerbMessage.h"
+#include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleHealthComponent)
@@ -228,6 +230,24 @@ static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& Cha
 void UBattleHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
 	AActor* Instigator = GetInstigatorFromAttrChangeData(ChangeData);
+
+	if (ChangeData.NewValue < ChangeData.OldValue)
+	{
+		if (ABattleCharacter* Character = Cast<ABattleCharacter>(GetOwner()))
+		{
+			if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(Character->GetPlayerState()))
+			{
+				PS->CombatStat.ReceivedDamage += ChangeData.OldValue - ChangeData.NewValue;
+			}
+		}
+		else if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(Instigator))
+		{
+			PS->CombatStat.BossDamage += ChangeData.OldValue - ChangeData.NewValue;
+		}
+
+	}
+
+	
 	OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, Instigator);
 }
 

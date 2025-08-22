@@ -9,5 +9,9 @@ class UBattleLocalPlayer : public UCommonLocalPlayer
 	GENERATED_BODY()
 public:
 	UBattleLocalPlayer();
+
+	UFUNCTION(BlueprintCallable)
+	APlayerController* GetPlayerControllerWithBP(const UWorld* const InWorld) const;
+	
 	
 };

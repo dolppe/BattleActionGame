@@ -17,6 +17,8 @@ public:
 
 	ABattlePlayerState* GetBattlePlayerState() const;
 	UBattleAbilitySystemComponent* GetBattleABilitySystemComponent() const;
+
+	//virtual void TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
 	
 	
 };
