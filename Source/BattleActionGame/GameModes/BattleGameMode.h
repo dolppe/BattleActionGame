@@ -32,6 +32,8 @@ public:
 	
 	virtual bool PlayerCanRestart_Implementation(APlayerController* Player) override;
 
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
 	/*
 	* Member Methods
 	*/

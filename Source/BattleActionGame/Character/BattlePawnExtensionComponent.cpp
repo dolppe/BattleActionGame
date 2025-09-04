@@ -259,6 +259,7 @@ void UBattlePawnExtensionComponent::UnInitializeAbilitySystem()
 	{
 		AbilitySystemComponent->ClearAbilityInput();
 		AbilitySystemComponent->RemoveAllGameplayCues();
+		AbilitySystemComponent->RemoveActiveEffectsWithTags(FGameplayTagContainer(FBattleGameplayTags::Get().Status));
 
 		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
 		{

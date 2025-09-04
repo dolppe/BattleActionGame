@@ -2,7 +2,9 @@
 
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleExperienceManagerComponent.h"
+#include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Messages/BattleVerbMessage.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -29,6 +31,19 @@ void ABattleGameState::PostInitializeComponents()
 UAbilitySystemComponent* ABattleGameState::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void ABattleGameState::MulticastMessageToClients_Implementation(const FBattleVerbMessage Message)
+{
+	if (GetNetMode() == NM_Client)
+	{
+		UGameplayMessageSubsystem::Get(this).BroadcastMessage(Message.Verb, Message);
+	}
+}
+
+void ABattleGameState::MulticastReliableMessageToClients_Implementation(const FBattleVerbMessage Message)
+{
+	MulticastMessageToClients_Implementation(Message);
 }
 
 void ABattleGameState::AddPlayerState(APlayerState* PlayerState)

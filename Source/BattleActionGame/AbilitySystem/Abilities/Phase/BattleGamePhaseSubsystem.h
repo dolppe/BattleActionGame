@@ -35,6 +35,11 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, BlueprintPure = false, meta = (AutoCreateRefTerm = "PhaseTag"))
 	bool IsPhaseActive(const FGameplayTag& PhaseTag) const;
 
+	FGameplayAbilitySpec* GetCurrentPhase()
+	{
+		return CurPhaseAbilitySpec;
+	}
+
 protected:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Game Phase", meta=(DisplayName="Start Phase", AutoCreateRefTerm="PhaseEnded"))
@@ -55,6 +60,7 @@ private:
 	};
 
 	TMap<FGameplayAbilitySpecHandle, FBattleGamePhaseEntry> ActivePhaseMap;
+	FGameplayAbilitySpec* CurPhaseAbilitySpec = nullptr;
 
 
 	struct FPhaseObserver

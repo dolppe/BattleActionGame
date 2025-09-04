@@ -1,6 +1,7 @@
 #include "BattleHeroComponent.h"
 
 #include "BattleCharacter.h"
+#include "BattleHealthComponent.h"
 #include "BattlePawnExtensionComponent.h"
 #include "EnhancedInputSubsystemInterface.h"
 #include "EnhancedInputSubsystems.h"
@@ -431,6 +432,13 @@ void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Directi
 
 void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, float ZForce)
 {
+	if (UBattleHealthComponent* HealthComponent = Cast<UBattleHealthComponent>(GetOwner()->GetComponentByClass(UBattleHealthComponent::StaticClass())))
+	{
+		if (HealthComponent->IsDeadOrDying())
+		{
+			return;
+		}		
+	}
 	BA_SUBLOG(LogBattle, Warning, TEXT("Start"));
 	//PerformDirectionalMove(Direction, Strength, ZForce);
 	if (KnockbackMontage)

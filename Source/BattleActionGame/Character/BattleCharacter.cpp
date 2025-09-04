@@ -39,6 +39,8 @@ ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
 	}
 	{
 		HealthComponent = CreateDefaultSubobject<UBattleHealthComponent>(TEXT("HealthComponent"));
+		HealthComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
+		HealthComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
 	}
 	
 }
@@ -65,6 +67,68 @@ void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PawnExtComponent->SetupPlayerInputComponent();
 }
 
+void ABattleCharacter::OnDeathStarted(AActor* OwningActor)
+{
+	DisableMovementAndCollision();
+}
+
+void ABattleCharacter::OnDeathFinished(AActor* OwningActor)
+{
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::DestroyDueToDeath);
+}
+
+void ABattleCharacter::DisableMovementAndCollision()
+{
+	if (Controller)
+	{
+		Controller->SetIgnoreMoveInput(true);
+	}
+
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	check(CapsuleComp);
+	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	MovementComponent->StopMovementImmediately();
+	MovementComponent->DisableMovement();
+}
+
+void ABattleCharacter::DestroyDueToDeath()
+{
+	K2_OnDeathFinished();
+
+	UninitAndDestroy();
+}
+
+void ABattleCharacter::UninitAndDestroy()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		DetachFromControllerPendingDestroy();
+		SetLifeSpan(0.1f);
+	}
+
+	if (UBattleAbilitySystemComponent* BattleASC = GetBattleAbilitySystemComponent())
+	{
+		if (BattleASC->GetAvatarActor() == this)
+		{
+			PawnExtComponent->UnInitializeAbilitySystem();
+		}
+	}
+
+	SetActorHiddenInGame(true);
+}
+
+void ABattleCharacter::Reset()
+{
+	DisableMovementAndCollision();
+
+	K2_OnReset();
+
+	UninitAndDestroy();
+}
+
 void ABattleCharacter::OnAbilitySystemInitialized()
 {
 	UBattleAbilitySystemComponent* ASC = GetBattleAbilitySystemComponent();
@@ -75,7 +139,7 @@ void ABattleCharacter::OnAbilitySystemInitialized()
 
 void ABattleCharacter::OnAbilitySystemUninitialized()
 {
-
+	HealthComponent->UninitializeFromAbilitySystem();
 }
 
 void ABattleCharacter::PossessedBy(AController* NewController)

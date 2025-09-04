@@ -62,6 +62,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FBattleItemInfo& GetSlotsItem(int SlotIdx);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	void ClearItems();
 	
 	
 protected:

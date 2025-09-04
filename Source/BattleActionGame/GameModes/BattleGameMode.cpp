@@ -5,10 +5,13 @@
 #include "BattleUserFacingExperienceDefinition.h"
 #include "BattleWorldSettings.h"
 #include "CommonSessionSubsystem.h"
+#include "EngineUtils.h"
+#include "BattleActionGame/AbilitySystem/Abilities/Phase/BattleGamePhaseSubsystem.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "BattleActionGame/Character/BattlePawnData.h"
 #include "BattleActionGame/Character/BattlePawnExtensionComponent.h"
 #include "BattleActionGame/Player/BattlePlayerController.h"
+#include "BattleActionGame/Player/BattlePlayerStart.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "BattleActionGame/System/BattleAssetManager.h"
 #include "BattleActionGame/UI/BattleHUD.h"
@@ -111,6 +114,40 @@ UClass* ABattleGameMode::GetDefaultPawnClassForController_Implementation(AContro
 bool ABattleGameMode::PlayerCanRestart_Implementation(APlayerController* Player)
 {
 	return ControllerCanRestart(Player);
+}
+
+AActor* ABattleGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	UWorld* World = GetWorld();
+	UBattleGamePhaseSubsystem* PhaseSubsystem = World->GetSubsystem<UBattleGamePhaseSubsystem>();
+	if (PhaseSubsystem->GetCurrentPhase() == nullptr)
+	{
+		return Super::ChoosePlayerStart_Implementation(Player);
+	}
+	UBattleGamePhaseAbility* PhaseAbility = Cast<UBattleGamePhaseAbility>(PhaseSubsystem->GetCurrentPhase()->Ability);
+	FGameplayTag PhaseTag = PhaseAbility->GetGamePhaseTag();
+
+	APlayerStart* FoundPlayerStart = nullptr;
+	int MaxNum = 0;
+	
+	for (TActorIterator<ABattlePlayerStart> It(World);It;++It)
+	{
+		ABattlePlayerStart* PlayerStart = *It;
+		int Depth = PhaseTag.MatchesTagDepth(PlayerStart->GetPlayerStartTag());
+
+		if (Depth > MaxNum)
+		{
+			MaxNum = Depth;
+			FoundPlayerStart = *It;
+		}
+	}
+
+	if (FoundPlayerStart != nullptr)
+	{
+		return FoundPlayerStart;
+	}
+
+	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
 

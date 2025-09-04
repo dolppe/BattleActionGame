@@ -34,6 +34,7 @@ void UBattleGameplayAbility_Death::ActivateAbility(const FGameplayAbilitySpecHan
 	UBattleAbilitySystemComponent* BattleASC = CastChecked<UBattleAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
 
 	FGameplayTagContainer AbilityTypesToIgnore;
+	AbilityTypesToIgnore.AddTag(FBattleGameplayTags::Get().Ability_Behavior_SurvivesDeath);
 
 	BattleASC->CancelAbilities(nullptr, &AbilityTypesToIgnore, this);
 	

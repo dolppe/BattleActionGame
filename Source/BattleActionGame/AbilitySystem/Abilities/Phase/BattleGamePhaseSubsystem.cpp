@@ -23,6 +23,8 @@ void UBattleGamePhaseSubsystem::StartPhase(TSubclassOf<UBattleGamePhaseAbility> 
 		FGameplayAbilitySpecHandle SpecHandle = GameStateASC->GiveAbilityAndActivateOnce(PhaseSpec);
 		FGameplayAbilitySpec* FoundSpec = GameStateASC->FindAbilitySpecFromHandle(SpecHandle);
 
+		CurPhaseAbilitySpec = FoundSpec;
+
 		if (FoundSpec && FoundSpec->IsActive())
 		{
 			FBattleGamePhaseEntry& Entry = ActivePhaseMap.FindOrAdd(SpecHandle);

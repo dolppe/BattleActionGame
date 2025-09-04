@@ -33,11 +33,15 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(GameplayEvent_JustDash, "GameplayEvent.JustDash", "");
 	AddTag(GameplayEvent_Death, "GameplayEvent.Death", "");
+	AddTag(GameplayEvent_RequestReset, "GameplayEvent.RequestReset", "");
+	AddTag(GameplayEvent_Reset, "GameplayEvent.Reset", "");
+	
 	
 	AddTag(Ability_Type_Action_Groggy, "Ability.Type.Action.Groggy", "");
 	AddTag(Ability_Trigger_JustClash, "Ability.Trigger.JustClash", "");
+	AddTag(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "");
 	
-
+	
 	/*
 	*	EnhancedInput Tags
 	*/
@@ -62,6 +66,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	
 	AddTag(Status_KnockBack, "Status.KnockBack", "");
 	AddTag(Status_Groggy, "Status.Groggy", "");
+	AddTag(Status, "Status", "");
 	
 	/*
      * Block

@@ -279,6 +279,14 @@ FBattleItemInfo& UBattleQuickBarComponent::GetSlotsItem(int SlotIdx)
 	return Slots[SlotIdx];
 }
 
+void UBattleQuickBarComponent::ClearItems()
+{
+	for (int Idx = 0; Idx < NumSlots; ++Idx)
+	{
+		RemoveItemFromSlot(Idx);
+	}
+}
+
 void UBattleQuickBarComponent::OnRep_Slots()
 {
 	BA_SUBLOG(LogBattle, Log, TEXT("OnRep_Slots, %s"), *Slots[ActiveSlotIndex].ItemDef.GetName());

@@ -30,9 +30,13 @@ public:
 
 	FGameplayTag GameplayEvent_JustDash;
 	FGameplayTag GameplayEvent_Death;
+	FGameplayTag GameplayEvent_RequestReset;
+	FGameplayTag GameplayEvent_Reset;
 
 	FGameplayTag Ability_Trigger_JustClash;	
 	FGameplayTag Ability_Type_Action_Groggy;
+
+	FGameplayTag Ability_Behavior_SurvivesDeath;
 
 	/*
 	 *	Enhanced Input Tags
@@ -58,6 +62,7 @@ public:
 	FGameplayTag Status_KnockBack;
 
 	FGameplayTag Status_Groggy;
+	FGameplayTag Status;
 
 	/*
 	 * Block

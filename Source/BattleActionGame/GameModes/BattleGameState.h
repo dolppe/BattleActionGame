@@ -8,6 +8,7 @@
 
 class UBattleExperienceManagerComponent;
 class UBattleAbilitySystemComponent;
+struct FBattleVerbMessage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerAddedOnlyServer, APlayerState*, PlayerState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerRemovedOnlyServer, APlayerState*, PlayerState);
@@ -38,6 +39,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Battle|GameState")
 	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const { return AbilitySystemComponent; }
+
+	UFUNCTION(NetMulticast, Unreliable, BlueprintCallable, Category = "Battle|GameState")
+	void MulticastMessageToClients(const FBattleVerbMessage Message);
+	
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Battle|GameState")
+	void MulticastReliableMessageToClients(const FBattleVerbMessage Message);
 
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
@@ -71,12 +78,14 @@ public:
 		return BestStatValue;
 	}
 	
-
 	UFUNCTION(BlueprintCallable)
 	TArray<int>& GetBestPlayerIdx()
 	{
 		return BestPlayerIdx;
 	}
+
+	
+protected:
 
 	UFUNCTION()
 	void OnRep_BestStatValue();
