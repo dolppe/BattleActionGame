@@ -5,3 +5,8 @@ UBattleLocalPlayer::UBattleLocalPlayer()
 	: Super()
 {
 }
+
+APlayerController* UBattleLocalPlayer::GetPlayerControllerWithBP(const UWorld* const InWorld) const
+{
+	return GetPlayerController(InWorld);
+}

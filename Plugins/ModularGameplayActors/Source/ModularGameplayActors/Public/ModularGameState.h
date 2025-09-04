@@ -4,6 +4,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "ModularGameState.generated.h"
 
+
+
 UCLASS(Blueprintable)
 class MODULARGAMEPLAYACTORS_API AModularGameStateBase : public AGameStateBase
 {
@@ -25,6 +27,7 @@ public:
 	virtual void PreInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 
 protected:
 	virtual void HandleMatchHasStarted() override;

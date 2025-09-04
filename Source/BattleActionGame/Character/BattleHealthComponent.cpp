@@ -1,14 +1,20 @@
 #include "BattleHealthComponent.h"
 
+#include "BattleCharacter.h"
 #include "GameplayEffectExtension.h"
+#include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemGlobals.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
+#include "BattleActionGame/Messages/BattleVerbMessage.h"
+#include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleHealthComponent)
+
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Gameplay_Message_OutOfHealth, "Gameplay.Message.OutOfHealth");
 
 UBattleHealthComponent::UBattleHealthComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -223,10 +229,25 @@ static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& Cha
 
 void UBattleHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
-	BA_SUBLOG(LogBattle, Log, TEXT("Health Change : %f => %f"), ChangeData.OldValue, ChangeData.NewValue);
-
 	AActor* Instigator = GetInstigatorFromAttrChangeData(ChangeData);
 
+	if (ChangeData.NewValue < ChangeData.OldValue)
+	{
+		if (ABattleCharacter* Character = Cast<ABattleCharacter>(GetOwner()))
+		{
+			if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(Character->GetPlayerState()))
+			{
+				PS->CombatStat.ReceivedDamage += ChangeData.OldValue - ChangeData.NewValue;
+			}
+		}
+		else if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(Instigator))
+		{
+			PS->CombatStat.BossDamage += ChangeData.OldValue - ChangeData.NewValue;
+		}
+
+	}
+
+	
 	OnHealthChanged.Broadcast(this, ChangeData.OldValue, ChangeData.NewValue, Instigator);
 }
 
@@ -254,7 +275,32 @@ void UBattleHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 #if WITH_SERVER_CODE
 	if (AbilitySystemComponent)
 	{
-		// DeathMessage;
+		{
+			FGameplayEventData Payload;
+			Payload.EventTag = FBattleGameplayTags::Get().GameplayEvent_Death;
+			Payload.Instigator = DamageInstigator;
+			Payload.Target =AbilitySystemComponent->GetAvatarActor();
+			Payload.OptionalObject = DamageEffectSpec.Def;
+			Payload.ContextHandle = DamageEffectSpec.GetEffectContext();
+			Payload.InstigatorTags = *DamageEffectSpec.CapturedSourceTags.GetAggregatedTags();
+			Payload.TargetTags = *DamageEffectSpec.CapturedTargetTags.GetAggregatedTags();
+			Payload.EventMagnitude = DamageMagnitude;
+
+			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+		}
+
+		{
+			FBattleVerbMessage Message;
+			Message.Verb = TAG_Gameplay_Message_OutOfHealth;
+			Message.Instigator = DamageInstigator;
+			Message.InstigatorTags = *DamageEffectSpec.CapturedSourceTags.GetAggregatedTags();
+			Message.Target = AbilitySystemComponent->GetAvatarActor();
+			Message.TargetTags = *DamageEffectSpec.CapturedTargetTags.GetAggregatedTags();
+
+			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSubsystem.BroadcastMessage(Message.Verb, Message);
+		}
 
 	}
 	

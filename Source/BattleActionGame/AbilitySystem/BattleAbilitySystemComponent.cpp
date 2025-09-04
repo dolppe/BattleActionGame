@@ -1,6 +1,7 @@
 #include "BattleAbilitySystemComponent.h"
 
 #include "BattleAbilityTagRelationshipMapping.h"
+#include "BattleGlobalAbilitySystem.h"
 #include "NativeGameplayTags.h"
 #include "Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/BattleLogChannels.h"
@@ -16,6 +17,15 @@ UBattleAbilitySystemComponent::UBattleAbilitySystemComponent(const FObjectInitia
 	InputPressedSpecHandles.Reset();
 	InputReleasedSpecHandles.Reset();
 	InputHeldSpecHandles.Reset();
+}
+
+void UBattleAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UBattleGlobalAbilitySystem* GlobalAbilitySystem = GetWorld()->GetSubsystem<UBattleGlobalAbilitySystem>())
+	{
+		GlobalAbilitySystem->UnregisterASC(this);
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 
@@ -92,6 +102,11 @@ void UBattleAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 			{
 				BattleAbilityCDO->OnPawnAvatarSet();
 			}
+		}
+
+		if (UBattleGlobalAbilitySystem* GlobalAbilitySystem = GetWorld()->GetSubsystem<UBattleGlobalAbilitySystem>())
+		{
+			GlobalAbilitySystem->RegisterASC(this);
 		}
 
 		if (UBattleAnimInstance* BattleAnimInst = Cast<UBattleAnimInstance>(ActorInfo->GetAnimInstance()))

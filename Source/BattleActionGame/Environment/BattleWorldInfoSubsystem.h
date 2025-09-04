@@ -15,6 +15,7 @@ public:
 
 	virtual void PostInitialize() override;
 
+	UFUNCTION(BlueprintCallable)
 	ABattleUtilitySpot* GetUtilitySpot(EUtilitySpotType UtilitySpotType)
 	{
 		return UtilitySpotMap[UtilitySpotType];

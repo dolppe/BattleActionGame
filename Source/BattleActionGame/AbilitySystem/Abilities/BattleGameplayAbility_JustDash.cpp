@@ -5,6 +5,7 @@
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
+#include "BattleActionGame/Player/BattlePlayerState.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_JustDash)
 
@@ -50,6 +51,11 @@ void UBattleGameplayAbility_JustDash::ActivateAbility(const FGameplayAbilitySpec
 		ASC->ExecuteGameplayCue(OwnerJustDashEffectTag, Params);
 
 		GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectToSelf(GE_AllowedCounterAttack.GetDefaultObject(), 1.0f,ASC->MakeEffectContext());
+
+		if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(ActorInfo->OwnerActor))
+		{
+			PS->CombatStat.JustDashCount++;
+		}
 
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}

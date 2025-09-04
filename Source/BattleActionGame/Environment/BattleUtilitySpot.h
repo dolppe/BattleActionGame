@@ -9,6 +9,7 @@ enum class EUtilitySpotType : uint8
 	Resting,
 	ChargeElectricity,
 	ChargePoison,
+	GameStart,
 };
 
 

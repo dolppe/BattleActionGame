@@ -7,6 +7,7 @@
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
+#include "BattleActionGame/Player/BattlePlayerState.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleQuickBarComponent)
 
@@ -148,7 +149,7 @@ bool UBattleQuickBarComponent::AddItemQuantity(UBattleItemData* Item, int Quanti
 }
 
 bool UBattleQuickBarComponent::UseItemQuantity(int Quantity)
-{
+{	
 	int Idx = ActiveSlotIndex;
 
 	BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity Start: %d"), Slots[ActiveSlotIndex].Num);
@@ -180,6 +181,14 @@ bool UBattleQuickBarComponent::UseItemQuantity(int Quantity)
 			Slots[Idx].Num -= Quantity;
 		}
 
+		if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
+		{
+			if (ABattlePlayerState* PS = PC->GetPlayerState<ABattlePlayerState>())
+			{
+				PS->CombatStat.ItemCount++;
+			}
+		}
+		
 		BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity End: %d"), Slots[ActiveSlotIndex].Num);
 		return true;
 	}
@@ -268,6 +277,14 @@ int UBattleQuickBarComponent::GetAfterActiveSlotIdx()
 FBattleItemInfo& UBattleQuickBarComponent::GetSlotsItem(int SlotIdx)
 {
 	return Slots[SlotIdx];
+}
+
+void UBattleQuickBarComponent::ClearItems()
+{
+	for (int Idx = 0; Idx < NumSlots; ++Idx)
+	{
+		RemoveItemFromSlot(Idx);
+	}
 }
 
 void UBattleQuickBarComponent::OnRep_Slots()

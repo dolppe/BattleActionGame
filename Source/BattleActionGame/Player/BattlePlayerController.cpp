@@ -33,3 +33,15 @@ UBattleAbilitySystemComponent* ABattlePlayerController::GetBattleABilitySystemCo
 	const ABattlePlayerState* BattlePS = GetBattlePlayerState();
 	return (BattlePS ? BattlePS->GetBattleAbilitySystemComponent() : nullptr);
 }
+
+// void ABattlePlayerController::TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction& ThisTickFunction)
+// {
+// 	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
+// 	if (GetBattlePlayerState() && HasAuthority())
+// 	{
+// 		FCombatStat& CombatStat = GetBattlePlayerState()->CombatStat;
+// 		BA_LOG(LogBattle, Log, TEXT("%f, %f, %d, %d, %d"), CombatStat.BossDamage, CombatStat.ReceivedDamage, CombatStat.ItemCount, CombatStat.JustDashCount, CombatStat.JustClashCount);	
+// 	}
+// 	
+// }
+

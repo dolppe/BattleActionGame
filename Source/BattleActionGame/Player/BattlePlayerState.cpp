@@ -1,6 +1,9 @@
 #include "BattlePlayerState.h"
 
+#include "GameplayMessageSubsystem.h"
 #include "Abilities/GameplayAbilityTypes.h"
+#include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
@@ -9,12 +12,14 @@
 #include "BattleActionGame/GameModes/BattleExperienceManagerComponent.h"
 #include "BattleActionGame/GameModes/BattleExperienceDefinition.h"
 #include "BattleActionGame/GameModes/BattleGameMode.h"
+#include "BattleActionGame/Messages/BattleVerbMessage.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattlePlayerState)
 
 const FName ABattlePlayerState::NAME_BattleAbilityReady("BattleAbilitiesReady");
+
 
 ABattlePlayerState::ABattlePlayerState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -105,6 +110,7 @@ void ABattlePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, PawnData, SharedParams);
 
 	DOREPLIFETIME(ThisClass, StatTags);
+	DOREPLIFETIME(ThisClass, CombatStat);
 }
 
 UAbilitySystemComponent* ABattlePlayerState::GetAbilitySystemComponent() const
@@ -132,7 +138,59 @@ bool ABattlePlayerState::HasStatTag(FGameplayTag Tag) const
 	return StatTags.ContainsTag(Tag);
 }
 
+void ABattlePlayerState::ToggleReady()
+{
+	bIsReady = !bIsReady;
+	
+	FBattleVerbMessage Message;
+	Message.Instigator = this;
+	
+	if (bIsReady)
+	{
+		Message.Verb = FBattleGameplayTags::Get().Gameplay_Message_Ready;	
+	}
+	else
+	{
+		Message.Verb = FBattleGameplayTags::Get().Gameplay_Message_Unready;	
+	}
+
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(Message.Verb, Message);
+	
+	if (!HasAuthority())
+	{
+		Server_ToggleReady();
+	}
+}
+
+void ABattlePlayerState::OnRep_CombatStat()
+{
+}
+
+void ABattlePlayerState::Server_ToggleReady_Implementation()
+{
+	BA_LOG(LogBattle,Log,TEXT("%s"), bIsReady?TEXT("IsReady"):TEXT("IsNotReady"));
+	bIsReady = !bIsReady;
+	
+	FBattleVerbMessage Message;
+	Message.Instigator = this;
+	
+	if (bIsReady)
+	{
+		Message.Verb = FBattleGameplayTags::Get().Gameplay_Message_Ready;	
+	}
+	else
+	{
+		Message.Verb = FBattleGameplayTags::Get().Gameplay_Message_Unready;	
+	}
+
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(Message.Verb, Message);
+	
+}
+
 void ABattlePlayerState::OnRep_PawnData()
 {
 }
+
 

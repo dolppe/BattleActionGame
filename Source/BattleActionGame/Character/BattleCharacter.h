@@ -24,7 +24,20 @@ public:
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	
+	UFUNCTION()
+	virtual void OnDeathStarted(AActor* OwningActor);
+
+	UFUNCTION()
+	virtual void OnDeathFinished(AActor* OwningActor);
+
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName="OnDeathFinished"))
+	void K2_OnDeathFinished();
+
+	void DisableMovementAndCollision();
+	void DestroyDueToDeath();
+	void UninitAndDestroy();
+
+	virtual void Reset() override;
 
 protected:
 

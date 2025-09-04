@@ -2,8 +2,10 @@
 
 #include "BattleAttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "NativeGameplayTags.h"
 #include "BattleHealthSet.generated.h"
 
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_DamageImmunity);
 
 UCLASS(BlueprintType)
 class UBattleHealthSet : public UBattleAttributeSet
@@ -35,7 +37,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxStamina(const FGameplayAttributeData& OldValue);
-	
+
+	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;

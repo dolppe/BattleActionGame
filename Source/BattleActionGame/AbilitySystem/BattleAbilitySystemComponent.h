@@ -19,6 +19,8 @@ class UBattleAbilitySystemComponent : public UAbilitySystemComponent
 public:
 
 	UBattleAbilitySystemComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 	typedef TFunctionRef<bool(const UBattleGameplayAbility* BattleAbility, FGameplayAbilitySpecHandle Handle)> TShouldCancelAbilityFunc;
 	void CancelAbilityByFunc(TShouldCancelAbilityFunc ShouldCancelFunc, bool bReplicateCancelAbility);

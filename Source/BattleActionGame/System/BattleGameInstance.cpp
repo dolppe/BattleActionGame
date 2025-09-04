@@ -1,5 +1,6 @@
 #include "BattleGameInstance.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameInstance)
 
@@ -32,3 +33,17 @@ void UBattleGameInstance::Shutdown()
 {
 	Super::Shutdown();
 }
+
+int32 UBattleGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId)
+{
+	int ReturnVal = Super::AddLocalPlayer(NewPlayer, UserId);
+
+	if (ReturnVal == 0)
+	{
+		OnPrimaryPlayerAdded.Broadcast(NewPlayer);
+	}
+
+
+	return ReturnVal;
+}
+
