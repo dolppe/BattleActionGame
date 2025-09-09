@@ -73,5 +73,5 @@ UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(EColli
 
 void UBattleCombatManagerComponent::OnRep_CurrentTargetActor()
 {
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("CurrentTargetActor Rep"));
+	//BA_DEFAULT_LOG(LogBattle,Log,TEXT("CurrentTargetActor Rep"));
 }

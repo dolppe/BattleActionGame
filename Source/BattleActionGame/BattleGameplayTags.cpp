@@ -74,6 +74,8 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 
 	AddTag(Block_Movement, "Block.Movement", "");
+	AddTag(Block_Movement_AllowRotation, "Block.Movement.AllowRotation", "");
+	
     
 	
 	

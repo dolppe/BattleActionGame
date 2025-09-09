@@ -36,12 +36,12 @@ void ABattleCharacterBase::NetPlayMontage(UAnimMontage* AnimMontage, float InPla
 {
 	if (HasAuthority())
 	{
-		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Server Start"));
+		//BA_DEFAULT_LOG(LogBattle, Log, TEXT("Server Start"));
 		MulticastPlayMontage(AnimMontage, InPlayRate, StartSectionName);	
 	}
 	else
 	{
-		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Client Start"));
+		//BA_DEFAULT_LOG(LogBattle, Log, TEXT("Client Start"));
 		PlayAnimMontage(AnimMontage,InPlayRate,StartSectionName);
 		ServerPlayMontage(AnimMontage,InPlayRate,StartSectionName);
 	}
@@ -51,7 +51,7 @@ void ABattleCharacterBase::NetPlayMontage(UAnimMontage* AnimMontage, float InPla
 void ABattleCharacterBase::MulticastPlayMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
 	FName StartSectionName)
 {
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("Multicast Start"));
+	//BA_DEFAULT_LOG(LogBattle, Log, TEXT("Multicast Start"));
 	USkeletalMeshComponent* CharacterMesh = GetMesh();
 	UAnimInstance * AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr;
 	if (AnimInstance->Montage_IsPlaying(AnimMontage))

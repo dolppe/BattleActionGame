@@ -23,7 +23,7 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("%s => AttackStart"), *GetAvatarActorFromActorInfo()->GetName());
+	//BA_DEFAULT_LOG(LogBattle,Log,TEXT("%s => AttackStart"), *GetAvatarActorFromActorInfo()->GetName());
 	
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -34,10 +34,10 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
 		}
 
-		if (!bAllowMovement)
-		{
-			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-		}
+		// if (!bAllowMovement)
+		// {
+		// 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		// }
 	}
 }
 
@@ -71,10 +71,10 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 		{
 			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
 		}
-		if (!bAllowMovement)
-		{
-			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		}
+		// if (!bAllowMovement)
+		// {
+		// 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		// }
 	}
 	
 	
@@ -118,7 +118,7 @@ void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(con
 				}
 				else
 				{
-					UE_LOG(LogTemp, Log, TEXT("Hit Rejected, %f <= %f"), FVector::DistSquared(HitLocation, ActorBoxCenter), AcceptHitDistance * AcceptHitDistance);
+					//UE_LOG(LogTemp, Log, TEXT("Hit Rejected, %f <= %f"), FVector::DistSquared(HitLocation, ActorBoxCenter), AcceptHitDistance * AcceptHitDistance);
 				}
 			}
 		}	
@@ -153,7 +153,7 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitRes
 		{
 			AlreadyHitActors.Add(HitActor);
 
-			BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s"), *HitActor->GetName());
+			//BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s"), *HitActor->GetName());
 
 			FGameplayAbilityTargetDataHandle TargetData;
 			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
@@ -178,7 +178,7 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitRes
 						Payload.Target = GetAvatarActorFromActorInfo();
 						Payload.TargetData = TargetData;
 
-						BA_DEFAULT_LOG(LogBattle, Log, TEXT("JustClashTag Add"));
+						//BA_DEFAULT_LOG(LogBattle, Log, TEXT("JustClashTag Add"));
 						//HitActorASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Ability_Trigger_JustClash);
 
 						HitActorASC->HandleGameplayEvent(Payload.EventTag, &Payload);

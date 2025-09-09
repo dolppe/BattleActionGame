@@ -48,7 +48,7 @@ void UBattleGameplayAbility_CounterAction::EndAbility(const FGameplayAbilitySpec
 	else
 	{
 		
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 
 	if (Character->IsLocallyControlled())
@@ -72,7 +72,7 @@ void UBattleGameplayAbility_CounterAction::MoveToBestSpot()
 		FVector Direction = TargetActor->GetActorLocation() - Character->GetActorLocation();
 		Direction.Z = 0.0f;
 		Character->SetActorRotation(Direction.Rotation());
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 }
 

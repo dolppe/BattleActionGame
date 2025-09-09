@@ -69,6 +69,7 @@ public:
 	 */
 
 	FGameplayTag Block_Movement;
+	FGameplayTag Block_Movement_AllowRotation;
 
 
 	/*

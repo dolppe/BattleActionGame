@@ -73,7 +73,7 @@ void UBattleQuickBarComponent::SetActiveSlotIndex_Implementation(int NewIndex)
 
 void UBattleQuickBarComponent::AddItemToSlot(int SlotIndex, UBattleItemData* Item, int Quantity)
 {
-	BA_SUBLOG(LogBattle, Log, TEXT("OnRep_Slots"));
+	//BA_SUBLOG(LogBattle, Log, TEXT("OnRep_Slots"));
 	if (Slots.IsValidIndex(SlotIndex) && (Item != nullptr))
 	{
 		if (Slots[SlotIndex].ItemDef == nullptr)
@@ -152,7 +152,7 @@ bool UBattleQuickBarComponent::UseItemQuantity(int Quantity)
 {	
 	int Idx = ActiveSlotIndex;
 
-	BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity Start: %d"), Slots[ActiveSlotIndex].Num);
+	//BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity Start: %d"), Slots[ActiveSlotIndex].Num);
 	if (Idx == -1)
 	{
 		return false;
@@ -189,7 +189,7 @@ bool UBattleQuickBarComponent::UseItemQuantity(int Quantity)
 			}
 		}
 		
-		BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity End: %d"), Slots[ActiveSlotIndex].Num);
+		//BA_SUBLOG(LogBattle, Log ,TEXT("UseItemQuantity End: %d"), Slots[ActiveSlotIndex].Num);
 		return true;
 	}
 	return false;
@@ -289,7 +289,7 @@ void UBattleQuickBarComponent::ClearItems()
 
 void UBattleQuickBarComponent::OnRep_Slots()
 {
-	BA_SUBLOG(LogBattle, Log, TEXT("OnRep_Slots, %s"), *Slots[ActiveSlotIndex].ItemDef.GetName());
+	//BA_SUBLOG(LogBattle, Log, TEXT("OnRep_Slots, %s"), *Slots[ActiveSlotIndex].ItemDef.GetName());
 	FBattleQuickBarSlotsChangedMessage Message;
 	Message.Owner = GetOwner();
 	Message.Slots = Slots;

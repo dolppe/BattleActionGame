@@ -826,7 +826,7 @@ void UConsiderationFactors::SearchNearSpots()
 
 			TSet<uint16> AreaFlags;
 			//DrawDebugBox(GetWorld(), Box.GetCenter(), Box.GetExtent(), FColor::Purple, false, 10.0f);
-			BA_DEFAULT_LOG(LogBattle, Log, TEXT("%d"), OutPolys.Num());
+			//BA_DEFAULT_LOG(LogBattle, Log, TEXT("%d"), OutPolys.Num());
 
 			FVector CornerOrHighAreaLocation = FVector(NAN,NAN,NAN);
 			FVector AlternationLocation = FVector(NAN,NAN,NAN);;
@@ -879,7 +879,7 @@ void UConsiderationFactors::SearchNearSpots()
 			UNavArea* NavArea = Cast<UNavArea>(AreaClass->GetDefaultObject());
 			
 			MyCharacterAreaFlag = NavArea->GetAreaFlags();
-			UE_LOG(LogTemp, Log, TEXT("%d"), MyCharacterAreaFlag);
+			//UE_LOG(LogTemp, Log, TEXT("%d"), MyCharacterAreaFlag);
 			
 		}
 	
@@ -1025,7 +1025,7 @@ void UConsiderationFactors::SearchNearActors()
 		}
 		
 
-		UE_LOG(LogTemp, Log, TEXT("AverageDistance: %f      |    VarianceAngles: %f  | EnemyDensity: %f "), AverageDistance, VarianceAngles, EnemyDensity);
+		//UE_LOG(LogTemp, Log, TEXT("AverageDistance: %f      |    VarianceAngles: %f  | EnemyDensity: %f "), AverageDistance, VarianceAngles, EnemyDensity);
 		
 	}
 }

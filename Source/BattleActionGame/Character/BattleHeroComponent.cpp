@@ -324,7 +324,12 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
-	if (!bAllowedInput || CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+	{
+		Input_RotationCharacter(InputActionValue);
+		return;
+	}
+	else if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
 	{
 		return;
 	}
@@ -401,7 +406,7 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 
 void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Direction, float Strength, float ZForce)
 {
-	BA_SUBLOG(LogBattle, Warning, TEXT("Perform Suc"));
+	//BA_SUBLOG(LogBattle, Warning, TEXT("Perform Suc"));
 	APawn* Pawn = GetPawn<APawn>();
 
 	Direction = Direction * Strength;
@@ -439,11 +444,11 @@ void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, f
 			return;
 		}		
 	}
-	BA_SUBLOG(LogBattle, Warning, TEXT("Start"));
+	//BA_SUBLOG(LogBattle, Warning, TEXT("Start"));
 	//PerformDirectionalMove(Direction, Strength, ZForce);
 	if (KnockbackMontage)
 	{
-		BA_SUBLOG(LogBattle, Warning, TEXT("Montage Suc"));
+		//BA_SUBLOG(LogBattle, Warning, TEXT("Montage Suc"));
 		APawn* Pawn = GetPawn<APawn>();
 
 		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
@@ -520,7 +525,30 @@ void UBattleHeroComponent::RemoveAdditionalInputConfig(const UBattleInputConfig*
 {
 }
 
-void UBattleHeroComponent::SetAllowedInput(bool bInAllowedInput)
+
+void UBattleHeroComponent::Input_RotationCharacter(const FInputActionValue& InputActionValue)
 {
-	bAllowedInput = bInAllowedInput;
+	ACharacter* Character = GetPawn<ACharacter>();
+	AController* Controller = Character ? Character->GetController() : nullptr;
+
+	//Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	FVector2D MovementVector = InputActionValue.Get<FVector2D>();
+	
+	float InputYaw = FMath::RadiansToDegrees(FMath::Atan2(MovementVector.X, MovementVector.Y));
+	
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0,Rotation.Yaw + InputYaw,0);
+
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	Character->AddMovementInput(ForwardDirection, 0.0001f);
+	Character->AddMovementInput(RightDirection, 0.0001f);
+	
+	// Character->SetActorRotation(YawRotation);
+	// Controller->SetControlRotation(YawRotation);
+	// Character->GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	
 }

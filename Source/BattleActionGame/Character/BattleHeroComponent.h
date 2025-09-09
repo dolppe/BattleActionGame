@@ -64,10 +64,10 @@ public:
 	bool IsReadyToBindInputs() const;
 	void AdditionalInputConfig(const UBattleInputConfig* InputConfig);
 	void RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig);
-
-	void SetAllowedInput(bool bInAllowedInput);
 	
 protected:
+
+	void Input_RotationCharacter(const FInputActionValue& InputActionValue);
 
 	UPROPERTY(EditAnywhere)
 	TArray<FBattleMappableConfigPair> DefaultInputConfigs;
@@ -82,8 +82,6 @@ protected:
 protected:
 
 	UAbilitySystemComponent* CachedASC;
-	
-	bool bAllowedInput = true;
 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* KnockbackMontage;

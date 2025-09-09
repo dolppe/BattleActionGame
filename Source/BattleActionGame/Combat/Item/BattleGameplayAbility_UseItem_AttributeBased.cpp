@@ -29,7 +29,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::ActivateAbility(const FGamep
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UE_LOG(LogBattle, Log, TEXT("ActivateAbility: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
+	//UE_LOG(LogBattle, Log, TEXT("ActivateAbility: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
 
 	if (ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
@@ -56,10 +56,11 @@ void UBattleGameplayAbility_UseItem_AttributeBased::ActivateAbility(const FGamep
 					UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 
 					UseItemHandle = MessageSubsystem.RegisterListener(FBattleGameplayTags::Get().Combat_UseItem_AttributeBased,this,&ThisClass::StartUseItem);
+					GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
 				}
 				if (GetWorld()->GetNetMode() != NM_Client)
 				{
-					CharacterBase->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+					GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
 				}
 			}
 			else
@@ -80,10 +81,11 @@ void UBattleGameplayAbility_UseItem_AttributeBased::EndAbility(const FGameplayAb
 	{
 		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 		MessageSubsystem.UnregisterListener(UseItemHandle);
+		GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -91,7 +93,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::EndAbility(const FGameplayAb
 
 void UBattleGameplayAbility_UseItem_AttributeBased::ServerRPCNotifyUseItem_Implementation()
 {
-	UE_LOG(LogBattle, Log, TEXT("ServerRPC: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
+	//UE_LOG(LogBattle, Log, TEXT("ServerRPC: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
 	ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
 	UBattleQuickBarComponent* QuickBarComponent = CastChecked<UBattleQuickBarComponent>(CharacterBase->GetController()->GetComponentByClass(UBattleQuickBarComponent::StaticClass()));
 
@@ -104,7 +106,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::ServerRPCNotifyUseItem_Imple
 void UBattleGameplayAbility_UseItem_AttributeBased::UseItem()
 {
 
-	UE_LOG(LogBattle, Log, TEXT("UseItem: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
+	//UE_LOG(LogBattle, Log, TEXT("UseItem: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
 	ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
 	UBattleQuickBarComponent* QuickBarComponent = CastChecked<UBattleQuickBarComponent>(CharacterBase->GetController()->GetComponentByClass(UBattleQuickBarComponent::StaticClass()));
 
@@ -154,7 +156,6 @@ void UBattleGameplayAbility_UseItem_AttributeBased::UseItem()
 	// {
 	// 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ItemData->ItemEffect, Location);
 	// }
-	
 }
 
 void UBattleGameplayAbility_UseItem_AttributeBased::StartUseItem(FGameplayTag Channel,
@@ -165,7 +166,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::StartUseItem(FGameplayTag Ch
 		return;
 	}
 	
-	UE_LOG(LogBattle, Log, TEXT("StartUseItem: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
+	//UE_LOG(LogBattle, Log, TEXT("StartUseItem: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		ServerRPCNotifyUseItem();

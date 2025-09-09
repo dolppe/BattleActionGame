@@ -128,7 +128,7 @@ void ABattleEnemyCharacter::AttackBreakablePart(FGameplayTag InGameplayTag)
 
 void ABattleEnemyCharacter::HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude)
 {
-	UE_LOG(LogTemp, Log, TEXT("Groggy"));
+	//UE_LOG(LogTemp, Log, TEXT("Groggy"));
 
 	//AbilitySystemComponent->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Groggy);
 

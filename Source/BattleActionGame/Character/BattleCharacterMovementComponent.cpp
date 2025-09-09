@@ -27,6 +27,10 @@ FRotator UBattleCharacterMovementComponent::GetDeltaRotation(float DeltaTime) co
 {
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
 	{
+		if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+		{
+			return Super::GetDeltaRotation(DeltaTime);
+		}
 		if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
 		{
 			return FRotator(0,0,0);
