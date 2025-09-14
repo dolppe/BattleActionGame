@@ -46,13 +46,9 @@ protected:
 	virtual void OnCompleted() override;
 	virtual void OnInterrupted() override;
 	
-	virtual void OnRep_AlreadyHitActors() override;
-	
 	UFUNCTION()
 	void OnRep_HasNextComboInput();
 
-	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
-	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 	
 protected:
 	
@@ -69,7 +65,6 @@ protected:
 private:
 
 	const FComboAttack* CurrentComboAttackData;
-
 	UBattleAbilityTask_HitCheck* HitCheckTask;
 	
 };

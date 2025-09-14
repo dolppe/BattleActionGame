@@ -54,7 +54,7 @@ public:
 	FGameplayTag Status_Death_Dying;
 	FGameplayTag Status_Death_Dead;
 	
-	FGameplayTag Status_Attack_Attacking;
+	FGameplayTag Status_Action_Attack;
 	FGameplayTag Status_Poisoned;
 	FGameplayTag Status_Parry_JustDash;
 	FGameplayTag Status_Parry_JustClash;
@@ -79,6 +79,7 @@ public:
 	FGameplayTag Combat_Attack_Event_Start;
 	FGameplayTag Combat_Attack_Event_End;
 	FGameplayTag Combat_UseItem_AttributeBased;
+	FGameplayTag Combat_Attack_Hit;
 
 	FGameplayTag SpecialAction_Counter_Start;
 

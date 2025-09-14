@@ -63,6 +63,24 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBattleCombatData> CombatData;
 
+	void SetAreaCenterData(const TArray<FVector>& InAreaCenterData)
+	{
+		AreaCenterData = InAreaCenterData;
+	}
+
+	TArray<FVector>& GetAreaCenterData()
+	{
+		return AreaCenterData;
+	}
+
+protected:
+
+	UFUNCTION()
+	void OnRep_AreaCenterData();
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_AreaCenterData)
+	TArray<FVector> AreaCenterData;
+
 private:
 
 	UFUNCTION()
@@ -81,6 +99,8 @@ private:
 
 	UPROPERTY()
 	TMap<ECollisionMethodType, UAttackCollisionMethod*> InstancedCollisionMethod;
+
+
 	
 
 };

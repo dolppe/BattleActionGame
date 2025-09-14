@@ -5,7 +5,6 @@
 
 class UBattleAbilityTask_HitCheck;
 class UBattleCombatData;
-struct FComboStrongAttack;
 
 UCLASS()
 class UBattleGameplayAbility_ComboStrongAttack : public UBattleGameplayAbility_Attack_Parent
@@ -31,18 +30,11 @@ protected:
 	virtual void OnCompleted() override;
 	virtual void OnInterrupted() override;
 	
-	virtual void OnRep_AlreadyHitActors() override;
-
-	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
-
-	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
-
 
 private:
 
 	UBattleAbilityTask_HitCheck* HitCheckTask;
 
-	const FComboStrongAttack* CurrentAttackData;
 
 
 };

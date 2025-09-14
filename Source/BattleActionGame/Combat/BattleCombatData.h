@@ -118,44 +118,21 @@ struct FAttackData
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToSelf;
+	
+	UPROPERTY(EditAnywhere, Category=Attack)
+	TArray<float> BaseDamage;
+	
+	UPROPERTY(EditAnywhere, Category=Attack)
+	TArray<float> AttackRate;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	TArray<float> GroggyValue;
 
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Attack")
 	UAttackCollisionData* CollisionMethod;
-
-
 	
 };
 
-USTRUCT()
-struct FBasicAttack : public FAttackData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float BaseDamage = 0.0f;
-	
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float AttackRate = 1.0f;
-
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float GroggyValue = 10.0f;
-	
-};
-
-USTRUCT()
-struct FComboStrongAttack : public FAttackData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
-	float BaseDamage = 0.0f;
-	
-	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
-	float AttackRate = 1.0f;
-
-	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
-	float GroggyValue = 10.0f;	
-};
 
 USTRUCT()
 struct FComboAttack : public FAttackData
@@ -171,37 +148,9 @@ struct FComboAttack : public FAttackData
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> AllowInputFrameCount;
 
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
-	TArray<float> BaseDamage;
-	
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
-	TArray<float> AttackRate;
 
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
-	TArray<float> GroggyValue;
 	
 };
-
-USTRUCT()
-struct FTargetedAttack : public FAttackData
-{
-	GENERATED_BODY()
-
-	FTargetedAttack();
-
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float BaseDamage = 0.0f;
-	
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float AttackRate = 1.0f;
-
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float GroggyValue = 10.0f;
-
-	
-	
-};
-
 
 USTRUCT(BlueprintType)
 struct FSpecialSpawnData
@@ -238,16 +187,16 @@ public:
 	UBattleCombatData();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BasicAttack)
-	TArray<FBasicAttack> BasicAttacks;
+	TArray<FAttackData> BasicAttacks;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboAttack)
 	TArray<FComboAttack> ComboAttacks;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboStrongAttack)
-	TArray<FComboStrongAttack> ComboStrongAttacks;
+	TArray<FAttackData> ComboStrongAttacks;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=TargetedAttack)
-	TArray<FTargetedAttack> TargetedAttacks;
+	TArray<FAttackData> TargetedAttacks;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=SpawnAttack)
 	TArray<FSpecialSpawnData> SpawnDatas;

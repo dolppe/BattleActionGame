@@ -24,20 +24,20 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	//BA_DEFAULT_LOG(LogBattle,Log,TEXT("%s => AttackStart"), *GetAvatarActorFromActorInfo()->GetName());
-	
+
+	AttackIdx = -1;
+	AlreadyHitActors.Empty();
+
+	if (Character->IsLocallyControlled())
+	{
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+
+		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Hit, this, &UBattleGameplayAbility_Attack_Parent::ReceivedHits);
+	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		
-		if (ASC)
-		{
-			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
-		}
 
-		// if (!bAllowMovement)
-		// {
-		// 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-		// }
+		
 	}
 }
 
@@ -60,21 +60,27 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 		{
 			MessageSystem.UnregisterListener(EndListenerHandle);
 		}
-	}
-	if (GetWorld()->GetNetMode() != NM_Client)
-	{
-		AlreadyHitActors.Reset();
-		
+
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 		
 		if (ASC)
 		{
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack, 3);
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement, 3);
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation, 3);
 		}
-		// if (!bAllowMovement)
-		// {
-		// 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		// }
+	}
+	if (GetWorld()->GetNetMode() != NM_Client)
+	{
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		
+		if (ASC)
+		{
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack, 3);
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement, 3);
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation, 3);
+		}
+
 	}
 	
 	
@@ -89,70 +95,31 @@ void UBattleGameplayAbility_Attack_Parent::CancelAbility(const FGameplayAbilityS
 	
 }
 
-void UBattleGameplayAbility_Attack_Parent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UBattleGameplayAbility_Attack_Parent, AlreadyHitActors);
-}
-
-void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(const TArray<FHitResult>& HitResults,
-	float HitCheckTime)
-{
-	TArray<FHitResult> SelectedHitResults;
-	
-	for (const FHitResult& HitResult : HitResults)
-	{
-		AActor* HitActor = HitResult.GetActor();
-		if (IsValid(HitActor))
-		{
-			if (!AlreadyHitActors.Contains(HitActor))
-			{
-				const FVector HitLocation = HitResult.Location;
-				const FBox HitBox = HitActor->GetComponentsBoundingBox();
-				const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
-			
-				if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
-				{
-					SelectedHitResults.Add(HitResult);
-				}
-				else
-				{
-					//UE_LOG(LogTemp, Log, TEXT("Hit Rejected, %f <= %f"), FVector::DistSquared(HitLocation, ActorBoxCenter), AcceptHitDistance * AcceptHitDistance);
-				}
-			}
-		}	
-	}
-
-	AttackHitConfirm(SelectedHitResults);
-	
-}
-
-bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(const TArray<FHitResult>& HitResults, float HitCheckTime)
-{
-	return true;
-}
-
-
-void UBattleGameplayAbility_Attack_Parent::ServerRPCClearAlreadyHitActors_Implementation()
-{
-	AlreadyHitActors.Empty();	
-}
-
-void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitResult>& HitResults)
+void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FBattleHitMessage& HitMessage)
 {
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		return;
 	}
 
-	for (const FHitResult& HitResult : HitResults)
+	if (AttackIdx != HitMessage.WindowIndex)
+	{
+		AttackIdx = HitMessage.WindowIndex;
+		AlreadyHitActors.Empty();
+	}
+
+	for (const FHitResult& HitResult : HitMessage.HitResults)
 	{
 		AActor* HitActor = HitResult.GetActor();
 		if (IsValid(HitActor))
 		{
-			AlreadyHitActors.Add(HitActor);
+			if (AlreadyHitActors.Contains(HitActor))
+			{
+				continue;
+			}
 
+			AlreadyHitActors.Add(HitActor);
 			//BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s"), *HitActor->GetName());
 
 			FGameplayAbilityTargetDataHandle TargetData;
@@ -207,6 +174,8 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitRes
 					}
 				}
 			}
+
+			
 			
 			OnTargetDataReadyCallback(TargetData, FGameplayTag());
 
@@ -214,73 +183,102 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const TArray<FHitRes
 	}
 
 
+}
+
+void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(FBattleHitMessage HitMessage,
+                                                                             float HitCheckTime)
+{
+	TArray<FHitResult> SelectedHitResults;
+	
+	for (FHitResult& HitResult : HitMessage.HitResults)
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (IsValid(HitActor))
+		{
+			const FVector HitLocation = HitResult.Location;
+			const FBox HitBox = HitActor->GetComponentsBoundingBox();
+			const FVector ActorBoxCenter = (HitBox.Min + HitBox.Max) * 0.5f;
+		
+			if (FVector::DistSquared(HitLocation, ActorBoxCenter) <= AcceptHitDistance * AcceptHitDistance)
+			{
+				//UE_LOG(LogTemp, Log, TEXT("Hit Rejected, %f <= %f"), FVector::DistSquared(HitLocation, ActorBoxCenter), AcceptHitDistance * AcceptHitDistance);
+				SelectedHitResults.Add(HitResult);
+			}
+			else
+			{
+				
+			}
+			
+		}	
+	}
+
+	HitMessage.HitResults = SelectedHitResults;
+
+	AttackHitConfirm(HitMessage);
+}
+
+bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(FBattleHitMessage HitMessage,
+	float HitCheckTime)
+{
+	return true;
+}
+
+
+
+void UBattleGameplayAbility_Attack_Parent::ReceivedHits(FGameplayTag Channel, const FBattleHitMessage& HitMessage)
+{
+
+	if (GetWorld()->GetNetMode() == NM_Client)
+	{ 
+		ServerRPCNotifyHit(HitMessage, HitMessage.HitTime);
+	}
+	else
+	{
+		AttackHitConfirm(HitMessage);
+	}
+}
+
+void UBattleGameplayAbility_Attack_Parent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 }
 
 void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
-	FGameplayTag ApplicationTag)
+                                                                     FGameplayTag ApplicationTag)
 {
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GameplayEffect_Damage, 1);
+	FGameplayEffectSpecHandle DamageSpecHandle = MakeOutgoingGameplayEffectSpec(GameplayEffect_Damage, 1);
 	
-	if (SpecHandle.IsValid())
+	if (DamageSpecHandle.IsValid())
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, BaseDamage);
-		SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackRate);
-		SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_GroggyValue, GroggyValue);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, AttackData->BaseDamage[AttackIdx]);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackData->AttackRate[AttackIdx]);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_GroggyValue, AttackData->GroggyValue[AttackIdx]);
 		
 		
-		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);
+		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, DamageSpecHandle, InData);
 	}
-	
-}
 
-void UBattleGameplayAbility_Attack_Parent::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
-{
-	OnAttackStart();
-
-	if (GetWorld()->GetNetMode() == NM_Client)
+	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		ServerRPCClearAlreadyHitActors();
-	}
-	else
-	{
-		AlreadyHitActors.Empty();	
-	}
-}
-
-void UBattleGameplayAbility_Attack_Parent::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
-{
-	AlreadyHitActors.Empty();
-}
-
-
-void UBattleGameplayAbility_Attack_Parent::SelectHitCheck(const TArray<FHitResult>& HitResults, const float AttackTime)
-{
-	TArray<FHitResult> SelectHitResults;
-
-	for (const FHitResult& HitResult : HitResults)
-	{
-		if (!AlreadyHitActors.Contains(HitResult.HitObjectHandle.FetchActor()))
+		for (TSubclassOf<UGameplayEffect> TargetGE : AttackData->AppliedEffectsToTarget)
 		{
-			SelectHitResults.Add(HitResult);
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(TargetGE, 1);
+
+			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);		
 		}
-	}
 
-	if (SelectHitResults.IsEmpty())
-	{
-		return;
-	}		
-	
-	if (GetWorld()->GetNetMode() == NM_Client)
-	{
-		ServerRPCNotifyHit(SelectHitResults, AttackTime);
-	}
-	else
-	{
-		AttackHitConfirm(SelectHitResults);
-	}
+		for (TSubclassOf<UGameplayEffect> SelfGE : AttackData->AppliedEffectsToSelf)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SelfGE, 1);
 
+			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
+		}
+		
+
+	}
 }
+
 
 void UBattleGameplayAbility_Attack_Parent::OnCompleted()
 {
@@ -303,6 +301,3 @@ void UBattleGameplayAbility_Attack_Parent::OnBlendOut()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 }
 
-void UBattleGameplayAbility_Attack_Parent::OnRep_AlreadyHitActors()
-{
-}

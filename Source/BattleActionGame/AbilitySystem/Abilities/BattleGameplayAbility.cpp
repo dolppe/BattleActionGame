@@ -4,6 +4,7 @@
 #include "AbilitySystemGlobals.h"
 #include "BattleAbilityCost.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/BattleGameplayEffectContext.h"
 #include "BattleActionGame/Character/BattleCharacter.h"

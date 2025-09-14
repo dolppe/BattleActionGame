@@ -7,14 +7,15 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AttackCollisionMethod_DirectionalSweep)
 
-PRAGMA_DISABLE_OPTIMIZATION
-void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
+
+void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
+	UAttackCollisionData* AttackCollisionData)
 {
 	if (UAttackCollisionData_DirectionalSweep* CollisionData = Cast<UAttackCollisionData_DirectionalSweep>(AttackCollisionData))
 	{
 		TArray<FHitResult> HitResults;
 
-		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(OriginGameplayAbility->GetAvatarActorFromActorInfo());
+		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(Character);
 		USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
 
 		const FRotator Rotation = CharacterBase->GetActorRotation();
@@ -31,8 +32,6 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
 		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
 
 
-		SendHitResults(HitResults, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
-		
 
 #if 1
 
@@ -46,24 +45,9 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
 #endif
 		
 	}
-
-
 }
-
-PRAGMA_ENABLE_OPTIMIZATION
 
 void UAttackCollisionMethod_DirectionalSweep::EndCollisionCheck()
 {
-	Super::EndCollisionCheck();
-}
 
-void UAttackCollisionMethod_DirectionalSweep::SetCollisionData(UAttackCollisionData* InAttackCollisionData,
-	UBattleGameplayAbility_Attack_Parent* InGameplayAbility)
-{
-	Super::SetCollisionData(InAttackCollisionData, InGameplayAbility);
-}
-
-void UAttackCollisionMethod_DirectionalSweep::SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime)
-{
-	Super::SendHitResults(HitResults, HitTime);
 }
