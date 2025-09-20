@@ -45,6 +45,7 @@ protected:
 
 	virtual void OnCompleted() override;
 	virtual void OnInterrupted() override;
+	virtual void OnBlendOut() override;
 	
 	UFUNCTION()
 	void OnRep_HasNextComboInput();

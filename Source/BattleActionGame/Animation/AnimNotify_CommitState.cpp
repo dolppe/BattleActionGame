@@ -13,8 +13,37 @@ void UAnimNotify_CommitState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner()))
 	{
-		ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation);
-		ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowB"));
+			AllowFuncB(MeshComp);
+			
+		}
+		
+		// {
+		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockB"));
+		// 	BlockFuncB(MeshComp);
+		// }
+		
+		
+		
+
+		
+
+		//ASC->ApplyGameplayEffectToSelf(ApplyGE.GetDefaultObject(), 1.0f, ASC->MakeEffectContext());
+		//ASC->RemoveActiveGameplayEffectBySourceEffect(RemoveGE,ASC);
 	}
+}
+
+void UAnimNotify_CommitState::BlockFuncB(USkeletalMeshComponent* MeshComp)
+{
+	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner());
+	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation);
+	ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
+}
+
+void UAnimNotify_CommitState::AllowFuncB(USkeletalMeshComponent* MeshComp)
+{
+	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner());
+	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation);
 }
 

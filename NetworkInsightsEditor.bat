@@ -1,0 +1,1 @@
+UnrealEditor.exe %cd%\BattleActionGame.uproject -NetTrace=1 -Trace=Net

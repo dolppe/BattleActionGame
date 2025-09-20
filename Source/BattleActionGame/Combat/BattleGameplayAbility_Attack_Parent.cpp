@@ -23,7 +23,7 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
-	//BA_DEFAULT_LOG(LogBattle,Log,TEXT("%s => AttackStart"), *GetAvatarActorFromActorInfo()->GetName());
+	BA_DEFAULT_LOG(LogBattle,Log,TEXT("Start"));
 
 	AttackIdx = -1;
 	AlreadyHitActors.Empty();
@@ -46,6 +46,7 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
+	BA_DEFAULT_LOG(LogBattle,Log,TEXT("End"));
 	
 	if (Character->IsLocallyControlled())
 	{

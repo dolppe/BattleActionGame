@@ -14,21 +14,20 @@ void UAnimNotify_ControlGameplayTag::Notify(USkeletalMeshComponent* MeshComp, UA
 	{
 		if (IAbilitySystemInterface* AbilitySystemCharacter = Cast<IAbilitySystemInterface>(MeshComp->GetOwner()))
 		{
-			if (GameplayTag.IsValid())
+
+			UAbilitySystemComponent* ASC = AbilitySystemCharacter->GetAbilitySystemComponent();
+			if (ASC)
 			{
-				UAbilitySystemComponent* ASC = AbilitySystemCharacter->GetAbilitySystemComponent();
-				if (ASC)
+				if (bAddGameplayTag)
 				{
-					if (bAddGameplayTag)
-					{
-						ASC->AddLooseGameplayTag(GameplayTag);
-					}
-					else
-					{
-						ASC->RemoveLooseGameplayTag(GameplayTag);
-					}
+					ASC->AddLooseGameplayTags(GameplayTags);
+				}
+				else
+				{
+					ASC->RemoveLooseGameplayTags(GameplayTags);
 				}
 			}
+			
 		}
 	}
 	

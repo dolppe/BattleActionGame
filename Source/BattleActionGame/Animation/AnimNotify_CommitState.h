@@ -3,6 +3,8 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "AnimNotify_CommitState.generated.h"
 
+class UGameplayEffect;
+
 UCLASS()
 class UAnimNotify_CommitState : public UAnimNotify
 {
@@ -13,7 +15,19 @@ public:
 
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+
+protected:
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameplayEffect> ApplyGE;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameplayEffect> RemoveGE; 
+
 private:
+
+	void BlockFuncB(USkeletalMeshComponent* MeshComp);
+	void AllowFuncB(USkeletalMeshComponent* MeshComp);
 
 	USkeletalMeshComponent* CachedMesh;
 	

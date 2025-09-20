@@ -252,6 +252,7 @@ void UBattleHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHand
 
 void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComponent)
 {
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("Start"));
 	check(PlayerInputComponent);
 
 	const APawn* Pawn = GetPawn<APawn>();
@@ -324,12 +325,24 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
-	if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("Start"));
+	
+	// if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+	// {
+	// 	Input_RotationCharacter(InputActionValue);
+	// 	return;
+	// }
+	// else if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	// {
+	// 	return;
+	// }
+
+	if (!CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_Movement) && CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation))
 	{
 		Input_RotationCharacter(InputActionValue);
 		return;
 	}
-	else if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	if (!CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_Movement))
 	{
 		return;
 	}

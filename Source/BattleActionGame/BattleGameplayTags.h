@@ -71,6 +71,8 @@ public:
 	FGameplayTag Block_Movement;
 	FGameplayTag Block_Movement_AllowRotation;
 
+	FGameplayTag Allow_Movement;
+	FGameplayTag Allow_AllowRotation;
 
 	/*
 	 * Combat

@@ -25,30 +25,30 @@ void UBattleCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTic
 
 FRotator UBattleCharacterMovementComponent::GetDeltaRotation(float DeltaTime) const
 {
-	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
-	{
-		if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
-		{
-			return Super::GetDeltaRotation(DeltaTime);
-		}
-		if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
-		{
-			return FRotator(0,0,0);
-		}
-	}
+	// if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
+	// {
+	// 	if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+	// 	{
+	// 		return Super::GetDeltaRotation(DeltaTime);
+	// 	}
+	// 	if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	// 	{
+	// 		return FRotator(0,0,0);
+	// 	}
+	// }
 
 	return Super::GetDeltaRotation(DeltaTime);
 }
 
 float UBattleCharacterMovementComponent::GetMaxSpeed() const
 {
-	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
-	{
-		if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
-		{
-			return 0;
-		}
-	}
+	// if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
+	// {
+	// 	if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	// 	{
+	// 		return 0;
+	// 	}
+	// }
 
 	return Super::GetMaxSpeed();
 }

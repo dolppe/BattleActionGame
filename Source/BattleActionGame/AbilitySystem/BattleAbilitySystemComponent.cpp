@@ -186,7 +186,7 @@ void UBattleAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 			if (AbilitySpec->Ability)
 			{
 				AbilitySpec->InputPressed = true;
-
+				
 				if (AbilitySpec->IsActive())
 				{
 					// 이미 Ability가 활성화 되어있으면 InputEvent만
