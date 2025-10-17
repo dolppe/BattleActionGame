@@ -5,6 +5,7 @@
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/Messages/BattleHitMessage.h"
 #include "BattleActionGame/Messages/BattleVerbMessage.h"
+#include "BattleActionGame/Combat/HitReactionTable.h"
 #include "BattleGameplayAbility_Attack_Parent.generated.h"
 
 struct FAttackData;
@@ -36,10 +37,14 @@ public:
 		return AttackType;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	int GetAttackMode() const
 	{
 		return AttackMode;
 	}
+
+	UFUNCTION(BlueprintCallable)
+	EStrikeType GetStrikeType(int Index) const;
 
 	UFUNCTION()
 	virtual void ReceivedHits(FGameplayTag Channel, const FBattleHitMessage& HitMessage);
@@ -68,6 +73,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UGameplayEffect> GameplayEffect_Damage;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag HitEffectGCNTag;
 
 	uint8 AttackIdx = -1;
 

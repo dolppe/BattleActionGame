@@ -44,6 +44,6 @@ void UAnimNotify_CommitState::BlockFuncB(USkeletalMeshComponent* MeshComp)
 void UAnimNotify_CommitState::AllowFuncB(USkeletalMeshComponent* MeshComp)
 {
 	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner());
-	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation);
+	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation,5);
 }
 

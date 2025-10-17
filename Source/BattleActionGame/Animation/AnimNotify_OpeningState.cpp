@@ -44,6 +44,6 @@ void UAnimNotify_OpeningState::BlockFuncA(USkeletalMeshComponent* MeshComp)
 void UAnimNotify_OpeningState::AllowFuncA(USkeletalMeshComponent* MeshComp)
 {
 	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner());
-	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Allow_Movement);
+	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Allow_Movement, 5);
 	ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack);
 }

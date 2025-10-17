@@ -239,11 +239,11 @@ void UBattleUtilityAction_AttackArea::GetAreaData()
 				UBattleCombatData* CombatData = CombatManagerComponent->GetAttackData();
 				if (CombatData->TargetedAttacks.IsValidIndex(AttackIdx))
 				{
-					if (UAttackCollisionData_CircularAOE* CircularAoe = Cast<UAttackCollisionData_CircularAOE>(CombatData->TargetedAttacks[AttackIdx].CollisionMethod))
-					{
-						AreaNum = CircularAoe->AttackNum;
-						AreaRadius = CircularAoe->AttackRadius;
-					}
+					// if (UAttackCollisionData_CircularAOE* CircularAoe = Cast<UAttackCollisionData_CircularAOE>(CombatData->TargetedAttacks[AttackIdx].CollisionMethod))
+					// {
+					// 	AreaNum = CircularAoe->AttackNum;
+					// 	AreaRadius = CircularAoe->AttackRadius;
+					// }
 				}
 			}
 		}

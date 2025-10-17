@@ -18,13 +18,25 @@ void UAnimNotify_ControlGameplayTag::Notify(USkeletalMeshComponent* MeshComp, UA
 			UAbilitySystemComponent* ASC = AbilitySystemCharacter->GetAbilitySystemComponent();
 			if (ASC)
 			{
-				if (bAddGameplayTag)
+				TArray<FGameplayTag> TagArrays;
+				GameplayTags.GetGameplayTagArray(TagArrays);
+				for (const FGameplayTag& Tag : TagArrays)
 				{
-					ASC->AddLooseGameplayTags(GameplayTags);
-				}
-				else
-				{
-					ASC->RemoveLooseGameplayTags(GameplayTags);
+					if (ASC->HasMatchingGameplayTag(Tag))
+					{
+						if (!bAddGameplayTag)
+						{
+							ASC->SetLooseGameplayTagCount(Tag,0);
+							
+						}
+					}
+					else
+					{
+						if (bAddGameplayTag)
+						{
+							ASC->AddLooseGameplayTag(Tag);
+						}
+					}
 				}
 			}
 			

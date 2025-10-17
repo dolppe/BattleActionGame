@@ -36,6 +36,12 @@ public:
 	void SetTagRelationshipMapping(UBattleAbilityTagRelationshipMapping* NewMapping);
 	void GetAdditionalActivationTagRequirements(const FGameplayTagContainer& AbilityTags, FGameplayTagContainer& OutActivationRequired, FGameplayTagContainer& OutActivationBlocked) const;
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetLooseGameplayTagCountInBP(const FGameplayTag& GameplayTag, int32 NewCount)
+	{
+		SetTagMapCount(GameplayTag, NewCount);
+	}
+	
 protected:
 
 	void TryActivateAbilitiesOnSpawn();

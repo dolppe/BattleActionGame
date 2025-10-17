@@ -5,6 +5,9 @@
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
+#include "BattleActionGame/Physics/BattleCollisionChannels.h"
+#include "BattleActionGame/Physics/BattlePartsManagerComponent.h"
+#include "BattleActionGame/Physics/PhysicalMaterialWithTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -66,20 +69,24 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 		
 		if (ASC)
 		{
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack, 3);
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement, 3);
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation, 3);
+			ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Status_Action_Attack,0);
+			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation);
+			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_Movement);
+
+			Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 		}
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 		
-		if (ASC)
+		if (ASC && !Character->IsLocallyControlled())
 		{
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack, 3);
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement, 3);
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation, 3);
+			ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Status_Action_Attack,0);
+			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation);
+			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_Movement);
+
+			Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 		}
 
 	}
@@ -99,6 +106,7 @@ void UBattleGameplayAbility_Attack_Parent::CancelAbility(const FGameplayAbilityS
 
 void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FBattleHitMessage& HitMessage)
 {
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"), HitMessage.WindowIndex);
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		return;
@@ -106,6 +114,7 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FBattleHitMess
 
 	if (AttackIdx != HitMessage.WindowIndex)
 	{
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"), HitMessage.WindowIndex);
 		AttackIdx = HitMessage.WindowIndex;
 		AlreadyHitActors.Empty();
 	}
@@ -189,6 +198,7 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FBattleHitMess
 void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(FBattleHitMessage HitMessage,
                                                                              float HitCheckTime)
 {
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"), HitMessage.WindowIndex);
 	TArray<FHitResult> SelectedHitResults;
 	
 	for (FHitResult& HitResult : HitMessage.HitResults)
@@ -214,7 +224,7 @@ void UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Implementation(FBa
 	}
 
 	HitMessage.HitResults = SelectedHitResults;
-
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"), HitMessage.WindowIndex);
 	AttackHitConfirm(HitMessage);
 }
 
@@ -225,12 +235,44 @@ bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(FBattleHi
 }
 
 
+EStrikeType UBattleGameplayAbility_Attack_Parent::GetStrikeType(int Index) const
+{
+	if (AttackData->AttackWindowDatas.IsValidIndex(Index))
+	{
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("%d"),Index);
+		for (auto AttackWindow : AttackData->AttackWindowDatas)
+		{
+			if (AttackWindow.StrikeType == EStrikeType::SwordStrongA)
+			{
+				BA_DEFAULT_LOG(LogBattle, Log, TEXT("StrongA"));
+			}
+			if (AttackWindow.StrikeType == EStrikeType::SwordStrongB)
+			{
+				BA_DEFAULT_LOG(LogBattle, Log, TEXT("StrongB"));
+			}
+			if (AttackWindow.StrikeType == EStrikeType::SwordStrongC)
+			{
+				BA_DEFAULT_LOG(LogBattle, Log, TEXT("StrongC"));
+			}
+		}
+		return AttackData->AttackWindowDatas[Index].StrikeType;
+	}
+
+	return EStrikeType::SwordA;
+	
+}
 
 void UBattleGameplayAbility_Attack_Parent::ReceivedHits(FGameplayTag Channel, const FBattleHitMessage& HitMessage)
 {
-
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"),AttackIdx);
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("HitMessageWindowIdx => %d"),HitMessage.WindowIndex);
 	if (GetWorld()->GetNetMode() == NM_Client)
-	{ 
+	{
+		if (AttackIdx != HitMessage.WindowIndex)
+		{
+			BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"), HitMessage.WindowIndex);
+			AttackIdx = HitMessage.WindowIndex;
+		}
 		ServerRPCNotifyHit(HitMessage, HitMessage.HitTime);
 	}
 	else
@@ -252,9 +294,9 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 	
 	if (DamageSpecHandle.IsValid())
 	{
-		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, AttackData->BaseDamage[AttackIdx]);
-		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackData->AttackRate[AttackIdx]);
-		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_GroggyValue, AttackData->GroggyValue[AttackIdx]);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, AttackData->AttackWindowDatas[AttackIdx].BaseDamage);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackData->AttackWindowDatas[AttackIdx].AttackRate);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_GroggyValue, AttackData->AttackWindowDatas[AttackIdx].GroggyValue);
 		
 		
 		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, DamageSpecHandle, InData);
@@ -262,22 +304,70 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		for (TSubclassOf<UGameplayEffect> TargetGE : AttackData->AppliedEffectsToTarget)
+		for (TSubclassOf<UGameplayEffect> TargetGE : AttackData->AttackWindowDatas[AttackIdx].AppliedEffectsToTarget)
 		{
 			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(TargetGE, 1);
 
 			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);		
 		}
 
-		for (TSubclassOf<UGameplayEffect> SelfGE : AttackData->AppliedEffectsToSelf)
+		for (TSubclassOf<UGameplayEffect> SelfGE : AttackData->AttackWindowDatas[AttackIdx].AppliedEffectsToSelf)
 		{
 			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SelfGE, 1);
 
 			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 		}
-		
-
 	}
+	const FHitResult* HitResult = InData.Data[0].Get()->GetHitResult();
+	
+	if (const UPhysicalMaterialWithTags* PhysicalMaterialWithTags = Cast<UPhysicalMaterialWithTags>(HitResult->PhysMaterial.Get()))
+	{
+		ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(HitResult->GetActor());
+		
+		if (UBattlePartsManagerComponent* PartsManagerComponent = Cast<UBattlePartsManagerComponent>(TargetCharacter->GetComponentByClass(UBattlePartsManagerComponent::StaticClass())))
+		{
+			EPhysicalSurface SurfaceType = PartsManagerComponent->GetSurfaceStateFromPart(PhysicalMaterialWithTags->PartTag);
+
+			if (UPhysicalMaterial* DefaultPhysicalMaterial = TargetCharacter->GetPhysicalSurface(SurfaceType))
+			{
+				FGameplayCueParameters HitGCParams = FGameplayCueParameters();
+
+				HitGCParams.Instigator = GetAvatarActorFromActorInfo();
+				HitGCParams.SourceObject = this;
+				HitGCParams.Location = HitResult->ImpactPoint;
+				HitGCParams.Normal = HitResult->ImpactNormal;
+				HitGCParams.PhysicalMaterial = DefaultPhysicalMaterial;
+				HitGCParams.RawMagnitude = AttackIdx;
+
+				BA_DEFAULT_LOG(LogBattle, Log, TEXT("PartTag: %s"), *PhysicalMaterialWithTags->PartTag.ToString());
+				if (SurfaceType == SURFACE_DEFAULT)
+				{
+					BA_DEFAULT_LOG(LogBattle, Log, TEXT("SurfaceState: Default"));
+				}
+				else if (SurfaceType == SURFACE_ARMOR)
+				{
+					BA_DEFAULT_LOG(LogBattle, Log, TEXT("SurfaceState: Armor"));
+				}
+				else
+				{
+					BA_DEFAULT_LOG(LogBattle, Log, TEXT("SurfaceState: Flesh"));
+				}
+				BA_DEFAULT_LOG(LogBattle, Log, TEXT("DefaultSurfacePhysic: %s"), *DefaultPhysicalMaterial->GetName())
+				BA_DEFAULT_LOG(LogBattle, Log, TEXT("SendParam RawMag => %f"), HitGCParams.RawMagnitude);
+				
+
+				GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(HitEffectGCNTag, HitGCParams);
+			}
+		}
+		TargetCharacter->HandleDamageToPart(HitResult->BoneName, PhysicalMaterialWithTags->PartTag);
+		
+	}
+	
+
+
+
+
+	
 }
 
 

@@ -19,7 +19,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	bool bAddGameplayTag = true;
-
+	
 	
 };
 

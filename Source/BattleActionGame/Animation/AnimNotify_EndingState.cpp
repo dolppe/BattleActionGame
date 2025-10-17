@@ -43,7 +43,7 @@ void UAnimNotify_EndingState::BlockFuncC(USkeletalMeshComponent* MeshComp)
 void UAnimNotify_EndingState::AllowFuncC(USkeletalMeshComponent* MeshComp)
 {
 	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner());
-	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack,3);
+	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack,5);
 	ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation);
 	ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_Movement);
 	

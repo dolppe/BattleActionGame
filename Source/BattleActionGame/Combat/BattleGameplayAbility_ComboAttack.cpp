@@ -88,8 +88,10 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
 		// 몽타주 멀티캐스트 필요
-		CurrentCombatManager->SetComboGA(nullptr);
+		
 	}
+	
+	CurrentCombatManager->SetComboGA(nullptr);
 
 	BA_DEFAULT_LOG(LogBattle, Log, TEXT("EndAbility"));
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -143,6 +145,8 @@ void UBattleGameplayAbility_ComboAttack::CheckComboInput()
 		OnAttackStart();
 		bHasNextComboInput = false;
 		bAllowedInput = false;
+
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("CurComboIndex: %d"), CurrentComboIndex);
 	}
 }
 

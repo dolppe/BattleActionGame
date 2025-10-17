@@ -128,7 +128,7 @@ void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheck(TArray<FHitRes
 {
 	GetWorld()->SweepMultiByChannel(OutHitResults, CurWeaponStart, CurWeaponEnd, FQuat::Identity, CollisionChannel, FCollisionShape::MakeSphere(AttackRadius),Params);
 
-	DrawDebug(CurWeaponStart, CurWeaponEnd, true);
+	//DrawDebug(CurWeaponStart, CurWeaponEnd, true);
 }
 
 void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebug(FVector& CurWeaponStart, FVector& CurWeaponEnd, bool bIsHit)

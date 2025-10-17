@@ -13,8 +13,10 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	TArray<FHitResult> HitResults;
 
+	UPROPERTY(BlueprintReadWrite)
 	int WindowIndex = 0;
 
+	UPROPERTY(BlueprintReadWrite)
 	float HitTime = 0.0f;
 };
 

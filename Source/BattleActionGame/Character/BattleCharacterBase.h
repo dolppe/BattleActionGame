@@ -25,6 +25,20 @@ public:
 
 	void NetPlayMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
+	UFUNCTION(BlueprintCallable)
+	virtual void HandleDamageToPart(FName BoneName, FGameplayTag PartTag);
+
+	UFUNCTION(BlueprintCallable)
+	UPhysicalMaterial* GetPhysicalSurface(EPhysicalSurface PhysicalSurfaceType)
+	{
+		if (UPhysicalMaterial* PhysicalMaterial = *PhysicalSurfaceMap.Find(PhysicalSurfaceType))
+		{
+			return PhysicalMaterial;
+		}
+
+		return nullptr;
+	}
+
 
 protected:
 	
@@ -39,6 +53,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleCombatManagerComponent> CombatComponent;
+
+	UPROPERTY(EditAnywhere)
+	TMap<TEnumAsByte<EPhysicalSurface>, UPhysicalMaterial*> PhysicalSurfaceMap;
 	
 };
 

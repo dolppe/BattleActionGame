@@ -48,8 +48,12 @@ void ABattleCharacterBase::NetPlayMontage(UAnimMontage* AnimMontage, float InPla
 	
 }
 
+void ABattleCharacterBase::HandleDamageToPart(FName BoneName, FGameplayTag PartTag)
+{
+}
+
 void ABattleCharacterBase::MulticastPlayMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
-	FName StartSectionName)
+                                                               FName StartSectionName)
 {
 	//BA_DEFAULT_LOG(LogBattle, Log, TEXT("Multicast Start"));
 	USkeletalMeshComponent* CharacterMesh = GetMesh();

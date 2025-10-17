@@ -5,6 +5,7 @@
 #include "GameplayMessageSubsystem.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -29,6 +30,8 @@ void UBattleGameplayAbility_ComboStrongAttack::ActivateAbility(const FGameplayAb
 	AttackData = &CurrentCombatManager->GetAttackData()->ComboStrongAttacks[AttackMode];
 
 	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *AttackData->MontageSectionName, CurrentCombatManager->GetCurrentComboIndex());
+
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s"), *MontageSectionName.ToString());
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), AttackData->Montage, 1.0f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::OnCompleted);
