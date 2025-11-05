@@ -1,0 +1,5 @@
+Attribute,BaseValue,MinValue,MaxValue,DerivedAttributeInfo,bCanStack
+BattleEnemySet.GroggyValue,0,0,1000,,False
+BattleEnemySet.MaxGroggyValue,100,0,1000,,False
+BattleEnemySet.MaxPoiseValue,100,0,1000,,False
+BattleEnemySet.PoiseValue,100,0,1000,,False

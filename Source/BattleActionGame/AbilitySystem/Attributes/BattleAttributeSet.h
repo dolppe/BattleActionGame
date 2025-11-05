@@ -2,6 +2,7 @@
 
 #include "AttributeSet.h"
 #include "Delegates/Delegate.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "BattleAttributeSet.generated.h"
 
 
@@ -19,6 +20,33 @@ class AActor;
 
 DECLARE_MULTICAST_DELEGATE_FourParams(FBattleAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/, const FGameplayEffectSpec& /*EffectSpec*/, float /*EffectMagnitude*/);
 
+USTRUCT(BlueprintType)
+struct FAttributeInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Name;
+
+	UPROPERTY(BlueprintReadOnly)
+	float BaseValue;
+	
+};
+
+UCLASS()
+class BATTLEACTIONGAME_API UBattleAttributeSetHelper : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+	UFUNCTION(BlueprintCallable)
+	static TArray<FAttributeInfo> GetAttributeInfos(UAttributeSet* AttributeSet);
+
+	UFUNCTION(BlueprintCallable)
+	static TArray<FAttributeInfo> GetAttributeInfosWithClass(UClass* AttributeSet);
+	
+};
+
 UCLASS()
 class BATTLEACTIONGAME_API UBattleAttributeSet : public UAttributeSet
 {
@@ -28,5 +56,10 @@ public:
 	UBattleAttributeSet();
 
 	UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const;
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FAttributeInfo> GetGameplayAttributes();
+
+	
 	
 };
