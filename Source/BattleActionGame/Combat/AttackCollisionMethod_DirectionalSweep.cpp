@@ -13,8 +13,6 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitRes
 {
 	if (UAttackCollisionData_DirectionalSweep* CollisionData = Cast<UAttackCollisionData_DirectionalSweep>(AttackCollisionData))
 	{
-		TArray<FHitResult> HitResults;
-
 		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(Character);
 		USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
 
@@ -29,7 +27,7 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitRes
 	
 		float Radius = CollisionData->AttackRadius;
 
-		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
+		GetWorld()->SweepMultiByChannel(OutHitResult, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
 
 
 
@@ -49,5 +47,31 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitRes
 
 void UAttackCollisionMethod_DirectionalSweep::EndCollisionCheck()
 {
+
+}
+
+void UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(USkeletalMeshComponent* MeshComp,
+	UAttackCollisionData* AttackCollisionData)
+{
+	if (UAttackCollisionData_DirectionalSweep* CollisionData = Cast<UAttackCollisionData_DirectionalSweep>(AttackCollisionData))
+	{
+		const FRotator Rotation = MeshComp->GetComponentRotation();
+		const FRotator YawRotation(0,Rotation.Yaw+CollisionData->AttackRotationOffset+90,0);
+
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		
+		FVector Start = MeshComp->GetSocketLocation(*CollisionData->StartSocketName);
+		FVector End = Start + ForwardDirection*CollisionData->AttackRange;
+
+		FVector TraceVector = End - Start;
+		FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
+		float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
+		FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
+
+		UWorld* World = MeshComp->GetWorld();
+	
+		DrawDebugLine(World, Start, End, FColor::Green, false, 10.f, 0, 0);
+		DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, CollisionData->AttackRadius,CapsuleRotation, FColor::Green,false, 2.f);
+	}
 
 }

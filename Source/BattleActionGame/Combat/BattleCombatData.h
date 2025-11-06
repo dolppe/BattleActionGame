@@ -113,11 +113,19 @@ struct FAttackWindowData
 	float AttackRate;
 
 	UPROPERTY(EditAnywhere, Category=Attack)
-	float GroggyValue;
+	float ImpactPower = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category=Attack)
 	EStrikeType StrikeType = EStrikeType::SwordA;
-	
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	float HitStopSeconds = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	TSubclassOf<UCameraShakeBase> CameraShakeClass = nullptr;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	float CameraShakeScale = 1.0f;
 };
 
 USTRUCT(BlueprintType)

@@ -12,6 +12,7 @@ public:
 	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData) override;
 	virtual void EndCollisionCheck() override;
 
+	static void DrawDebugWithStart(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
 	
 };
 

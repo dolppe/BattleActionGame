@@ -8,6 +8,7 @@
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
 #include "BattleActionGame/Physics/BattlePartsManagerComponent.h"
 #include "BattleActionGame/Physics/PhysicalMaterialWithTags.h"
+#include "BattleActionGame/Player/BattlePlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -237,7 +238,7 @@ bool UBattleGameplayAbility_Attack_Parent::ServerRPCNotifyHit_Validate(FBattleHi
 
 EStrikeType UBattleGameplayAbility_Attack_Parent::GetStrikeType(int Index) const
 {
-	if (AttackData->AttackWindowDatas.IsValidIndex(Index))
+	if (AttackData !=nullptr && AttackData->AttackWindowDatas.Num() != 0 && AttackData->AttackWindowDatas.IsValidIndex(Index))
 	{
 		BA_DEFAULT_LOG(LogBattle, Log, TEXT("%d"),Index);
 		for (auto AttackWindow : AttackData->AttackWindowDatas)
@@ -296,7 +297,8 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 	{
 		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, AttackData->AttackWindowDatas[AttackIdx].BaseDamage);
 		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackData->AttackWindowDatas[AttackIdx].AttackRate);
-		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_GroggyValue, AttackData->AttackWindowDatas[AttackIdx].GroggyValue);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_ImpactPower, AttackData->AttackWindowDatas[AttackIdx].ImpactPower);
+		
 		
 		
 		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, DamageSpecHandle, InData);
@@ -319,10 +321,27 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 		}
 	}
 	const FHitResult* HitResult = InData.Data[0].Get()->GetHitResult();
+	const FAttackWindowData* AttackWindowData = &AttackData->AttackWindowDatas[AttackIdx];
+	ABattleCharacterBase* AvatarCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
+	ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(HitResult->GetActor());
+
+	if (AttackWindowData->HitStopSeconds > 0.0f)
+	{
+		AvatarCharacter->NetStopMotion(AttackWindowData->HitStopSeconds);
+		TargetCharacter->NetStopMotion(AttackWindowData->HitStopSeconds);
+	}
+
+	if (AttackWindowData->CameraShakeClass != nullptr)
+	{
+		if (ABattlePlayerController* BattlePC = GetBattlePlayerControllerFromActorInfo())
+		{
+			BattlePC->PlayerCameraManager->StartCameraShake(AttackWindowData->CameraShakeClass, AttackWindowData->CameraShakeScale);
+		}
+	}
 	
 	if (const UPhysicalMaterialWithTags* PhysicalMaterialWithTags = Cast<UPhysicalMaterialWithTags>(HitResult->PhysMaterial.Get()))
 	{
-		ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(HitResult->GetActor());
+
 		
 		if (UBattlePartsManagerComponent* PartsManagerComponent = Cast<UBattlePartsManagerComponent>(TargetCharacter->GetComponentByClass(UBattlePartsManagerComponent::StaticClass())))
 		{
@@ -360,7 +379,6 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 			}
 		}
 		TargetCharacter->HandleDamageToPart(HitResult->BoneName, PhysicalMaterialWithTags->PartTag);
-		
 	}
 	
 

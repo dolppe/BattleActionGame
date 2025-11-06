@@ -1,5 +1,6 @@
 #include "AnimNotifyState_AttackWindow.h"
 
+#include "AIController.h"
 #include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
@@ -7,6 +8,8 @@
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "BattleActionGame/Messages/BattleHitMessage.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
+#include "BattleActionGame/Combat/AttackCollisionMethod_DirectionalSweep.h"
+#include "BattleActionGame/Combat/AttackCollisionMethod_SocketBasedLineTrace.h"
 #include "GameFramework/GameStateBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AnimNotifyState_AttackWindow)
@@ -27,7 +30,7 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 	{
 		CachedCombatManager = Cast<UBattleCombatManagerComponent>(CachedOwnerCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 		
-		if (CachedOwnerCharacter->IsLocallyControlled())
+		if (CachedOwnerCharacter->IsLocallyControlled() || Cast<AAIController>(CachedOwnerCharacter->GetController()) != nullptr)
 		{
 
 			TArray<FHitResult> HitResultsWithModify;
@@ -68,7 +71,13 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 			}
 		}
 	}
-	
+	else
+	{
+		for (UAttackCollisionData* CollisionData : CollisionDatas)
+		{
+			DrawDebugBegin(MeshComp, CollisionData);
+		}
+	}
 	
 	
 }
@@ -85,44 +94,76 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
 
-	if (CachedOwnerCharacter && CachedOwnerCharacter->IsLocallyControlled())
+	if (CachedOwnerCharacter)
 	{
-		
-		TArray<FHitResult> HitResultsWithModify;
-		
-		for (UAttackCollisionData* CollisionData : CollisionDatas)
+		if (CachedOwnerCharacter->IsLocallyControlled() || Cast<AAIController>(CachedOwnerCharacter->GetController()) != nullptr)
 		{
-			if (CachedCombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->IsNeedTick())
+			TArray<FHitResult> HitResultsWithModify;
+		
+			for (UAttackCollisionData* CollisionData : CollisionDatas)
 			{
-				TArray<FHitResult> HitResults;
-				CachedCombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->TickCollisionCheck(HitResults, CollisionData, FrameDeltaTime);
-				
-				if (HitResults.Num() >0)
+				if (CachedCombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->IsNeedTick())
 				{
-					for (const FHitResult& HitResult : HitResults)
+					TArray<FHitResult> HitResults;
+					CachedCombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->TickCollisionCheck(HitResults, CollisionData, FrameDeltaTime);
+				
+					if (HitResults.Num() >0)
 					{
-						auto Pred = [&HitResult](const FHitResult& OtherHitResult)
+						for (const FHitResult& HitResult : HitResults)
 						{
-							return OtherHitResult.HitObjectHandle == HitResult.HitObjectHandle;
-						};
+							auto Pred = [&HitResult](const FHitResult& OtherHitResult)
+							{
+								return OtherHitResult.HitObjectHandle == HitResult.HitObjectHandle;
+							};
 
-						if (!HitResultsWithModify.ContainsByPredicate(Pred))
-						{
-							HitResultsWithModify.Add(HitResult);
+							if (!HitResultsWithModify.ContainsByPredicate(Pred))
+							{
+								HitResultsWithModify.Add(HitResult);
+							}
 						}
 					}
 				}
 			}
+		
+			if (HitResultsWithModify.Num() > 0)
+			{
+				FBattleHitMessage HitMessage;
+				HitMessage.HitResults = HitResultsWithModify;
+				HitMessage.WindowIndex = AttackIdx;
+
+				UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(MeshComp->GetWorld());
+				MessageSubsystem.BroadcastMessage(FBattleGameplayTags::Get().Combat_Attack_Hit, HitMessage);
+			}
 		}
 		
-		if (HitResultsWithModify.Num() > 0)
+	}
+	else
+	{
+		for (UAttackCollisionData* CollisionData : CollisionDatas)
 		{
-			FBattleHitMessage HitMessage;
-			HitMessage.HitResults = HitResultsWithModify;
-			HitMessage.WindowIndex = AttackIdx;
+			DrawDebugTick(MeshComp, CollisionData);
+		}
+	}
+}
 
-			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(MeshComp->GetWorld());
-			MessageSubsystem.BroadcastMessage(FBattleGameplayTags::Get().Combat_Attack_Hit, HitMessage);
+void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData)
+{
+	for (UAttackCollisionData* CollisionData : CollisionDatas)
+	{
+		if (CollisionData->CollisionMethodType == ECollisionMethodType::DirectionalSweep)
+		{
+			UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(MeshComp, AttackCollisionData);
+		}
+	}
+}
+
+void UAnimNotifyState_AttackWindow::DrawDebugTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData)
+{
+	for (UAttackCollisionData* CollisionData : CollisionDatas)
+	{
+		if (CollisionData->CollisionMethodType == ECollisionMethodType::SocketBasedLineTrace)
+		{
+			UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(MeshComp, AttackCollisionData);
 		}
 	}
 }

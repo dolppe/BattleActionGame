@@ -25,7 +25,7 @@ public:
 	virtual void EndCollisionCheck();
 	virtual bool IsNeedTick();
 	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime);
-
+	
 	void SetCharacter(ACharacter* InCharacter)
 	{
 		Character = InCharacter;

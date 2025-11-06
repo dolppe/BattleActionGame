@@ -21,7 +21,7 @@ public:
 
 
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) override;
-
+	
 protected:
 
 	UPROPERTY(EditAnywhere)
@@ -32,6 +32,9 @@ protected:
 
 private:
 
+	void DrawDebugBegin(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
+	void DrawDebugTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
+	
 	
 	UBattleCombatManagerComponent* CachedCombatManager = nullptr;
 	ABattleCharacterBase* CachedOwnerCharacter = nullptr;

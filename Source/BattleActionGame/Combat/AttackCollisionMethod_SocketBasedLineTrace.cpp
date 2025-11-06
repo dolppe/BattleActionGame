@@ -20,10 +20,10 @@ void UAttackCollisionMethod_SocketBasedLineTrace::StartCollisionCheck(TArray<FHi
 
 	Params.bReturnPhysicalMaterial = true;
 
-	MeshComp = Character->GetMesh();
+	MeshComponent = Character->GetMesh();
 
-	PreviousStart = MeshComp->GetSocketLocation(*StartName);
-	PreviousEnd = MeshComp->GetSocketLocation(*EndName);
+	PreviousStart = MeshComponent->GetSocketLocation(*StartName);
+	PreviousEnd = MeshComponent->GetSocketLocation(*EndName);
 	PreviousMiddle = FMath::Lerp(PreviousStart, PreviousEnd, 0.5f);
 }
 
@@ -43,8 +43,8 @@ void UAttackCollisionMethod_SocketBasedLineTrace::TickCollisionCheck(TArray<FHit
 {
 	BA_DEFAULT_LOG(LogBattle, Log, TEXT("FrameDeltaTime: %f"), FrameDeltaTime);
 	
-	FVector Start = MeshComp->GetSocketLocation(*StartName);
-	FVector End = MeshComp->GetSocketLocation(*EndName);
+	FVector Start = MeshComponent->GetSocketLocation(*StartName);
+	FVector End = MeshComponent->GetSocketLocation(*EndName);
 
 	if (FrameDeltaTime < DeltaTimeThreshold)
 	{
@@ -60,8 +60,27 @@ void UAttackCollisionMethod_SocketBasedLineTrace::TickCollisionCheck(TArray<FHit
 	
 }
 
+void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(USkeletalMeshComponent* MeshComp,
+	UAttackCollisionData* AttackCollisionData)
+{
+	UAttackCollisionData_SocketBasedLineTrace* SocketCollisionData = Cast<UAttackCollisionData_SocketBasedLineTrace>(AttackCollisionData);
+	
+	FVector Start = MeshComp->GetSocketLocation(*SocketCollisionData->StartSocketName);
+	FVector End = MeshComp->GetSocketLocation(*SocketCollisionData->EndSocketName);
+	
+	FColor HitColor = FColor::Green;
+
+	UWorld* World = MeshComp->GetWorld();
+	
+	FVector TraceVector = End - Start;
+	FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
+	float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
+	FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
+	DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, SocketCollisionData->AttackRadius,CapsuleRotation, HitColor,false, 10.f);
+}
+
 void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheckWithLerpNotStep(TArray<FHitResult>& OutHitResults, FVector& CurWeaponStart,
-	FVector& CurWeaponEnd)
+                                                                                 FVector& CurWeaponEnd)
 {
 	BA_DEFAULT_LOG(LogBattle, Log, TEXT("CurS: %s CurE: %s"), *CurWeaponStart.ToString(), *CurWeaponEnd.ToString());
 	BA_DEFAULT_LOG(LogBattle, Log, TEXT("PreS: %s PreE: %s"), *PreviousStart.ToString(), *PreviousEnd.ToString());
@@ -145,5 +164,5 @@ void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebug(FVector& CurWeaponSt
 	FVector CapsuleCenter = (CurWeaponStart + CurWeaponEnd) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
 	float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
 	FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
-	DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, AttackRadius,CapsuleRotation, HitColor,false, 10.f);
+	DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, AttackRadius,CapsuleRotation, HitColor,false, 2.f);
 }

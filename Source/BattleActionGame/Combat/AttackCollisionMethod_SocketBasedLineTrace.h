@@ -17,6 +17,7 @@ public:
 	virtual bool IsNeedTick() override;
 
 	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime) override;
+	static void DrawDebugWithTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
 
 protected:
 	
@@ -38,7 +39,7 @@ protected:
 	FString EndName;
 	float AttackRadius;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-	TObjectPtr<USkeletalMeshComponent> MeshComp;
+	TObjectPtr<USkeletalMeshComponent> MeshComponent;
 
 	FCollisionQueryParams Params;
 

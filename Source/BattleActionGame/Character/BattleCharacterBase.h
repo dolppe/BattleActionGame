@@ -39,7 +39,15 @@ public:
 		return nullptr;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	void NetStopMotion(float StopSeconds);
 
+	UFUNCTION(BlueprintCallable)
+	void PerformGroggy();
+
+	UFUNCTION(BlueprintCallable)
+	void PerformPoiseBreak();
+	
 protected:
 	
 	UFUNCTION(NetMulticast, Unreliable)
@@ -47,6 +55,15 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerPlayMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastStopMotion(float StopSeconds);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopMotion(float StopSeconds);
+	
+	UFUNCTION()
+	void ResumeMotion();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleHealthComponent> HealthComponent;
@@ -56,6 +73,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TMap<TEnumAsByte<EPhysicalSurface>, UPhysicalMaterial*> PhysicalSurfaceMap;
+
+	FTimerHandle StopMotionHandle;
+	
 	
 };
 
