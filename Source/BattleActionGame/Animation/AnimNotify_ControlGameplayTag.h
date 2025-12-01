@@ -15,11 +15,11 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere)
-	FGameplayTag GameplayTag;
+	FGameplayTagContainer GameplayTags;
 
 	UPROPERTY(EditAnywhere)
 	bool bAddGameplayTag = true;
-
+	
 	
 };
 

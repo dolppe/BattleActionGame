@@ -41,7 +41,7 @@ void UBattleGameplayAbility_JustDash::ActivateAbility(const FGameplayAbilitySpec
 
 	if (HasAuthority(&ActivationInfo))
 	{
-		BA_DEFAULT_LOG(LogBattle, Log, TEXT("SErverJustDash"));
+		//BA_DEFAULT_LOG(LogBattle, Log, TEXT("SErverJustDash"));
 		FGameplayCueParameters Params;
 		Params.Instigator = const_cast<AActor*>(TriggerEventData->Instigator.Get());
 

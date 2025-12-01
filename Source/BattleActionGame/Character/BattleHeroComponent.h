@@ -42,8 +42,11 @@ public:
 	// Camera
 	TSubclassOf<UBattleCameraMode> DetermineCameraMode() const;
 	void SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
-
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
+
+	
+	void SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FVector& DesiredLocation, const FRotator& DesiredRotation);
+	void ClearDesiredCameraMode();
 
 	// Input
 	void InitilizePlayerInput(UInputComponent* PlayerInputComponent);
@@ -65,9 +68,20 @@ public:
 	void AdditionalInputConfig(const UBattleInputConfig* InputConfig);
 	void RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig);
 
-	void SetAllowedInput(bool bInAllowedInput);
+	FORCEINLINE FVector GetDesiredLocation() const
+	{
+		return DesiredViewPointLocation;
+	}
+
+	FORCEINLINE FRotator GetDesiredRotation() const 
+	{
+		return DesiredViewPointRotation;
+	}
+	
 	
 protected:
+
+	void Input_RotationCharacter(const FInputActionValue& InputActionValue);
 
 	UPROPERTY(EditAnywhere)
 	TArray<FBattleMappableConfigPair> DefaultInputConfigs;
@@ -77,16 +91,25 @@ protected:
 	UPROPERTY()
 	TSubclassOf<UBattleCameraMode> AbilityCameraMode;
 
+	UPROPERTY()
+	TSubclassOf<UBattleCameraMode> DesiredCameraMode;
+
 	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
 
 protected:
 
 	UAbilitySystemComponent* CachedASC;
-	
-	bool bAllowedInput = true;
 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* KnockbackMontage;
+
+private:
+	
+	FVector DesiredViewPointLocation;
+	FRotator DesiredViewPointRotation;
+	bool bHasDesiredViewPoint = false;
+
+	
 	
 	
 	

@@ -33,8 +33,10 @@ public:
 	FGameplayTag GameplayEvent_RequestReset;
 	FGameplayTag GameplayEvent_Reset;
 
-	FGameplayTag Ability_Trigger_JustClash;	
+	FGameplayTag Ability_Trigger_JustClash;
+	
 	FGameplayTag Ability_Type_Action_Groggy;
+	FGameplayTag Ability_Type_Action_PoiseBreak;
 
 	FGameplayTag Ability_Behavior_SurvivesDeath;
 
@@ -54,7 +56,7 @@ public:
 	FGameplayTag Status_Death_Dying;
 	FGameplayTag Status_Death_Dead;
 	
-	FGameplayTag Status_Attack_Attacking;
+	FGameplayTag Status_Action_Attack;
 	FGameplayTag Status_Poisoned;
 	FGameplayTag Status_Parry_JustDash;
 	FGameplayTag Status_Parry_JustClash;
@@ -69,7 +71,10 @@ public:
 	 */
 
 	FGameplayTag Block_Movement;
+	FGameplayTag Block_Movement_AllowRotation;
 
+	FGameplayTag Allow_Movement;
+	FGameplayTag Allow_AllowRotation;
 
 	/*
 	 * Combat
@@ -78,6 +83,7 @@ public:
 	FGameplayTag Combat_Attack_Event_Start;
 	FGameplayTag Combat_Attack_Event_End;
 	FGameplayTag Combat_UseItem_AttributeBased;
+	FGameplayTag Combat_Attack_Hit;
 
 	FGameplayTag SpecialAction_Counter_Start;
 
@@ -104,7 +110,7 @@ public:
 	
 	FGameplayTag GameplayEffect_Data_BaseDamage;
 	FGameplayTag GameplayEffect_Data_AttackRate;
-	FGameplayTag GameplayEffect_Data_GroggyValue;
+	FGameplayTag GameplayEffect_Data_ImpactPower;
 
 	/*
 	 *

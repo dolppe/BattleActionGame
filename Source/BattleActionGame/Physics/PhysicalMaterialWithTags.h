@@ -12,6 +12,7 @@ class UPhysicalMaterialWithTags : public UPhysicalMaterial
 public:
 	UPhysicalMaterialWithTags(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=PhysicalProperties)
-	FGameplayTagContainer Tags;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=PhysicalProperties)
+	FGameplayTag PartTag;
+	
 };

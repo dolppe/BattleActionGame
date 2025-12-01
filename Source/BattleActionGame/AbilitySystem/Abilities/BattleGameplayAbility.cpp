@@ -4,6 +4,7 @@
 #include "AbilitySystemGlobals.h"
 #include "BattleAbilityCost.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/BattleGameplayEffectContext.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
@@ -120,6 +121,7 @@ void UBattleGameplayAbility::ClearCameraMode()
 		ActiveCameraMode = nullptr;
 	}
 }
+
 
 void UBattleGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {

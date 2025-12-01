@@ -6,12 +6,27 @@
 #include "Item/BattleQuickBarComponent.h"
 #include "BattleCombatManagerComponent.generated.h"
 
+struct FBattleHitMessage;
+class UBattleGameplayAbility_Attack_Parent;
 class UAttackCollisionMethod;
 enum class ECollisionMethodType : uint8;
 class UBattleGameplayAbility_ComboAttack;
 enum class EItemType : uint8;
 class UGameplayAbility;
 enum class EAttackType : uint8;
+
+USTRUCT(BlueprintType)
+struct FHitInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FVector HitDirection;
+
+	UPROPERTY(BlueprintReadOnly)
+	float HitTime;
+	
+};
 
 
 
@@ -63,10 +78,51 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBattleCombatData> CombatData;
 
+	void SetAreaCenterData(const TArray<FVector>& InAreaCenterData)
+	{
+		AreaCenterData = InAreaCenterData;
+	}
+
+	TArray<FVector>& GetAreaCenterData()
+	{
+		return AreaCenterData;
+	}
+
+	void SetLastHitInfo(const FHitInfo& InHitInfo)
+	{
+		LastHitInfo = InHitInfo;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	const FHitInfo& GetLastHitInfo() const
+	{
+		return LastHitInfo;
+	}
+
+	void SetCurrentAttackGA(UBattleGameplayAbility_Attack_Parent* InCurrentAttackGA)
+	{
+		CurrentAttackGA = InCurrentAttackGA;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void OnHitEvent(const FBattleHitMessage& HitMessage);
+	
+
+protected:
+
+	UFUNCTION()
+	void OnRep_AreaCenterData();
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_AreaCenterData)
+	TArray<FVector> AreaCenterData;
+
 private:
 
 	UFUNCTION()
 	void OnRep_CurrentTargetActor();
+
+	UFUNCTION()
+	void OnRep_LastHitInfo();
 
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentTargetActor)
 	TObjectPtr<AActor> CurrentTargetActor = nullptr;
@@ -81,6 +137,10 @@ private:
 
 	UPROPERTY()
 	TMap<ECollisionMethodType, UAttackCollisionMethod*> InstancedCollisionMethod;
+
+	UPROPERTY(ReplicatedUsing=OnRep_LastHitInfo)
+	FHitInfo LastHitInfo;
 	
+	UBattleGameplayAbility_Attack_Parent* CurrentAttackGA = nullptr;
 
 };

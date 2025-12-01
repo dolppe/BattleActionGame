@@ -3,7 +3,6 @@
 #include "BattleGameplayAbility_Attack_Parent.h"
 #include "BattleGameplayAbility_TargetedAttack.generated.h"
 
-struct FTargetedAttack;
 
 UCLASS()
 class UBattleGameplayAbility_TargetedAttack : public UBattleGameplayAbility_Attack_Parent
@@ -18,12 +17,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	void SetAreaCenterData(const TArray<FVector>& InAreaCenterData)
-	{
-		AreaCenterData = InAreaCenterData;
-	}
-
-
 protected:
 
 	virtual void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag) override;
@@ -33,28 +26,14 @@ protected:
 
 	virtual void OnCompleted() override;
 	virtual void OnInterrupted() override;
-
-	virtual void OnRep_AlreadyHitActors() override;
-
-	UFUNCTION()
-	void OnRep_AreaCenterData();
-
-	UFUNCTION()
-	virtual void StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 	
-	UFUNCTION()
-	virtual void EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
-	
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_AreaCenterData)
-	TArray<FVector> AreaCenterData;
+
 
 	UPROPERTY(BlueprintReadOnly)
 	float AttackRadius = 10.f;
 
 private:
 	
-	const FTargetedAttack* CurrentAttackData;
-
 	
 	
 	

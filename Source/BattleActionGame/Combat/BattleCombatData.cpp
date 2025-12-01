@@ -20,10 +20,6 @@ UAttackCollisionData_CircularAOE::UAttackCollisionData_CircularAOE()
 	CollisionMethodType = ECollisionMethodType::CircularAOE;
 }
 
-FTargetedAttack::FTargetedAttack()
-{
-	CollisionMethod = NewObject<UAttackCollisionData_CircularAOE>(GetTransientPackage(), UAttackCollisionData_CircularAOE::StaticClass());
-}
 
 UBattleCombatData::UBattleCombatData()
 {

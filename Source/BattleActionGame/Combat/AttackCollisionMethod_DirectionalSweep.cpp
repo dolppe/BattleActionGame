@@ -7,14 +7,13 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AttackCollisionMethod_DirectionalSweep)
 
-PRAGMA_DISABLE_OPTIMIZATION
-void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
+
+void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
+	UAttackCollisionData* AttackCollisionData)
 {
 	if (UAttackCollisionData_DirectionalSweep* CollisionData = Cast<UAttackCollisionData_DirectionalSweep>(AttackCollisionData))
 	{
-		TArray<FHitResult> HitResults;
-
-		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(OriginGameplayAbility->GetAvatarActorFromActorInfo());
+		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(Character);
 		USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
 
 		const FRotator Rotation = CharacterBase->GetActorRotation();
@@ -28,11 +27,9 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
 	
 		float Radius = CollisionData->AttackRadius;
 
-		GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
+		GetWorld()->SweepMultiByChannel(OutHitResult, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
 
 
-		SendHitResults(HitResults, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
-		
 
 #if 1
 
@@ -46,24 +43,35 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck()
 #endif
 		
 	}
-
-
 }
-
-PRAGMA_ENABLE_OPTIMIZATION
 
 void UAttackCollisionMethod_DirectionalSweep::EndCollisionCheck()
 {
-	Super::EndCollisionCheck();
+
 }
 
-void UAttackCollisionMethod_DirectionalSweep::SetCollisionData(UAttackCollisionData* InAttackCollisionData,
-	UBattleGameplayAbility_Attack_Parent* InGameplayAbility)
+void UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(USkeletalMeshComponent* MeshComp,
+	UAttackCollisionData* AttackCollisionData)
 {
-	Super::SetCollisionData(InAttackCollisionData, InGameplayAbility);
-}
+	if (UAttackCollisionData_DirectionalSweep* CollisionData = Cast<UAttackCollisionData_DirectionalSweep>(AttackCollisionData))
+	{
+		const FRotator Rotation = MeshComp->GetComponentRotation();
+		const FRotator YawRotation(0,Rotation.Yaw+CollisionData->AttackRotationOffset+90,0);
 
-void UAttackCollisionMethod_DirectionalSweep::SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime)
-{
-	Super::SendHitResults(HitResults, HitTime);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		
+		FVector Start = MeshComp->GetSocketLocation(*CollisionData->StartSocketName);
+		FVector End = Start + ForwardDirection*CollisionData->AttackRange;
+
+		FVector TraceVector = End - Start;
+		FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
+		float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
+		FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
+
+		UWorld* World = MeshComp->GetWorld();
+	
+		DrawDebugLine(World, Start, End, FColor::Green, false, 10.f, 0, 0);
+		DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, CollisionData->AttackRadius,CapsuleRotation, FColor::Green,false, 2.f);
+	}
+
 }

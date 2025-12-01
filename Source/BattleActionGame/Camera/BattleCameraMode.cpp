@@ -5,7 +5,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCameraMode)
 
-
+PRAGMA_DISABLE_OPTIMIZATION
 
 FBattleCameraModeView::FBattleCameraModeView()
 	: Location(ForceInit)
@@ -165,6 +165,37 @@ void UBattleCameraMode::UpdateCameraMode(float DeltaTime)
 	UpdateBlending(DeltaTime);
 }
 
+void UBattleCameraMode::SetBlendWeight(float Weight)
+{
+	BlendWeight = FMath::Clamp(Weight, 0.0f, 1.0f);
+	
+	const float InvExponent = (BlendExponent > 0.0f) ? (1.0f / BlendExponent) : 1.0f;
+
+	switch (BlendFunction)
+	{
+	case EBattleCameraModeBlendFunction::Linear:
+		BlendAlpha = BlendWeight;
+		break;
+
+	case EBattleCameraModeBlendFunction::EaseIn:
+		BlendAlpha = FMath::InterpEaseIn(0.0f, 1.0f, BlendWeight, InvExponent);
+		break;
+
+	case EBattleCameraModeBlendFunction::EaseOut:
+		BlendAlpha = FMath::InterpEaseOut(0.0f, 1.0f, BlendWeight, InvExponent);
+		break;
+
+	case EBattleCameraModeBlendFunction::EaseInOut:
+		BlendAlpha = FMath::InterpEaseInOut(0.0f, 1.0f, BlendWeight, InvExponent);
+		break;
+
+	default:
+		checkf(false, TEXT("SetBlendWeight: Invalid BlendFunction [%d]\n"), (uint8)BlendFunction);
+		break;
+	}
+	
+}
+
 UBattleCameraModeStack::UBattleCameraModeStack(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -234,12 +265,12 @@ void UBattleCameraModeStack::PushCameraMode(TSubclassOf<UBattleCameraMode>& Came
 		if (CameraModeStack[StackIndex] == CameraMode)
 		{
 			ExistingStackIndex = StackIndex;
-			ExistingStackContribution *= CameraMode->BlendWeight;
+			ExistingStackContribution *= CameraMode->GetBlendWeight();
 			break;
 		}
 		else
 		{
-			ExistingStackContribution *= (1.0f - CameraModeStack[StackIndex]->BlendWeight);
+			ExistingStackContribution *= (1.0f - CameraModeStack[StackIndex]->GetBlendWeight());
 			
 		}
 	}
@@ -257,16 +288,16 @@ void UBattleCameraModeStack::PushCameraMode(TSubclassOf<UBattleCameraMode>& Came
 	}
 
 	// blendTime이 0보다 작으면 블랜드를 안하고, 만약 스택에 남은게 없으면 현재 가진 카메라 모드만 실행하기에 false 처리
-	const bool bShouldBlend = ((CameraMode->BlendTime > 0.0f) && (StackSize > 0));
+	const bool bShouldBlend = ((CameraMode->GetBlendTime() > 0.0f) && (StackSize > 0));
 	// blend를 진행한다면, 구한 가중치를 가져와서 적용해줌.
 	// 안한다면 1.0f로 설정해서 해당 카메라 모드만 나오게 함.
 	const float BlendWeight = (bShouldBlend ? ExistingStackContribution : 1.0f);
-	CameraMode->BlendWeight = BlendWeight;
+	CameraMode->SetBlendWeight(BlendWeight);
 
 	// top (index == 0)에 카메라 모드 설정.
 	// 마지막은 항상 1.0f이 되도록 해야함.
 	CameraModeStack.Insert(CameraMode, 0);
-	CameraModeStack.Last()->BlendWeight = 1.0f;
+	CameraModeStack.Last()->SetBlendWeight(1.0f);
 
 	
 }
@@ -301,7 +332,7 @@ void UBattleCameraModeStack::UpdateStack(float DeltaTime)
 		CameraMode->UpdateCameraMode(DeltaTime);
 
 		// 만약 카메라 모드의 BlendWeight가 1.0에 도달하면 그 이후는 다 제거함.
-		if (CameraMode->BlendWeight >= 1.0f)
+		if (CameraMode->GetBlendWeight() >= 1.0f)
 		{
 			RemoveIndex = (StackIndex+1);
 			RemoveCount = (StackSize - RemoveIndex);
@@ -330,7 +361,7 @@ void UBattleCameraModeStack::BlendStack(FBattleCameraModeView& OutCameraModeView
 	check(CameraMode);
 
 	// 제일 밑에 있는 (Bottom)은 BlendWeight가 1.0임
-	OutCameraModeView = CameraMode->View;
+	OutCameraModeView = CameraMode->GetCameraModeView();
 
 	// 이미 Bottom은 OutCameraModeView로 지정했기에 다음것부터 순회함.
 	for (int32 StackIndex = (StackSize -2); StackIndex >=0 ; --StackIndex)
@@ -338,7 +369,7 @@ void UBattleCameraModeStack::BlendStack(FBattleCameraModeView& OutCameraModeView
 		CameraMode = CameraModeStack[StackIndex];
 		check(CameraMode);
 
-		OutCameraModeView.Blend(CameraMode->View, CameraMode->BlendWeight);
+		OutCameraModeView.Blend(CameraMode->GetCameraModeView(), CameraMode->GetBlendWeight());
 		
 	}
 	
@@ -360,3 +391,5 @@ void UBattleCameraModeStack::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayT
 		OutTagOfTopLayer = TopEntry->GetCameraTypeTag();
 	}
 }
+
+PRAGMA_ENABLE_OPTIMIZATION

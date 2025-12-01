@@ -5,10 +5,12 @@
 
 #include "BattleCharacter.generated.h"
 
+class UBattleHeroComponent;
 class UGameplayEffect;
 class UBattleHealthComponent;
 class UBattlePawnExtensionComponent;
 class UBattleCameraComponent;
+class UBattleCameraMode;
 
 UCLASS()
 class ABattleCharacter : public ABattleCharacterBase
@@ -21,6 +23,8 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual UBattleHealthComponent* GetHealthComponent() const override;
+
+	UBattleHeroComponent* GetHeroComponent();
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -39,6 +43,19 @@ public:
 
 	virtual void Reset() override;
 
+	virtual void LaunchCharacter(FVector LaunchVelocity, bool bXYOverride, bool bZOverride) override;
+
+	void StartCriticalHit(FVector ImpactPoint, ABattleCharacterBase* TargetActor);
+
+	UFUNCTION()
+	void EndCriticalHit();
+	
+	FORCEINLINE TSubclassOf<UCameraShakeBase> GetCriticalCamera() const
+	{
+		return CriticalCameraShake;
+	}
+
+
 protected:
 
 	void OnAbilitySystemInitialized();
@@ -46,6 +63,11 @@ protected:
 	
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
+
+	UFUNCTION()
+	void HandleImpactDamage(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
+
+
 
 	
 private:
@@ -55,6 +77,16 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleCameraComponent> CameraComponent;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShakeBase> CriticalCameraShake;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UBattleCameraMode> CriticalCameraMode;
+
+	FTimerHandle CriticalHandle;
+
+	FRotator BeforeRotation;
 
 	
 };

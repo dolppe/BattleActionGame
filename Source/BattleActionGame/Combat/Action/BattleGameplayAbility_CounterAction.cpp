@@ -48,7 +48,7 @@ void UBattleGameplayAbility_CounterAction::EndAbility(const FGameplayAbilitySpec
 	else
 	{
 		
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 
 	if (Character->IsLocallyControlled())
@@ -72,7 +72,7 @@ void UBattleGameplayAbility_CounterAction::MoveToBestSpot()
 		FVector Direction = TargetActor->GetActorLocation() - Character->GetActorLocation();
 		Direction.Z = 0.0f;
 		Character->SetActorRotation(Direction.Rotation());
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 }
 
@@ -119,7 +119,7 @@ void UBattleGameplayAbility_CounterAction::ServerCounterAction_Implementation()
 		{
 			SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, BaseDamage);
 			SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackRate);
-			SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_GroggyValue, GroggyValue);
+			SpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_ImpactPower, GroggyValue);
 		
 			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, FGameplayAbilityTargetDataHandle());
 		}	

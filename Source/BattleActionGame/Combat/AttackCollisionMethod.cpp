@@ -3,7 +3,8 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AttackCollisionMethod)
 
-void UAttackCollisionMethod::StartCollisionCheck()
+void UAttackCollisionMethod::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
+	UAttackCollisionData* AttackCollisionData)
 {
 }
 
@@ -11,33 +12,14 @@ void UAttackCollisionMethod::EndCollisionCheck()
 {
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-void UAttackCollisionMethod::SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime)
+bool UAttackCollisionMethod::IsNeedTick()
 {
-	if (HitResults.Num() >0)
-	{
-		TArray<FHitResult> HitResultsForSend;
-		for (const FHitResult& HitResult : HitResults)
-		{
-			auto Pred = [&HitResult](const FHitResult& OtherHitResult)
-			{
-				return OtherHitResult.HitObjectHandle == HitResult.HitObjectHandle;
-			};
-
-			if (!HitResultsForSend.ContainsByPredicate(Pred))
-			{
-				HitResultsForSend.Add(HitResult);
-			}
-		}
-		OriginGameplayAbility->SelectHitCheck(HitResultsForSend, HitTime);
-	}
+	return false;
 }
-PRAGMA_ENABLE_OPTIMIZATION
 
-void UAttackCollisionMethod::SetCollisionData(UAttackCollisionData* InAttackCollisionData,
-                                              UBattleGameplayAbility_Attack_Parent* InGameplayAbility)
+void UAttackCollisionMethod::TickCollisionCheck(TArray<FHitResult>& OutHitResult,
+	UAttackCollisionData* AttackCollisionData, float FrameDeltaTime)
 {
-	AttackCollisionData = InAttackCollisionData;
-	OriginGameplayAbility = InGameplayAbility;
 }
+
 

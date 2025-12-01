@@ -2,6 +2,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "BattleCharacterBase.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 
@@ -11,6 +12,8 @@ UBattleCharacterMovementComponent::UBattleCharacterMovementComponent(const FObje
 	: Super(ObjectInitializer)
 {
 }
+
+PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattleCharacterMovementComponent::PerformMovement(float DeltaTime)
 {
@@ -25,26 +28,31 @@ void UBattleCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTic
 
 FRotator UBattleCharacterMovementComponent::GetDeltaRotation(float DeltaTime) const
 {
-	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
-	{
-		if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
-		{
-			return FRotator(0,0,0);
-		}
-	}
+	// if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
+	// {
+	// 	if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+	// 	{
+	// 		return Super::GetDeltaRotation(DeltaTime);
+	// 	}
+	// 	if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	// 	{
+	// 		return FRotator(0,0,0);
+	// 	}
+	// }
 
 	return Super::GetDeltaRotation(DeltaTime);
 }
 
 float UBattleCharacterMovementComponent::GetMaxSpeed() const
 {
-	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
-	{
-		if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
-		{
-			return 0;
-		}
-	}
+	// if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
+	// {
+	// 	if (ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	// 	{
+	// 		return 0;
+	// 	}
+	// }
 
 	return Super::GetMaxSpeed();
 }
+

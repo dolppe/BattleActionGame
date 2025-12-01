@@ -25,7 +25,29 @@ public:
 
 	void NetPlayMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
+	UFUNCTION(BlueprintCallable)
+	virtual void HandleDamageToPart(FName BoneName, FGameplayTag PartTag);
 
+	UFUNCTION(BlueprintCallable)
+	UPhysicalMaterial* GetPhysicalSurface(EPhysicalSurface PhysicalSurfaceType)
+	{
+		if (UPhysicalMaterial* PhysicalMaterial = *PhysicalSurfaceMap.Find(PhysicalSurfaceType))
+		{
+			return PhysicalMaterial;
+		}
+
+		return nullptr;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void NetStopMotion(float StopSeconds, float TimeDilation = 0.0f);
+
+	UFUNCTION(BlueprintCallable)
+	void PerformGroggy();
+
+	UFUNCTION(BlueprintCallable)
+	void PerformPoiseBreak();
+	
 protected:
 	
 	UFUNCTION(NetMulticast, Unreliable)
@@ -34,11 +56,26 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerPlayMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastStopMotion(float StopSeconds, float TimeDilation = 0.0f);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopMotion(float StopSeconds, float TimeDilation = 0.0f);
+	
+	UFUNCTION()
+	void ResumeMotion();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleHealthComponent> HealthComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleCombatManagerComponent> CombatComponent;
+
+	UPROPERTY(EditAnywhere)
+	TMap<TEnumAsByte<EPhysicalSurface>, UPhysicalMaterial*> PhysicalSurfaceMap;
+
+	FTimerHandle StopMotionHandle;
+	
 	
 };
 

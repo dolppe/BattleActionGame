@@ -219,6 +219,16 @@ TSubclassOf<UBattleCameraMode> UBattleHeroComponent::DetermineCameraMode() const
 		return nullptr;
 	}
 
+	if (DesiredCameraMode)
+	{
+		return DesiredCameraMode;
+	}
+
+	if (AbilityCameraMode)
+	{
+		return AbilityCameraMode;
+	}
+
 	if (UBattlePawnExtensionComponent* PawnExtComp = UBattlePawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 	{
 		if (const UBattlePawnData* PawnData = PawnExtComp->GetPawnData<UBattlePawnData>())
@@ -247,6 +257,24 @@ void UBattleHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHand
 		AbilityCameraMode = nullptr;
 		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
 	}
+}
+
+void UBattleHeroComponent::SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FVector& DesiredLocation,
+	const FRotator& DesiredRotation)
+{
+	if (CameraMode)
+	{
+		DesiredCameraMode = CameraMode;
+		DesiredViewPointLocation = DesiredLocation;
+		DesiredViewPointRotation = DesiredRotation;
+	}
+}
+
+void UBattleHeroComponent::ClearDesiredCameraMode()
+{
+	DesiredCameraMode = nullptr;
+	DesiredViewPointLocation = FVector::ZeroVector;
+	DesiredViewPointRotation = FRotator::ZeroRotator;
 }
 
 
@@ -324,10 +352,25 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
-	if (!bAllowedInput || CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+	if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+	{
+		Input_RotationCharacter(InputActionValue);
+		return;
+	}
+	else if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
 	{
 		return;
 	}
+
+	// if (!CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_Movement) && CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation))
+	// {
+	// 	Input_RotationCharacter(InputActionValue);
+	// 	return;
+	// }
+	// if (!CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_Movement))
+	// {
+	// 	return;
+	// }
 	
 	APawn* Pawn = GetPawn<APawn>();
 	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
@@ -401,7 +444,7 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 
 void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Direction, float Strength, float ZForce)
 {
-	BA_SUBLOG(LogBattle, Warning, TEXT("Perform Suc"));
+	//BA_SUBLOG(LogBattle, Warning, TEXT("Perform Suc"));
 	APawn* Pawn = GetPawn<APawn>();
 
 	Direction = Direction * Strength;
@@ -411,20 +454,8 @@ void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Directi
 	{
 		if (HasAuthority())
 		{
-			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
-			AnimInstance->Montage_Play(KnockbackMontage, 2.f);
-
-
-			AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
-			AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnKnockbackEnded);
-			
 			Character->GetCharacterMovement()->AirControl = 0.0f;
 			Character->LaunchCharacter(Direction*Strength, true, true);
-
-			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
-			{
-				ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
-			}
 		}
 	}
 	
@@ -439,26 +470,19 @@ void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, f
 			return;
 		}		
 	}
-	BA_SUBLOG(LogBattle, Warning, TEXT("Start"));
-	//PerformDirectionalMove(Direction, Strength, ZForce);
-	if (KnockbackMontage)
+
+	//BA_SUBLOG(LogBattle, Warning, TEXT("Montage Suc"));
+	APawn* Pawn = GetPawn<APawn>();
+
+	if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
 	{
-		BA_SUBLOG(LogBattle, Warning, TEXT("Montage Suc"));
-		APawn* Pawn = GetPawn<APawn>();
-
-		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
+		if (Character->IsLocallyControlled())
 		{
-			if (Character->IsLocallyControlled())
-			{
-				PerformDirectionalMove(Direction, Strength, ZForce);
-			}
-			
-			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
-			AnimInstance->Montage_Play(KnockbackMontage, 2.f);
-
+			PerformDirectionalMove(Direction, Strength, ZForce);
 		}
-		
 	}
+		
+	
 	
 	
 }
@@ -520,7 +544,30 @@ void UBattleHeroComponent::RemoveAdditionalInputConfig(const UBattleInputConfig*
 {
 }
 
-void UBattleHeroComponent::SetAllowedInput(bool bInAllowedInput)
+
+void UBattleHeroComponent::Input_RotationCharacter(const FInputActionValue& InputActionValue)
 {
-	bAllowedInput = bInAllowedInput;
+	ACharacter* Character = GetPawn<ACharacter>();
+	AController* Controller = Character ? Character->GetController() : nullptr;
+
+	//Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	FVector2D MovementVector = InputActionValue.Get<FVector2D>();
+	
+	float InputYaw = FMath::RadiansToDegrees(FMath::Atan2(MovementVector.X, MovementVector.Y));
+	
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0,Rotation.Yaw + InputYaw,0);
+
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	Character->AddMovementInput(ForwardDirection, 0.0001f);
+	Character->AddMovementInput(RightDirection, 0.0001f);
+	
+	// Character->SetActorRotation(YawRotation);
+	// Controller->SetControlRotation(YawRotation);
+	// Character->GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	
 }

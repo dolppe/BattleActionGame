@@ -14,21 +14,25 @@ enum class ECollisionMethodType : uint8
 	
 };
 
+
 UCLASS(Abstract)
 class UAttackCollisionMethod : public UObject
 {
 	GENERATED_BODY()
 public:
 	
-	virtual void StartCollisionCheck();
+	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData);
 	virtual void EndCollisionCheck();
-	virtual void SetCollisionData(UAttackCollisionData* InAttackCollisionData, UBattleGameplayAbility_Attack_Parent* InGameplayAbility);
+	virtual bool IsNeedTick();
+	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime);
+	
+	void SetCharacter(ACharacter* InCharacter)
+	{
+		Character = InCharacter;
+	}
 
 protected:
 
-	virtual void SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime);
-
-	UAttackCollisionData* AttackCollisionData;
-	UBattleGameplayAbility_Attack_Parent* OriginGameplayAbility;
+	ACharacter* Character = nullptr;
 	
 };

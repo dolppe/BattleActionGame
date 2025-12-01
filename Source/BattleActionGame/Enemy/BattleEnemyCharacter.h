@@ -6,31 +6,14 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleEnemyCharacter.generated.h"
 
+class ABattleEnemyCharacter;
 class ABattleUtilitySpot;
 class UBattleEnemyData;
 class UBattleHealthComponent;
 class UBattleAbilitySystemComponent;
 struct FGameplayEffectSpec;
+class UBattlePartsManagerComponent;
 
-USTRUCT()
-struct FBreakablePart
-{
-	GENERATED_BODY()
-
-	FBreakablePart()
-	{
-		
-	}
-	
-	FBreakablePart(int InRemainHp, const TFunction<void(FGameplayTag)>& InDestroyFunction)
-		: RemainHp(InRemainHp), DestroyFunction(InDestroyFunction)
-	{
-		
-	}
-	int RemainHp;
-	TFunction<void(FGameplayTag)> DestroyFunction; 
-	
-};
 
 
 UCLASS()
@@ -51,17 +34,35 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackBreakablePart(FGameplayTag InGameplayTag);
 
+	UFUNCTION(BlueprintCallable)
+	void ChangePhyMatPart(FName BoneName, FGameplayTag InGameplayTag);
+
 	void HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude);
+	
+	virtual void HandleDamageToPart(FName BoneName, FGameplayTag PartTag) override;
+
+	UFUNCTION(BlueprintCallable)
+	void DestroyParts(TArray<FName> BoneNames);
+
+	UFUNCTION()
+	virtual void OnPoiseBreak(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
+
+	UFUNCTION()
+	virtual void OnGroggyState(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
 
 protected:
 	
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Battle|EnemyCharacter", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBattleAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Battle|EnemyCharacter", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBattlePartsManagerComponent> PartsManagerComponent;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UBattleEnemyData> EnemyData;
 
-	TMap<FGameplayTag,FBreakablePart> BreakableParts;
+	UPROPERTY(EditAnywhere)
+	TMap<FGameplayTag, UPhysicalMaterial*> PhysicMaterialWithSurface;
 	
 	
 };

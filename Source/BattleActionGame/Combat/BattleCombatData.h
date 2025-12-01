@@ -1,8 +1,10 @@
 #pragma once
 
+#include "HitReactionTable.h"
 #include "Engine/DataAsset.h"
 #include "BattleCombatData.generated.h"
 
+class UHitReactionTable;
 class UGameplayEffect;
 enum class ECollisionMethodType : uint8;
 class UNiagaraSystem;
@@ -94,6 +96,39 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct FAttackWindowData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
+	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToTarget;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
+	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToSelf;
+	
+	UPROPERTY(EditAnywhere, Category=Attack)
+	float BaseDamage;
+	
+	UPROPERTY(EditAnywhere, Category=Attack)
+	float AttackRate;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	float ImpactPower = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	EStrikeType StrikeType = EStrikeType::SwordA;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	float HitStopSeconds = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	TSubclassOf<UCameraShakeBase> CameraShakeClass = nullptr;
+
+	UPROPERTY(EditAnywhere, Category=Attack)
+	float CameraShakeScale = 1.0f;
+};
+
+USTRUCT(BlueprintType)
 struct FAttackData
 {
 	GENERATED_BODY()
@@ -103,59 +138,17 @@ struct FAttackData
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	TObjectPtr<UAnimMontage> Montage;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
+	TArray<FAttackWindowData> AttackWindowDatas;
 	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	USoundBase* AttackSound;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	USoundBase* HitSound;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	UNiagaraSystem* HitEffect;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToTarget;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
-	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToSelf;
-
-	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Attack")
-	UAttackCollisionData* CollisionMethod;
-
-
+	// UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Attack")
+	// UAttackCollisionData* CollisionMethod;
 	
 };
 
-USTRUCT()
-struct FBasicAttack : public FAttackData
-{
-	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float BaseDamage = 0.0f;
-	
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float AttackRate = 1.0f;
 
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float GroggyValue = 10.0f;
-	
-};
-
-USTRUCT()
-struct FComboStrongAttack : public FAttackData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
-	float BaseDamage = 0.0f;
-	
-	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
-	float AttackRate = 1.0f;
-
-	UPROPERTY(EditAnywhere, Category=ComboStrongAttack)
-	float GroggyValue = 10.0f;	
-};
 
 USTRUCT()
 struct FComboAttack : public FAttackData
@@ -171,37 +164,9 @@ struct FComboAttack : public FAttackData
 	UPROPERTY(EditAnywhere, Category=ComboAttack)
 	TArray<float> AllowInputFrameCount;
 
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
-	TArray<float> BaseDamage;
-	
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
-	TArray<float> AttackRate;
 
-	UPROPERTY(EditAnywhere, Category=ComboAttack)
-	TArray<float> GroggyValue;
 	
 };
-
-USTRUCT()
-struct FTargetedAttack : public FAttackData
-{
-	GENERATED_BODY()
-
-	FTargetedAttack();
-
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float BaseDamage = 0.0f;
-	
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float AttackRate = 1.0f;
-
-	UPROPERTY(EditAnywhere, Category=BasicAttack)
-	float GroggyValue = 10.0f;
-
-	
-	
-};
-
 
 USTRUCT(BlueprintType)
 struct FSpecialSpawnData
@@ -238,19 +203,22 @@ public:
 	UBattleCombatData();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BasicAttack)
-	TArray<FBasicAttack> BasicAttacks;
+	TArray<FAttackData> BasicAttacks;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboAttack)
 	TArray<FComboAttack> ComboAttacks;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ComboStrongAttack)
-	TArray<FComboStrongAttack> ComboStrongAttacks;
+	TArray<FAttackData> ComboStrongAttacks;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=TargetedAttack)
-	TArray<FTargetedAttack> TargetedAttacks;
+	TArray<FAttackData> TargetedAttacks;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=SpawnAttack)
 	TArray<FSpecialSpawnData> SpawnDatas;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UHitReactionTable* HitReactionTable;
 	
 };
 

@@ -46,22 +46,30 @@ public:
 
 	UBattleCameraComponent* GetBattleCameraComponent() const;
 	AActor* GetTargetActor() const;
-	FVector GetPivotLocation() const;
-	FRotator GetPivotRotation() const;
-
-	virtual void UpdateView(float DeltaTime);
-	void UpdateBlending(float DeltaTime);
 	
 	void UpdateCameraMode(float DeltaTime);
 
 	float GetBlendWeight() const {return BlendWeight;}
 	float GetBlendTime() const {return BlendTime;}
+	void SetBlendWeight(float Weight);
+	
 	const FBattleCameraModeView& GetCameraModeView() const {return View;}
 
 	FGameplayTag GetCameraTypeTag() const
 	{
 		return CameraTypeTag;
 	}
+
+	
+protected:
+
+	FVector GetPivotLocation() const;
+	FRotator GetPivotRotation() const;
+
+	virtual void UpdateView(float DeltaTime);
+	void UpdateBlending(float DeltaTime);
+
+protected:
 	
 
 	UPROPERTY(EditDefaultsOnly, Category="Blending")
@@ -101,6 +109,7 @@ public:
 	float BlendExponent;
 
 	/** Blend function */
+	UPROPERTY(EditAnywhere, Category="Blending")
 	EBattleCameraModeBlendFunction BlendFunction;
 };
 

@@ -28,16 +28,11 @@ void UBattleGameplayAbility_BasicAttack::ActivateAbility(const FGameplayAbilityS
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 	UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-	CurrentBasicAttackData = &CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
-	CurrentAttackMontage = CurrentBasicAttackData->Montage;
+	AttackData = &CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
 
-	BaseDamage = CurrentBasicAttackData->BaseDamage;
-	AttackRate = CurrentBasicAttackData->AttackRate;
-	GroggyValue = CurrentBasicAttackData->GroggyValue;
+	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *AttackData->MontageSectionName, 1);
 
-	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *CurrentBasicAttackData->MontageSectionName, 1);
-
-	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), CurrentAttackMontage, 0.65f, MontageSectionName);
+	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), AttackData->Montage, 0.65f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_BasicAttack::OnCompleted);
 	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_BasicAttack::OnInterrupted);
 	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_BasicAttack::OnBlendOut);
@@ -45,13 +40,11 @@ void UBattleGameplayAbility_BasicAttack::ActivateAbility(const FGameplayAbilityS
 
 	if (Character->IsLocallyControlled())
 	{
-		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
-		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_BasicAttack::StartHitCheck);
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		AlreadyHitActors.Reset();
+
 	}
 	
 	
@@ -88,24 +81,7 @@ void UBattleGameplayAbility_BasicAttack::OnTargetDataReadyCallback(const FGamepl
 {
 	Super::OnTargetDataReadyCallback(InData, ApplicationTag);
 	
-	if (GetWorld()->GetNetMode() != NM_Client)
-	{
-		for (TSubclassOf<UGameplayEffect> TargetGE : CurrentBasicAttackData->AppliedEffectsToTarget)
-		{
-			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(TargetGE, 1);
-
-			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);		
-		}
-
-		for (TSubclassOf<UGameplayEffect> SelfGE : CurrentBasicAttackData->AppliedEffectsToSelf)
-		{
-			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SelfGE, 1);
-
-			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
-		}
-		
-		OnTargetDataReady(InData);
-	}
+	OnTargetDataReady(InData);
 }
 
 
@@ -119,64 +95,10 @@ void UBattleGameplayAbility_BasicAttack::OnInterrupted()
 	Super::OnInterrupted();
 }
 
-void UBattleGameplayAbility_BasicAttack::OnRep_AlreadyHitActors()
-{
-}
 
 void UBattleGameplayAbility_BasicAttack::AttackEvent(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
 
 }
 
-void UBattleGameplayAbility_BasicAttack::StartHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
-{
-	Super::StartHitCheck(Channel, Notification);
-	
-	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
-	{
-		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 
-		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentBasicAttackData->CollisionMethod->CollisionMethodType);
-		CollisionMethod->SetCollisionData(CurrentBasicAttackData->CollisionMethod, this);
-		CollisionMethod->StartCollisionCheck();
-	}
-	
-	// if (Notification.Target == GetAvatarActorFromActorInfo())
-	// {
-	// 	// Trace해서 처리 후 SelectHitCheck에 전송
-	// 	TArray<FHitResult> HitResults;
-	// 	
-	// 	if (HitCheckAttackType == EHitCheckAttackType::WeaponRange)
-	// 	{
-	// 		HitResults = StartHitCheckByWeaponRange();
-	// 	}
-	// 	else if (HitCheckAttackType == EHitCheckAttackType::AreaRange)
-	// 	{
-	// 		HitResults = StartHitCheckByAreaRange();
-	// 	}
-	//
-	// 	for (FHitResult HitResult : HitResults)
-	// 	{
-	// 		if (HitResult.GetActor()->IsA(ABattleCharacterBase::StaticClass()))
-	// 		{
-	// 			SelectHitCheck(HitResult, GetWorld()->GetGameState()->GetServerWorldTimeSeconds());
-	// 		}
-	// 	}
-	// }
-	
-}
-
-void UBattleGameplayAbility_BasicAttack::EndHitCheck(FGameplayTag Channel, const FBattleVerbMessage& Notification)
-{
-	Super::EndHitCheck(Channel, Notification);
-	
-	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
-	{
-		UBattleCombatManagerComponent* CurrentCombatManager = CastChecked<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
-
-		UAttackCollisionMethod* CollisionMethod = CurrentCombatManager->GetCollisionMethod(CurrentBasicAttackData->CollisionMethod->CollisionMethodType);
-		
-		CollisionMethod->EndCollisionCheck();
-		
-	}
-}

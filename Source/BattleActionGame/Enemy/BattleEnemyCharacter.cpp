@@ -12,6 +12,9 @@
 #include "BattleActionGame/Character/BattleCharacterMovementComponent.h"
 #include "BattleActionGame/Character/BattleHealthComponent.h"
 #include "BattleActionGame/Navigation/GridRiskMapComponent.h"
+#include "BattleActionGame/Physics/BattleCollisionChannels.h"
+#include "BattleActionGame/Physics/BattlePartsManagerComponent.h"
+#include "BattleActionGame/Physics/PhysicalMaterialWithTags.h"
 #include "UtilityAI/BattleUtilityAIComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleEnemyCharacter)
@@ -30,7 +33,8 @@ ABattleEnemyCharacter::ABattleEnemyCharacter(const FObjectInitializer& ObjectIni
 	//CreateDefaultSubobject<UBattleEnemySet>(TEXT("EnemySet"));
 	
 	HealthComponent = CreateDefaultSubobject<UBattleHealthComponent>(TEXT("HealthComponent"));
-
+	PartsManagerComponent = CreateDefaultSubobject<UBattlePartsManagerComponent>(TEXT("PartsManagerComponent"));
+	
 	NetUpdateFrequency = 100.0f;
 }
 
@@ -70,65 +74,35 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 
-	FBreakablePart LeftLegBreakablePart = FBreakablePart(1, [this](FGameplayTag InGameplayTag)
+	if (const UBattleEnemySet* EnemySet  = AbilitySystemComponent->GetSet<UBattleEnemySet>())
 	{
-		USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
-		if (SkeletalMeshComponent)
-		{
-			SkeletalMeshComponent->HideBoneByName(TEXT("Dummy012"), PBO_None);  
-			SkeletalMeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Dummy012"), true, false);  
-			SkeletalMeshComponent->SetAllBodiesBelowPhysicsDisabled(TEXT("Dummy012"), true, true);  
-		}
-		if (UBattleUtilityAIComponent* UtilityAIComponent = Cast<UBattleUtilityAIComponent>(GetComponentByClass(UBattleUtilityAIComponent::StaticClass())))
-		{
-			UtilityAIComponent->BreakParts(InGameplayTag);
-		}
-	});
-
-	FBreakablePart RightLegBreakablePart = FBreakablePart(1, [this](FGameplayTag InGameplayTag)
-	{
-		USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
-		if (SkeletalMeshComponent)
-		{
-			SkeletalMeshComponent->HideBoneByName(TEXT("Dummy020"), PBO_None);  
-			SkeletalMeshComponent->SetAllBodiesBelowSimulatePhysics(TEXT("Dummy020"), true, false);  
-			SkeletalMeshComponent->SetAllBodiesBelowPhysicsDisabled(TEXT("Dummy020"), true, true);  
-		}
-
-		if (UBattleUtilityAIComponent* UtilityAIComponent = Cast<UBattleUtilityAIComponent>(GetComponentByClass(UBattleUtilityAIComponent::StaticClass())))
-		{
-			UtilityAIComponent->BreakParts(InGameplayTag);
-		}
-	});
-	
-	BreakableParts.Add(FBattleGameplayTags::Get().Gameplay_Breakable_LeftLeg, LeftLegBreakablePart);
-	BreakableParts.Add(FBattleGameplayTags::Get().Gameplay_Breakable_RightLeg, RightLegBreakablePart);
-	
-	const UBattleEnemySet* EnemySet = AbilitySystemComponent->GetSet<UBattleEnemySet>();
-
-	if (EnemySet)
-	{
-		EnemySet->OnGroggyState.AddUObject(this, &ThisClass::HandleGroggyState);
+		EnemySet->OnGroggyState.AddUObject(this, &ThisClass::OnGroggyState);
+		EnemySet->OnPoiseBreakState.AddUObject(this, &ThisClass::OnPoiseBreak);
+		
 	}
+
+	
+
+	
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
 
 void ABattleEnemyCharacter::AttackBreakablePart(FGameplayTag InGameplayTag)
 {
-	if (BreakableParts.Contains(InGameplayTag))
-	{
-		BreakableParts[InGameplayTag].RemainHp--;
-		if (BreakableParts[InGameplayTag].RemainHp == 0)
-		{
-			BreakableParts[InGameplayTag].DestroyFunction(InGameplayTag);
-		}
-	}
+
+}
+
+void ABattleEnemyCharacter::ChangePhyMatPart(FName BoneName, FGameplayTag InGameplayTag)
+{
+	
+	GetMesh()->GetBodyInstance(BoneName)->SetPhysMaterialOverride(*PhysicMaterialWithSurface.Find(InGameplayTag));
+	
 }
 
 void ABattleEnemyCharacter::HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude)
 {
-	UE_LOG(LogTemp, Log, TEXT("Groggy"));
+	//UE_LOG(LogTemp, Log, TEXT("Groggy"));
 
 	//AbilitySystemComponent->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Groggy);
 
@@ -137,6 +111,53 @@ void ABattleEnemyCharacter::HandleGroggyState(AActor* GEInstigator, AActor* GECa
 	AbilitySystemComponent->TryActivateAbilitiesByTag(GameplayTags, false);
 	
 }
+
+void ABattleEnemyCharacter::HandleDamageToPart(FName BoneName, FGameplayTag PartTag)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	PartsManagerComponent->HandleDamagedToPart(BoneName, PartTag);
+}
+
+void ABattleEnemyCharacter::DestroyParts(TArray<FName> BoneNames)
+{
+	USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+	for (const FName& BoneName : BoneNames)
+	{
+		SkeletalMeshComponent->HideBoneByName(BoneName, PBO_None);  
+		SkeletalMeshComponent->SetAllBodiesBelowSimulatePhysics(BoneName, true, false);  
+		SkeletalMeshComponent->SetAllBodiesBelowPhysicsDisabled(BoneName, true, true);  
+	}
+}
+
+void ABattleEnemyCharacter::OnPoiseBreak(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude)
+{
+	PerformPoiseBreak();
+}
+
+void ABattleEnemyCharacter::OnGroggyState(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude)
+{
+	PerformGroggy();
+}
+
+// void ABattleEnemyCharacter::DamagedParts(TArray<FName> BoneNames, FGameplayTag TargetTag)
+// {
+// 	if (UPhysicalMaterial* PhysicalMaterial = *PhysicMaterialWithSurface.Find(TargetTag))
+// 	{
+// 		UPhysicalMaterialWithTags* PhysicalMaterialWithTags = Cast<UPhysicalMaterialWithTags>(PhysicalMaterial);
+// 		PhysicalMaterialWithTags->PartTag = FBattleGameplayTags::Get().Combat_Attack_Hit;
+// 		for (const FName& BoneName: BoneNames)
+// 		{
+// 			GetMesh()->GetBodyInstance(BoneName)->SetPhysMaterialOverride(PhysicalMaterial);
+// 		}
+// 		
+// 	}
+// }
 
 
 PRAGMA_ENABLE_OPTIMIZATION

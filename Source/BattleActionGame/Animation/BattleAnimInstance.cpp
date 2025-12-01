@@ -9,7 +9,7 @@
 UBattleAnimInstance::UBattleAnimInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	RunThreshold = 3.0f;
+	RunThreshold = 10.0f;
 	JumpingThreshold = 100.0f;
 }
 

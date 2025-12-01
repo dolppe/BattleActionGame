@@ -38,6 +38,10 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	
 	
 	AddTag(Ability_Type_Action_Groggy, "Ability.Type.Action.Groggy", "");
+	AddTag(Ability_Type_Action_PoiseBreak, "Ability.Type.Action.PoiseBreak", "");
+	
+
+	
 	AddTag(Ability_Trigger_JustClash, "Ability.Trigger.JustClash", "");
 	AddTag(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "");
 	
@@ -59,7 +63,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(Status_Death_Dying, "Status.Death.Dying", "");
 	AddTag(Status_Death_Dead, "Status.Death.Dead", "");
 
-	AddTag(Status_Attack_Attacking, "Status.Attack.Attacking", "");
+	AddTag(Status_Action_Attack, "Status.Action.Attack", "");
 	AddTag(Status_Poisoned, "Status.Poisoned", "");
 	AddTag(Status_Parry_JustClash, "Status.Parry.JustClash", "");
 	AddTag(Status_Parry_JustDash, "Status.Parry.JustDash", "");
@@ -74,7 +78,10 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 
 	AddTag(Block_Movement, "Block.Movement", "");
-    
+	AddTag(Block_Movement_AllowRotation, "Block.Movement.AllowRotation", "");
+	
+	AddTag(Allow_Movement, "Allow.Movement", "");
+	AddTag(Allow_AllowRotation, "Allow.AllowRotation", "");
 	
 	
 	/*
@@ -83,8 +90,13 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(Combat_Attack_Event_Start, "Combat.Attack.Event.Start", "");
 	AddTag(Combat_Attack_Event_End, "Combat.Attack.Event.End", "");
+	AddTag(Combat_Attack_Hit, "Combat.Attack.Hit", "");
+	
 	AddTag(Combat_UseItem_AttributeBased, "Combat.UseItem.AttributeBased", "");
+	
 
+	
+	
 	AddTag(SpecialAction_Counter_Start, "SpecialAction.Counter.Start", "");
 	
 	
@@ -108,7 +120,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(GameplayEffect_Data_BaseDamage, "GameplayEffect.Data.BaseDamage", "");
 	AddTag(GameplayEffect_Data_AttackRate, "GameplayEffect.Data.AttackRate", "");
-	AddTag(GameplayEffect_Data_GroggyValue, "GameplayEffect.Data.GroggyValue", "");
+	AddTag(GameplayEffect_Data_ImpactPower, "GameplayEffect.Data.ImpactPower", "");
 
 	
 

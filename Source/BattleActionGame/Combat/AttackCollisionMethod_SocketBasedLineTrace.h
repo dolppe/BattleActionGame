@@ -11,16 +11,41 @@ class UAttackCollisionMethod_SocketBasedLineTrace : public UAttackCollisionMetho
 	GENERATED_BODY()
 public:
 
-	virtual void StartCollisionCheck() override;
+	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData) override;
 	virtual void EndCollisionCheck() override;
-	virtual void SetCollisionData(UAttackCollisionData* InAttackCollisionData, UBattleGameplayAbility_Attack_Parent* InGameplayAbility) override;
 
-	UFUNCTION()
-	virtual void SendHitResults(const TArray<FHitResult>& HitResults, const float HitTime) override;
+	virtual bool IsNeedTick() override;
+
+	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime) override;
+	static void DrawDebugWithTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
 
 protected:
 	
-	UBattleAbilityTask_HitCheck* HitCheckTask;
+	void PerformHitCheckWithLerpNotStep(TArray<FHitResult>& OutHitResults, FVector& CurWeaponStart, FVector& CurWeaponEnd);
+	void PerformHitCheck(TArray<FHitResult>& OutHitResults, FVector& CurWeaponStart, FVector& CurWeaponEnd);
+
+	void DrawDebug(FVector& CurWeaponStart, FVector& CurWeaponEnd, bool bIsHit);
+	
+	UPROPERTY()
+	FVector PreviousStart;
+
+	UPROPERTY()
+	FVector PreviousMiddle;
+	
+	UPROPERTY()
+	FVector PreviousEnd;
+
+	FString StartName;
+	FString EndName;
+	float AttackRadius;
+	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	TObjectPtr<USkeletalMeshComponent> MeshComponent;
+
+	FCollisionQueryParams Params;
+
+	const float DeltaTimeThreshold = 0.05f;
+
+	TMap<AActor*,FHitResult> CurrentHitResults;
 	
 };
 

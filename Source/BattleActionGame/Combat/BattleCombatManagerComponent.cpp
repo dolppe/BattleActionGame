@@ -27,6 +27,8 @@ void UBattleCombatManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ThisClass, CurrentUsedItemInfo);
 	DOREPLIFETIME(ThisClass, CurrentTargetActor);
+	DOREPLIFETIME(ThisClass, AreaCenterData);
+	DOREPLIFETIME(ThisClass, LastHitInfo);
 }
 
 void UBattleCombatManagerComponent::BeginPlay()
@@ -36,6 +38,11 @@ void UBattleCombatManagerComponent::BeginPlay()
 	InstancedCollisionMethod.Add(ECollisionMethodType::SocketBasedLineTrace, NewObject<UAttackCollisionMethod_SocketBasedLineTrace>(this));
 	InstancedCollisionMethod.Add(ECollisionMethodType::DirectionalSweep, NewObject<UAttackCollisionMethod_DirectionalSweep>(this));
 	InstancedCollisionMethod.Add(ECollisionMethodType::CircularAOE, NewObject<UAttackCollisionMethod_CircularAOE>(this));
+
+	for (TTuple<ECollisionMethodType, UAttackCollisionMethod*>& Item : InstancedCollisionMethod)
+	{
+		Item.Value->SetCharacter(Cast<ACharacter>(GetOwner()));
+	}
 }
 
 void UBattleCombatManagerComponent::UseItem(EItemType Item)
@@ -71,7 +78,23 @@ UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(EColli
 	return InstancedCollisionMethod[CollisionMethod];
 }
 
+void UBattleCombatManagerComponent::OnHitEvent(const FBattleHitMessage& HitMessage)
+{
+	if (CurrentAttackGA->IsActive())
+	{
+		CurrentAttackGA->ReceivedHits(HitMessage);
+	}
+}
+
+void UBattleCombatManagerComponent::OnRep_AreaCenterData()
+{
+}
+
 void UBattleCombatManagerComponent::OnRep_CurrentTargetActor()
 {
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("CurrentTargetActor Rep"));
+	//BA_DEFAULT_LOG(LogBattle,Log,TEXT("CurrentTargetActor Rep"));
+}
+
+void UBattleCombatManagerComponent::OnRep_LastHitInfo()
+{
 }

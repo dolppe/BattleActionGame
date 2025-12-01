@@ -311,12 +311,12 @@ void ABattleGameMode::TryMapLoad()
 
 	for (FPrimaryAssetId UserItem : UserFacingList)
 	{
-		UE_LOG(LogTemp,Log,TEXT("%s"), *UserItem.ToString());
+		//UE_LOG(LogTemp,Log,TEXT("%s"), *UserItem.ToString());
 	}
 	
 	UObject* TempUser = AssetManager.SynchronousLoadAsset(AssetManager.GetPrimaryAssetPath(UserFacingList[0]));
 	
-	UE_LOG(LogTemp,Log,TEXT("%s"), *TempUser->GetName());
+	//UE_LOG(LogTemp,Log,TEXT("%s"), *TempUser->GetName());
 	
 	//UObject* UserFacing = AssetManager.GetPrimaryAssetObject(UserFacingList[0]);
 	UBattleUserFacingExperienceDefinition* UserFacing = Cast<UBattleUserFacingExperienceDefinition>(TempUser);

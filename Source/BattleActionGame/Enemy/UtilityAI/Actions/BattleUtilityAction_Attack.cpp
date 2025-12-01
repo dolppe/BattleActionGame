@@ -54,7 +54,7 @@ bool UBattleUtilityAction_Attack::TickAction(float DeltaTime)
 {
 	if (ASC)
 	{
-		if (!ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking))
+		if (!ASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack))
 		{
 			return true;
 		}
@@ -202,7 +202,11 @@ void UBattleUtilityAction_AttackArea::StartAttack()
 			{
 				if (UBattleGameplayAbility_TargetedAttack* InstancedGA = Cast<UBattleGameplayAbility_TargetedAttack>(InstancedAbility))
 				{
-					InstancedGA->SetAreaCenterData(AttackAreaData);
+					if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+					{
+						CombatManagerComponent->SetAreaCenterData(AttackAreaData);
+					}
+					
 					ASC->TryActivateAbility(AbilitySpec->Handle);
 				}
 			}
@@ -235,11 +239,11 @@ void UBattleUtilityAction_AttackArea::GetAreaData()
 				UBattleCombatData* CombatData = CombatManagerComponent->GetAttackData();
 				if (CombatData->TargetedAttacks.IsValidIndex(AttackIdx))
 				{
-					if (UAttackCollisionData_CircularAOE* CircularAoe = Cast<UAttackCollisionData_CircularAOE>(CombatData->TargetedAttacks[AttackIdx].CollisionMethod))
-					{
-						AreaNum = CircularAoe->AttackNum;
-						AreaRadius = CircularAoe->AttackRadius;
-					}
+					// if (UAttackCollisionData_CircularAOE* CircularAoe = Cast<UAttackCollisionData_CircularAOE>(CombatData->TargetedAttacks[AttackIdx].CollisionMethod))
+					// {
+					// 	AreaNum = CircularAoe->AttackNum;
+					// 	AreaRadius = CircularAoe->AttackRadius;
+					// }
 				}
 			}
 		}

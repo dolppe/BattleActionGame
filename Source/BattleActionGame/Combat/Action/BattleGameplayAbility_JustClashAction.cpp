@@ -39,7 +39,7 @@ void UBattleGameplayAbility_JustClashAction::ActivateAbility(const FGameplayAbil
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("JustClashStart"));
+	//BA_DEFAULT_LOG(LogBattle, Log, TEXT("JustClashStart"));
 
 	ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(TargetActor);
 	UAbilitySystemComponent* TargetASC = TargetCharacter->GetAbilitySystemComponent();
@@ -74,8 +74,8 @@ void UBattleGameplayAbility_JustClashAction::EndAbility(const FGameplayAbilitySp
 	}
 	else
 	{
-		TargetCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		//TargetCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 	
 	
@@ -113,7 +113,7 @@ void UBattleGameplayAbility_JustClashAction::MoveToBestSpot()
 		
 		DrawDebugLine(GetWorld(), Direction, Character->GetActorLocation(), FColor::Red, false, 10.f, 0, 0);
 		
-		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 	if (ACharacter* TargetCharacter = Cast<ACharacter>(TargetActor))
 	{
@@ -146,7 +146,7 @@ void UBattleGameplayAbility_JustClashAction::MoveToBestSpot()
 		
 		DrawDebugLine(GetWorld(), Direction, TargetCharacter->GetActorLocation(), FColor::Blue, false, 10.f, 0, 0);
 		
-		TargetCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		//TargetCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 	
 }
@@ -157,7 +157,7 @@ void UBattleGameplayAbility_JustClashAction::PlaySpecialActionMontage()
 	{
 		if (ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(TargetActor))
 		{
-			BA_DEFAULT_LOG(LogBattle, Log, TEXT("NetPlayMontage Start"));
+			//BA_DEFAULT_LOG(LogBattle, Log, TEXT("NetPlayMontage Start"));
 			TargetCharacter->NetPlayMontage(TargetMontage);
 		}
 	}

@@ -1,0 +1,1 @@
+UnrealEditor.exe %cd%\BattleActionGame.uproject -run=cook -log -Trace=default,cook -tracehost=localhost -targetplatform=Windows

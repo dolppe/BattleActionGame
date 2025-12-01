@@ -57,7 +57,7 @@ void UBattleAbilitySystemComponent::CancelAbilityByFunc(TShouldCancelAbilityFunc
 					}
 					else
 					{
-						UE_LOG(LogBattle, Error, TEXT("Can't Cancel GA %s"), *BattleAbilityInstance->GetName());
+						//UE_LOG(LogBattle, Error, TEXT("Can't Cancel GA %s"), *BattleAbilityInstance->GetName());
 					}
 				}
 			}
@@ -186,7 +186,7 @@ void UBattleAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 			if (AbilitySpec->Ability)
 			{
 				AbilitySpec->InputPressed = true;
-
+				
 				if (AbilitySpec->IsActive())
 				{
 					// 이미 Ability가 활성화 되어있으면 InputEvent만
@@ -294,6 +294,8 @@ void UBattleAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGamepl
 	{
 		TagRelationshipMapping->GetAbilityTagsToBlockAndCancel(AbilityTags, &ModifiedBlockTags, &ModifiedCancelTags);
 	}
+	
+	BA_DEFAULT_LOG(LogBattle,Log,TEXT("AbilityTag: %s, CancelTag: %s"), *AbilityTags.ToString(), *ModifiedCancelTags.ToString());
 	
 	Super::ApplyAbilityBlockAndCancelTags(AbilityTags, RequestingAbility, bEnableBlockTags, ModifiedBlockTags,
 	                                      bExecuteCancelTags, ModifiedCancelTags);

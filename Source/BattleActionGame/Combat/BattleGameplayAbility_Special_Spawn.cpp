@@ -46,7 +46,7 @@ void UBattleGameplayAbility_Special_Spawn::ActivateAbility(const FGameplayAbilit
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 		if (ASC)
 		{
-			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+			ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack);
 		}
 	}
 }
@@ -74,7 +74,7 @@ void UBattleGameplayAbility_Special_Spawn::EndAbility(const FGameplayAbilitySpec
 		
 		if (ASC)
 		{
-			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Attack_Attacking);
+			ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack);
 		}
 		
 	}
