@@ -44,6 +44,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DestroyParts(TArray<FName> BoneNames);
 
+	UFUNCTION()
+	virtual void OnPoiseBreak(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
+
+	UFUNCTION()
+	virtual void OnGroggyState(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
 
 protected:
 	

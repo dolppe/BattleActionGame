@@ -68,41 +68,26 @@ void ABattleCharacterBase::HandleDamageToPart(FName BoneName, FGameplayTag PartT
 {
 }
 
-void ABattleCharacterBase::NetStopMotion(float StopSeconds)
+void ABattleCharacterBase::NetStopMotion(float StopSeconds, float TimeDilation)
 {
 	if (HasAuthority())
 	{
-		MulticastStopMotion(StopSeconds);
+		MulticastStopMotion(StopSeconds, TimeDilation);
 	}
 	else
 	{
-		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-		{
-			if (FAnimMontageInstance* MontageInstance = AnimInstance->GetActiveMontageInstance())
-			{
-				MontageInstance->Pause();
-				GetWorldTimerManager().SetTimer(StopMotionHandle,
-					[this]()
-					{
-						this->ResumeMotion();
-					},
-					StopSeconds, false
-				);
-			}
-			else
-			{
-				this->CustomTimeDilation = 0.0f;
 
-				GetWorldTimerManager().SetTimer(StopMotionHandle,
-					[this]()
-					{
-						this->CustomTimeDilation = 1.0f;
-					},
-					StopSeconds, false
-				);
-			}
-		}
-		ServerStopMotion(StopSeconds);
+		this->CustomTimeDilation = TimeDilation;
+
+		GetWorldTimerManager().SetTimer(StopMotionHandle,
+			[this]()
+			{
+				this->CustomTimeDilation = 1.0f;
+			},
+			StopSeconds, false
+		);
+
+		ServerStopMotion(StopSeconds, TimeDilation);
 	}
 
 }
@@ -114,7 +99,8 @@ void ABattleCharacterBase::PerformGroggy()
 		FGameplayTagContainer GameplayTags;
 		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_Groggy);
 		
-		ASC->TryActivateAbilitiesByTag(GameplayTags);
+		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
+		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Groggy : %d"), bTrySuccess);
 	}
 	
 }
@@ -126,47 +112,58 @@ void ABattleCharacterBase::PerformPoiseBreak()
 		FGameplayTagContainer GameplayTags;
 		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_PoiseBreak);
 		
-		ASC->TryActivateAbilitiesByTag(GameplayTags);
+		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
+		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Poise : %d"), bTrySuccess);
 	}
 }
 
-void ABattleCharacterBase::MulticastStopMotion_Implementation(float StopSeconds)
+void ABattleCharacterBase::MulticastStopMotion_Implementation(float StopSeconds, float TimeDilation)
 {
-	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-	{
-		if (FAnimMontageInstance* MontageInstance = AnimInstance->GetActiveMontageInstance())
-		{
-			if (!MontageInstance->IsPlaying())
-			{
-				return;
-			}
-			MontageInstance->Pause();
-			GetWorldTimerManager().SetTimer(StopMotionHandle,
-				[this]()
-				{
-					this->ResumeMotion();
-				},
-				StopSeconds, false
-			);
-		}
-		else
-		{
-			this->CustomTimeDilation = 0.0f;
+	// if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	// {
+	// 	if (FAnimMontageInstance* MontageInstance = AnimInstance->GetActiveMontageInstance())
+	// 	{
+	// 		if (!MontageInstance->IsPlaying())
+	// 		{
+	// 			return;
+	// 		}
+	// 		MontageInstance->Pause();
+	// 		GetWorldTimerManager().SetTimer(StopMotionHandle,
+	// 			[this]()
+	// 			{
+	// 				this->ResumeMotion();
+	// 			},
+	// 			StopSeconds, false
+	// 		);
+	// 	}
+	// 	else
+	// 	{
+	// 		this->CustomTimeDilation = 0.0f;
+	//
+	// 		GetWorldTimerManager().SetTimer(StopMotionHandle,
+	// 			[this]()
+	// 			{
+	// 				this->CustomTimeDilation = 1.0f;
+	// 			},
+	// 			StopSeconds, false
+	// 		);
+	// 	}
+	// }
 
-			GetWorldTimerManager().SetTimer(StopMotionHandle,
-				[this]()
-				{
-					this->CustomTimeDilation = 1.0f;
-				},
-				StopSeconds, false
-			);
-		}
-	}
+	this->CustomTimeDilation = TimeDilation;
+
+	GetWorldTimerManager().SetTimer(StopMotionHandle,
+		[this]()
+		{
+			this->CustomTimeDilation = 1.0f;
+		},
+		StopSeconds, false
+	);
 }
 
-void ABattleCharacterBase::ServerStopMotion_Implementation(float StopSeconds)
+void ABattleCharacterBase::ServerStopMotion_Implementation(float StopSeconds, float TimeDilation)
 {
-	MulticastStopMotion_Implementation(StopSeconds);
+	MulticastStopMotion_Implementation(StopSeconds, TimeDilation);
 }
 
 void ABattleCharacterBase::ResumeMotion()

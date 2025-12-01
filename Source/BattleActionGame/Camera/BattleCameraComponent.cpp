@@ -32,12 +32,15 @@ void UBattleCameraComponent::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayT
 void UBattleCameraComponent::OnRegister()
 {
 	Super::OnRegister();
+	
 	if (!CameraModeStack)
 	{
 		// Beginplay와 같은 초기화가 필요 없으므로 그냥 NewObject로 생성.
 		CameraModeStack = NewObject<UBattleCameraModeStack>(this);
 	}
 }
+
+PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattleCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
@@ -56,7 +59,6 @@ void UBattleCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 			// (조종하고 있는 캐릭터에 회전을 시킴)
 			PC->SetControlRotation(CameraModeView.ControlRotation);
 		}
-		
 	}
 
 	// 카메라에 Location과 Rotation 반영
@@ -87,5 +89,11 @@ void UBattleCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	{
 		DesiredView.PostProcessSettings = PostProcessSettings;
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("Location:%s"), *DesiredView.Location.ToString());
+	UE_LOG(LogTemp, Log, TEXT("Rotation:%s"), *DesiredView.Rotation.ToString());
+	UE_LOG(LogTemp, Log, TEXT("Control Rotation:%s"), *CameraModeView.ControlRotation.ToString());
 	
 }
+
+PRAGMA_ENABLE_OPTIMIZATION

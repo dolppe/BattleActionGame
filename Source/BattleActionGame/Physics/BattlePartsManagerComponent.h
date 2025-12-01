@@ -37,6 +37,7 @@ struct FPartData
 	GENERATED_BODY()
 
 	void HandleDamaged(ABattleEnemyCharacter* MyCharacter, int DamagedHp = 1);
+	bool WillDamageTrigger(int DamagedHp = 1);
 	
 	UPROPERTY(EditAnywhere)
 	int PartHp = 5;
@@ -76,6 +77,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsPartDestroyed(FGameplayTag PartTag);
+
+	UFUNCTION(BlueprintCallable)
+	bool WillPartEventTrigger(FGameplayTag PartTag);
+
 	
 
 protected:

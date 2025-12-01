@@ -33,8 +33,10 @@ public:
 	FGameplayTag GameplayEvent_RequestReset;
 	FGameplayTag GameplayEvent_Reset;
 
-	FGameplayTag Ability_Trigger_JustClash;	
+	FGameplayTag Ability_Trigger_JustClash;
+	
 	FGameplayTag Ability_Type_Action_Groggy;
+	FGameplayTag Ability_Type_Action_PoiseBreak;
 
 	FGameplayTag Ability_Behavior_SurvivesDeath;
 
@@ -108,7 +110,7 @@ public:
 	
 	FGameplayTag GameplayEffect_Data_BaseDamage;
 	FGameplayTag GameplayEffect_Data_AttackRate;
-	FGameplayTag GameplayEffect_Data_GroggyValue;
+	FGameplayTag GameplayEffect_Data_ImpactPower;
 
 	/*
 	 *

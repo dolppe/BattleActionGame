@@ -18,6 +18,8 @@ public:
 	
 	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
 	virtual float GetMaxSpeed() const override;
+
+	
 	
 	
 };

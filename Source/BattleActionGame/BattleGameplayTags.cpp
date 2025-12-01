@@ -38,6 +38,10 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	
 	
 	AddTag(Ability_Type_Action_Groggy, "Ability.Type.Action.Groggy", "");
+	AddTag(Ability_Type_Action_PoiseBreak, "Ability.Type.Action.PoiseBreak", "");
+	
+
+	
 	AddTag(Ability_Trigger_JustClash, "Ability.Trigger.JustClash", "");
 	AddTag(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "");
 	
@@ -116,7 +120,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(GameplayEffect_Data_BaseDamage, "GameplayEffect.Data.BaseDamage", "");
 	AddTag(GameplayEffect_Data_AttackRate, "GameplayEffect.Data.AttackRate", "");
-	AddTag(GameplayEffect_Data_GroggyValue, "GameplayEffect.Data.GroggyValue", "");
+	AddTag(GameplayEffect_Data_ImpactPower, "GameplayEffect.Data.ImpactPower", "");
 
 	
 

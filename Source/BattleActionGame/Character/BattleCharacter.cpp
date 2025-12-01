@@ -2,9 +2,14 @@
 
 #include "BattleCharacterMovementComponent.h"
 #include "BattleHealthComponent.h"
+#include "BattleHeroComponent.h"
 #include "BattlePawnExtensionComponent.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
+#include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
+#include "BattleActionGame/Camera/BattleCameraMode.h"
+#include "BattleActionGame/Camera/BattleCameraMode_DesiredViewPoint.h"
 #include "Components/CapsuleComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCharacter)
@@ -58,6 +63,11 @@ UAbilitySystemComponent* ABattleCharacter::GetAbilitySystemComponent() const
 UBattleHealthComponent* ABattleCharacter::GetHealthComponent() const
 {
 	return HealthComponent;
+}
+
+UBattleHeroComponent* ABattleCharacter::GetHeroComponent()
+{
+	return Cast<UBattleHeroComponent>(GetComponentByClass(UBattleHeroComponent::StaticClass()));
 }
 
 void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -129,12 +139,94 @@ void ABattleCharacter::Reset()
 	UninitAndDestroy();
 }
 
+void ABattleCharacter::LaunchCharacter(FVector LaunchVelocity, bool bXYOverride, bool bZOverride)
+{
+	UE_LOG(LogBattle, Log, TEXT("ACharacter::LaunchCharacter '%s' (%f,%f,%f)"), *GetName(), LaunchVelocity.X, LaunchVelocity.Y, LaunchVelocity.Z);
+	Super::LaunchCharacter(LaunchVelocity, bXYOverride, bZOverride);
+}
+
+void ABattleCharacter::StartCriticalHit(FVector ImpactPoint, ABattleCharacterBase* TargetActor)
+{
+	BeforeRotation = GetViewRotation();
+	
+	TargetActor->PerformGroggy();
+	
+	NetStopMotion(0.7f, 0.1f);
+	TargetActor->NetStopMotion(0.7f, 0.1f);
+
+	FVector DesiredViewPointLocation;
+	FRotator DesiredViewPointRotation;
+	
+	
+	FVector HitDir = (ImpactPoint - GetActorLocation()).GetSafeNormal();
+	float ImpactPointLength = HitDir.Length();
+	
+	//DesiredViewPointLocation = GetActorLocation() + HitDir*(ImpactPointLength*0.5f);
+	// DesiredViewPointLocation = GetActorLocation();
+	// DesiredViewPointLocation.Z = GetActorLocation().Z +300.f;
+	// DesiredViewPointRotation = ((ImpactPoint - DesiredViewPointLocation).GetSafeNormal()).Rotation();
+	
+	
+	FVector SideDir = FVector::CrossProduct(HitDir, FVector::UpVector);
+	
+	SideDir = SideDir.GetSafeNormal();
+	
+	if (ImpactPointLength < 500.f)
+	{
+		ImpactPointLength = 500.f;
+	}
+	
+	FVector DesiredViewPointLocation1 = GetActorLocation() + HitDir*ImpactPointLength*0.7f + SideDir*ImpactPointLength;
+	FVector DesiredViewPointLocation2 = GetActorLocation() + HitDir*ImpactPointLength*0.7f - (SideDir*ImpactPointLength);
+	
+	float Distance1 = (DesiredViewPointLocation1 - TargetActor->GetActorLocation()).SizeSquared();
+	float Distance2 = (DesiredViewPointLocation2 - TargetActor->GetActorLocation()).SizeSquared();
+	
+	DesiredViewPointLocation = (Distance1 > Distance2) ? DesiredViewPointLocation1 : DesiredViewPointLocation2;
+	
+	DesiredViewPointLocation.Z = GetActorLocation().Z + 300.f;
+	
+	DesiredViewPointRotation = ((ImpactPoint - DesiredViewPointLocation).GetSafeNormal()).Rotation();
+	
+	
+	UBattleHeroComponent* HeroComponent = GetHeroComponent();
+	if (HeroComponent != nullptr)
+	{
+		HeroComponent->SetDesiredCameraMode(CriticalCameraMode, DesiredViewPointLocation, DesiredViewPointRotation);
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(CriticalHandle, this, &ThisClass::EndCriticalHit, 0.7f, false);
+}
+
+void ABattleCharacter::EndCriticalHit()
+{
+	UBattleHeroComponent* HeroComponent = GetHeroComponent();
+
+	UE_LOG(LogBattle, Log, TEXT("BeforeRotation: %s"), *BeforeRotation.ToString());
+	UE_LOG(LogBattle, Log, TEXT("BeforeControl: %s"), *(GetViewRotation().ToString()));
+	GetController()->SetControlRotation(BeforeRotation);
+	UE_LOG(LogBattle, Log, TEXT("AfterControl: %s"), *(GetViewRotation().ToString()));
+	
+	
+	if (HeroComponent != nullptr)
+	{
+		HeroComponent->ClearDesiredCameraMode();
+	}
+
+
+}
+
 void ABattleCharacter::OnAbilitySystemInitialized()
 {
 	UBattleAbilitySystemComponent* ASC = GetBattleAbilitySystemComponent();
 	check(ASC);
 
 	HealthComponent->InitializeWithAbilitySystem(ASC);
+
+	if (const UBattleCombatSet* CombatSet = ASC->GetSet<UBattleCombatSet>())
+	{
+		CombatSet->OnReceivedImpactDamage.AddUObject(this, &ThisClass::HandleImpactDamage);
+	}
 }
 
 void ABattleCharacter::OnAbilitySystemUninitialized()
@@ -154,4 +246,19 @@ void ABattleCharacter::UnPossessed()
 	Super::UnPossessed();
 
 	PawnExtComponent->HandleControllerChanged();
+}
+
+void ABattleCharacter::HandleImpactDamage(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude)
+{
+	BA_DEFAULT_LOG(LogBattle,Log,TEXT("HandleImpactDamage: %f"), DamageMagnitude);
+	if (DamageMagnitude >= 50.0f)
+	{
+		PerformGroggy();
+	}
+	else if (DamageMagnitude >= 25.f)
+	{
+		PerformPoiseBreak();
+	}
+	
 }

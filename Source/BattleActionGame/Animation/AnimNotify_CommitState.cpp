@@ -13,16 +13,16 @@ void UAnimNotify_CommitState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner()))
 	{
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowB"));
-			AllowFuncB(MeshComp);
-			
-		}
-		
 		// {
-		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockB"));
-		// 	BlockFuncB(MeshComp);
+		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowB"));
+		// 	AllowFuncB(MeshComp);
+		// 	
 		// }
+		
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockB"));
+			BlockFuncB(MeshComp);
+		}
 		
 		
 		

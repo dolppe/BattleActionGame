@@ -41,8 +41,6 @@ bool UAttackCollisionMethod_SocketBasedLineTrace::IsNeedTick()
 void UAttackCollisionMethod_SocketBasedLineTrace::TickCollisionCheck(TArray<FHitResult>& OutHitResult,
 	UAttackCollisionData* AttackCollisionData, float FrameDeltaTime)
 {
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("FrameDeltaTime: %f"), FrameDeltaTime);
-	
 	FVector Start = MeshComponent->GetSocketLocation(*StartName);
 	FVector End = MeshComponent->GetSocketLocation(*EndName);
 
@@ -82,8 +80,6 @@ void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(USkeletalMes
 void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheckWithLerpNotStep(TArray<FHitResult>& OutHitResults, FVector& CurWeaponStart,
                                                                                  FVector& CurWeaponEnd)
 {
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("CurS: %s CurE: %s"), *CurWeaponStart.ToString(), *CurWeaponEnd.ToString());
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("PreS: %s PreE: %s"), *PreviousStart.ToString(), *PreviousEnd.ToString());
 	
 	FVector CurWeaponMiddle = FMath::Lerp(CurWeaponStart, CurWeaponEnd, 0.5f); 
 	PreviousMiddle = FMath::Lerp(PreviousStart, PreviousEnd, 0.5f);

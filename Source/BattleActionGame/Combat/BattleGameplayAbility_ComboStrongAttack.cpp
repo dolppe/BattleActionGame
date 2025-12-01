@@ -31,8 +31,6 @@ void UBattleGameplayAbility_ComboStrongAttack::ActivateAbility(const FGameplayAb
 
 	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *AttackData->MontageSectionName, CurrentCombatManager->GetCurrentComboIndex());
 
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s"), *MontageSectionName.ToString());
-
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), AttackData->Montage, 1.0f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::OnCompleted);
 	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_ComboStrongAttack::OnInterrupted);

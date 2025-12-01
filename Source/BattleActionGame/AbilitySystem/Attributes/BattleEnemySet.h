@@ -15,26 +15,34 @@ public:
 	ATTRIBUTE_ACCESSORS(UBattleEnemySet, GroggyValue);
 	ATTRIBUTE_ACCESSORS(UBattleEnemySet, MaxGroggyValue);
 
+	ATTRIBUTE_ACCESSORS(UBattleEnemySet, PoiseValue);
+	ATTRIBUTE_ACCESSORS(UBattleEnemySet, MaxPoiseValue);
+
 	mutable FBattleAttributeEvent OnGroggyState;
+	mutable FBattleAttributeEvent OnPoiseBreakState;
 
 protected:
 
-	UFUNCTION()
-	void OnRep_GroggyValue(const FGameplayAttributeData& OldValue);
-
-	UFUNCTION()
-	void OnRep_MaxGroggyValue(const FGameplayAttributeData& OldValue);
-
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
 
 private:
 	
 	
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_GroggyValue, Category = "Battle|Enemy", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Battle|Enemy", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData GroggyValue;
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxGroggyValue, Category = "Battle|Enemy", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Battle|Enemy", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxGroggyValue;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Battle|Enemy", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData PoiseValue;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Battle|Enemy", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData MaxPoiseValue;
 	
 };
 

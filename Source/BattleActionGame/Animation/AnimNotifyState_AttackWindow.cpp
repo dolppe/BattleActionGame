@@ -66,8 +66,7 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 				HitMessage.WindowIndex = AttackIdx;
 				HitMessage.HitTime = MeshComp->GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
 
-				UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(MeshComp->GetWorld());
-				MessageSubsystem.BroadcastMessage(FBattleGameplayTags::Get().Combat_Attack_Hit, HitMessage);
+				CachedCombatManager->OnHitEvent(HitMessage);
 			}
 		}
 	}
@@ -94,7 +93,7 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
 
-	if (CachedOwnerCharacter)
+	if (CachedOwnerCharacter && CachedCombatManager)
 	{
 		if (CachedOwnerCharacter->IsLocallyControlled() || Cast<AAIController>(CachedOwnerCharacter->GetController()) != nullptr)
 		{
@@ -131,8 +130,7 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 				HitMessage.HitResults = HitResultsWithModify;
 				HitMessage.WindowIndex = AttackIdx;
 
-				UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(MeshComp->GetWorld());
-				MessageSubsystem.BroadcastMessage(FBattleGameplayTags::Get().Combat_Attack_Hit, HitMessage);
+				CachedCombatManager->OnHitEvent(HitMessage);
 			}
 		}
 		

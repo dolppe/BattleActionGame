@@ -1,9 +1,11 @@
 #include "BattleDamageExecution.h"
 
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleEnemySet.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleHealthSet.h"
+#include "BattleActionGame/Character/BattleCharacter.h"
 #include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleDamageExecution)
@@ -11,12 +13,14 @@
 
 struct FDamageStatics
 {
-	FGameplayEffectAttributeCaptureDefinition BaseDamageDef;
 	FGameplayEffectAttributeCaptureDefinition AttackPowerDef;
+	FGameplayEffectAttributeCaptureDefinition ImpactResistanceDef;
+	
 
 	FDamageStatics()
 	{
 		AttackPowerDef = FGameplayEffectAttributeCaptureDefinition(UBattleCombatSet::GetAttackPowerAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
+		ImpactResistanceDef = FGameplayEffectAttributeCaptureDefinition(UBattleCombatSet::GetImpactResistanceAttribute(), EGameplayEffectAttributeCaptureSource::Target, true);
 	}
 };
 
@@ -48,7 +52,9 @@ void UBattleDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	EvaluateParameters.TargetTags = TargetTags;
 	
 	float AttackPower = 0.0f;
+	float ImpactResistance = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().AttackPowerDef, EvaluateParameters, AttackPower);
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().ImpactResistanceDef, EvaluateParameters, ImpactResistance);
 	
 	float BaseDamage = Spec.GetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, true, 1.0f);
 	float AttackRate = Spec.GetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, true, 1.0f);
@@ -64,11 +70,22 @@ void UBattleDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 
 	if (UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent())
 	{
-		if (ABattleEnemyCharacter* TargetEnemy= Cast<ABattleEnemyCharacter>(TargetASC->GetAvatarActor()))
+		float ImpactPower = Spec.GetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_ImpactPower, true, 1.0f);
+		float TotalImpactDamage = ImpactPower - ImpactResistance;
+
+		UE_LOG(LogBattle, Log, TEXT("TotalImpactDamage %f, %s => %s"),TotalImpactDamage, *ExecutionParams.GetSourceAbilitySystemComponent()->GetName(),*ExecutionParams.GetTargetAbilitySystemComponent()->GetName());
+
+		if (TotalImpactDamage > 0.0f)
 		{
-			float GroggyValue = Spec.GetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_GroggyValue, true, 1.0f);
-			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleEnemySet::GetGroggyValueAttribute(), EGameplayModOp::Additive, GroggyValue));
+			if (ABattleEnemyCharacter* TargetEnemy = Cast<ABattleEnemyCharacter>(TargetASC->GetAvatarActor()))
+			{
+				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleEnemySet::GetGroggyValueAttribute(), EGameplayModOp::Additive, TotalImpactDamage));
+				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleEnemySet::GetPoiseValueAttribute(), EGameplayModOp::Additive, -TotalImpactDamage));
+			}
+
+			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleCombatSet::GetImpactDamageAttribute(), EGameplayModOp::Additive, TotalImpactDamage));
 		}
+
 	}
 
 	

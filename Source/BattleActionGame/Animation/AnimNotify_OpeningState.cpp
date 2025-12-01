@@ -13,15 +13,15 @@ void UAnimNotify_OpeningState::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner()))
 	{
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowA"));
-			AllowFuncA(MeshComp);
-		}
-
 		// {
-		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockA"));
-		// 	BlockFuncA(MeshComp);
+		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowA"));
+		// 	AllowFuncA(MeshComp);
 		// }
+
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockA"));
+			BlockFuncA(MeshComp);
+		}
 		
 		
 		

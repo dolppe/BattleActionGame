@@ -40,7 +40,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	void NetStopMotion(float StopSeconds);
+	void NetStopMotion(float StopSeconds, float TimeDilation = 0.0f);
 
 	UFUNCTION(BlueprintCallable)
 	void PerformGroggy();
@@ -57,10 +57,10 @@ protected:
 	void ServerPlayMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastStopMotion(float StopSeconds);
+	void MulticastStopMotion(float StopSeconds, float TimeDilation = 0.0f);
 
 	UFUNCTION(Server, Reliable)
-	void ServerStopMotion(float StopSeconds);
+	void ServerStopMotion(float StopSeconds, float TimeDilation = 0.0f);
 	
 	UFUNCTION()
 	void ResumeMotion();

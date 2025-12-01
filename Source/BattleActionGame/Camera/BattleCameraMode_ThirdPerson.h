@@ -14,6 +14,10 @@ public:
 
 	virtual void UpdateView(float DeltaTime) override;
 
+protected:
+
+
+
 	UPROPERTY(EditDefaultsOnly, Category= "Thire Person")
 	TObjectPtr<const UCurveVector> TargetOffsetCurve; 
 	

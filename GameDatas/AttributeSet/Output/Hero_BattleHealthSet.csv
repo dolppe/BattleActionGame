@@ -1,7 +1,7 @@
 Attribute,BaseValue,MinValue,MaxValue,DerivedAttributeInfo,bCanStack
 BattleHealthSet.Damage,0,0,1000,,False
 BattleHealthSet.Healing,0,0,1000,,False
-BattleHealthSet.Health,100,0,1000,,False
-BattleHealthSet.MaxHealth,100,0,1000,,False
+BattleHealthSet.Health,1000,0,1000,,False
+BattleHealthSet.MaxHealth,1000,0,1000,,False
 BattleHealthSet.MaxStamina,100,0,1000,,False
 BattleHealthSet.Stamina,100,0,1000,,False

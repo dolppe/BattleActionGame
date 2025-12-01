@@ -20,7 +20,7 @@ void FPartEventData::TriggerEvent(FPartData* PartData, ABattleEnemyCharacter* My
 void FPartData::HandleDamaged(ABattleEnemyCharacter* MyCharacter, int DamagedHp)
 {
 	PartHp = FMath::Clamp(PartHp - DamagedHp, 0, PartMaxHp);
-
+	
 	if (PartEvents.IsValidIndex(PartEventIdx))
 	{
 		if (PartEvents[PartEventIdx].TriggerHp >= PartHp)
@@ -29,6 +29,19 @@ void FPartData::HandleDamaged(ABattleEnemyCharacter* MyCharacter, int DamagedHp)
 			PartEventIdx++;
 		}
 	}
+}
+
+bool FPartData::WillDamageTrigger(int DamagedHp)
+{
+	if (PartEvents.IsValidIndex(PartEventIdx))
+	{
+		if (PartEvents[PartEventIdx].TriggerHp >= PartHp - DamagedHp)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 UBattlePartsManagerComponent::UBattlePartsManagerComponent(const FObjectInitializer& ObjectInitializer)
@@ -69,4 +82,16 @@ bool UBattlePartsManagerComponent::IsPartDestroyed(FGameplayTag PartTag)
 	}
 	
 	return true;
+}
+
+bool UBattlePartsManagerComponent::WillPartEventTrigger(FGameplayTag PartTag)
+{
+	if (FPartData* PartData = PartsData.Find(PartTag))
+	{
+		if (PartData->WillDamageTrigger())
+		{
+			return true;
+		}
+	}
+	return false;
 }

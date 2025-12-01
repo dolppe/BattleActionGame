@@ -14,14 +14,14 @@ void UAnimNotify_EndingState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner()))
 	{
 
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowC"));
-			AllowFuncC(MeshComp);
-		}
 		// {
-		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockC"));
-		// 	BlockFuncC(MeshComp);	
+		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowC"));
+		// 	AllowFuncC(MeshComp);
 		// }
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockC"));
+			BlockFuncC(MeshComp);	
+		}
 		
 
 		

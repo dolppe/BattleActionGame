@@ -2,6 +2,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "BattleCharacterBase.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 
@@ -11,6 +12,8 @@ UBattleCharacterMovementComponent::UBattleCharacterMovementComponent(const FObje
 	: Super(ObjectInitializer)
 {
 }
+
+PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattleCharacterMovementComponent::PerformMovement(float DeltaTime)
 {
@@ -52,3 +55,4 @@ float UBattleCharacterMovementComponent::GetMaxSpeed() const
 
 	return Super::GetMaxSpeed();
 }
+

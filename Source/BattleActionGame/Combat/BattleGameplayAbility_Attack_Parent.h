@@ -47,9 +47,15 @@ public:
 	EStrikeType GetStrikeType(int Index) const;
 
 	UFUNCTION()
-	virtual void ReceivedHits(FGameplayTag Channel, const FBattleHitMessage& HitMessage);
+	virtual void ReceivedHits(const FBattleHitMessage& HitMessage);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable)
+	bool IsHitCritical() const
+	{
+		return bHitCritical;
+	}
 	
 protected:
 
@@ -85,7 +91,6 @@ protected:
 
 	
 	FGameplayMessageListenerHandle StartListenerHandle;
-	FGameplayMessageListenerHandle EndListenerHandle;
 
 	EAttackType AttackType;
 	
@@ -101,6 +106,7 @@ protected:
 	bool bAllowMovement = false;
 
 	const FAttackData* AttackData;
+	bool bHitCritical = false;
 
 	
 };

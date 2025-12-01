@@ -28,6 +28,7 @@ void UBattleCombatManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetime
 	DOREPLIFETIME(ThisClass, CurrentUsedItemInfo);
 	DOREPLIFETIME(ThisClass, CurrentTargetActor);
 	DOREPLIFETIME(ThisClass, AreaCenterData);
+	DOREPLIFETIME(ThisClass, LastHitInfo);
 }
 
 void UBattleCombatManagerComponent::BeginPlay()
@@ -77,6 +78,14 @@ UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(EColli
 	return InstancedCollisionMethod[CollisionMethod];
 }
 
+void UBattleCombatManagerComponent::OnHitEvent(const FBattleHitMessage& HitMessage)
+{
+	if (CurrentAttackGA->IsActive())
+	{
+		CurrentAttackGA->ReceivedHits(HitMessage);
+	}
+}
+
 void UBattleCombatManagerComponent::OnRep_AreaCenterData()
 {
 }
@@ -84,4 +93,8 @@ void UBattleCombatManagerComponent::OnRep_AreaCenterData()
 void UBattleCombatManagerComponent::OnRep_CurrentTargetActor()
 {
 	//BA_DEFAULT_LOG(LogBattle,Log,TEXT("CurrentTargetActor Rep"));
+}
+
+void UBattleCombatManagerComponent::OnRep_LastHitInfo()
+{
 }

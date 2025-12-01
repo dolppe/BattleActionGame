@@ -41,6 +41,7 @@ public:
 	{
 		SetTagMapCount(GameplayTag, NewCount);
 	}
+
 	
 protected:
 

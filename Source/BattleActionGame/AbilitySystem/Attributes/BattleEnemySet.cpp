@@ -8,18 +8,24 @@
 UBattleEnemySet::UBattleEnemySet()
 	: GroggyValue(0.0f)
 	, MaxGroggyValue(100.0f)
+	, PoiseValue(100.0f)
+	, MaxPoiseValue(100.0f)
 {
 }
 
 
-void UBattleEnemySet::OnRep_GroggyValue(const FGameplayAttributeData& OldValue)
+void UBattleEnemySet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UBattleEnemySet, GroggyValue, OldValue);
+	Super::PreAttributeChange(Attribute, NewValue);
+
+	ClampAttribute(Attribute, NewValue);
 }
 
-void UBattleEnemySet::OnRep_MaxGroggyValue(const FGameplayAttributeData& OldValue)
+void UBattleEnemySet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UBattleEnemySet, MaxGroggyValue, OldValue);
+	Super::PreAttributeBaseChange(Attribute, NewValue);
+
+	ClampAttribute(Attribute, NewValue);
 }
 
 void UBattleEnemySet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -38,13 +44,44 @@ void UBattleEnemySet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 			SetGroggyValue(0.0f);
 		}
 	}
-}
+
+	if (GetPoiseValue() <= 0.0f)
+	{
+		if (OnPoiseBreakState.IsBound())
+		{
+			const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
+			AActor* Instigator = EffectContext.GetOriginalInstigator();
+			AActor* Causer = EffectContext.GetEffectCauser();
+
+			OnPoiseBreakState.Broadcast(Instigator, Causer, Data.EffectSpec, 0.0f);
+			SetPoiseValue(GetMaxPoiseValue());
+		}
+	}
 
 
-void UBattleEnemySet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME_CONDITION_NOTIFY(UBattleEnemySet, GroggyValue, COND_OwnerOnly, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UBattleEnemySet, MaxGroggyValue, COND_OwnerOnly, REPNOTIFY_Always);
 }
+
+void UBattleEnemySet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
+{
+	if (Attribute == GetGroggyValueAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxGroggyValue());		
+	}
+	else if (Attribute == GetMaxGroggyValueAttribute())
+	{
+		NewValue = FMath::Max(NewValue, 1.0f);
+	}
+	else if (Attribute == GetPoiseValueAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxPoiseValue());
+	}
+	else if (Attribute == GetMaxPoiseValueAttribute())
+	{
+		NewValue = FMath::Max(NewValue, 1.0f);
+	}
+	
+}
+
+
+

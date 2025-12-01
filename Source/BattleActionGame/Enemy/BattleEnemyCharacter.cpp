@@ -73,6 +73,17 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 	}
 
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+
+	if (const UBattleEnemySet* EnemySet  = AbilitySystemComponent->GetSet<UBattleEnemySet>())
+	{
+		EnemySet->OnGroggyState.AddUObject(this, &ThisClass::OnGroggyState);
+		EnemySet->OnPoiseBreakState.AddUObject(this, &ThisClass::OnPoiseBreak);
+		
+	}
+
+	
+
+	
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
@@ -120,6 +131,18 @@ void ABattleEnemyCharacter::DestroyParts(TArray<FName> BoneNames)
 		SkeletalMeshComponent->SetAllBodiesBelowSimulatePhysics(BoneName, true, false);  
 		SkeletalMeshComponent->SetAllBodiesBelowPhysicsDisabled(BoneName, true, true);  
 	}
+}
+
+void ABattleEnemyCharacter::OnPoiseBreak(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude)
+{
+	PerformPoiseBreak();
+}
+
+void ABattleEnemyCharacter::OnGroggyState(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude)
+{
+	PerformGroggy();
 }
 
 // void ABattleEnemyCharacter::DamagedParts(TArray<FName> BoneNames, FGameplayTag TargetTag)
