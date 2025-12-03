@@ -37,8 +37,8 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(GameplayEvent_Reset, "GameplayEvent.Reset", "");
 	
 	
-	AddTag(Ability_Type_Action_Groggy, "Ability.Type.Action.Groggy", "");
-	AddTag(Ability_Type_Action_PoiseBreak, "Ability.Type.Action.PoiseBreak", "");
+	AddTag(Ability_Type_Reaction_Groggy, "Ability.Type.Reaction.Groggy", "");
+	AddTag(Ability_Type_Reaction_PoiseBreak, "Ability.Type.Reaction.PoiseBreak", "");
 	
 
 	

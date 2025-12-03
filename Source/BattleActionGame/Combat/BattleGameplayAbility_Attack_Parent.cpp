@@ -378,14 +378,13 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 					
 			if (TSubclassOf<UCameraShakeBase> CameraShake = AvatarPlayerCharacter->GetCriticalCamera())
 			{
-				BattlePC->PlayerCameraManager->StartCameraShake(CameraShake, 1.0f);
+				BattlePC->ClientStartCameraShake(CameraShake, 1.0f);
 			}
 		}
 	}
-	
-	if (AttackWindowData->CameraShakeClass != nullptr)
+	else if (AttackWindowData->CameraShakeClass != nullptr)
 	{
-		BattlePC->PlayerCameraManager->StartCameraShake(AttackWindowData->CameraShakeClass, AttackWindowData->CameraShakeScale);
+		BattlePC->ClientStartCameraShake(AttackWindowData->CameraShakeClass, AttackWindowData->CameraShakeScale);
 	}
 	
 }

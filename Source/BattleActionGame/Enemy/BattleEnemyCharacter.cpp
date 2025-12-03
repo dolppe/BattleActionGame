@@ -100,18 +100,6 @@ void ABattleEnemyCharacter::ChangePhyMatPart(FName BoneName, FGameplayTag InGame
 	
 }
 
-void ABattleEnemyCharacter::HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude)
-{
-	//UE_LOG(LogTemp, Log, TEXT("Groggy"));
-
-	//AbilitySystemComponent->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Groggy);
-
-	FGameplayTagContainer GameplayTags;
-	GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_Groggy);
-	AbilitySystemComponent->TryActivateAbilitiesByTag(GameplayTags, false);
-	
-}
-
 void ABattleEnemyCharacter::HandleDamageToPart(FName BoneName, FGameplayTag PartTag)
 {
 	if (!HasAuthority())

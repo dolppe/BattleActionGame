@@ -49,7 +49,8 @@ public:
 
 	UFUNCTION()
 	void EndCriticalHit();
-	
+
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE TSubclassOf<UCameraShakeBase> GetCriticalCamera() const
 	{
 		return CriticalCameraShake;

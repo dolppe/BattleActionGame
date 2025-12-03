@@ -19,14 +19,17 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-
-	UPROPERTY(EditAnywhere)
-	FGameplayTag OwnerJustDashEffectTag;
-
-	UPROPERTY(EditAnywhere)
-	FGameplayTag GlobalJustDashEffectTag;
-
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UGameplayEffect> GE_AllowedCounterAttack;
+
+	UPROPERTY(EditAnywhere)
+	float TargetStopTime = 1.0f;
+
+	UPROPERTY(EditAnywhere)
+	float MySlowTime = 0.5f;
+
+private:
+
+	FTimerHandle CameraTimerHandle;
 	
 };

@@ -2,13 +2,11 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "AbilitySystemInterface.h"
 #include "GameplayMessageSubsystem.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_CounterAction)
 
@@ -97,8 +95,6 @@ void UBattleGameplayAbility_CounterAction::StartActionTrigger(FGameplayTag Chann
 	
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-
 void UBattleGameplayAbility_CounterAction::ServerCounterAction_Implementation()
 {
 	ACharacter* TargetCharacter = Cast<ACharacter>(TargetActor);
@@ -137,4 +133,4 @@ void UBattleGameplayAbility_CounterAction::ServerCounterAction_Implementation()
 	
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+

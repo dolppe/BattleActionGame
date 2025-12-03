@@ -35,8 +35,8 @@ public:
 
 	FGameplayTag Ability_Trigger_JustClash;
 	
-	FGameplayTag Ability_Type_Action_Groggy;
-	FGameplayTag Ability_Type_Action_PoiseBreak;
+	FGameplayTag Ability_Type_Reaction_Groggy;
+	FGameplayTag Ability_Type_Reaction_PoiseBreak;
 
 	FGameplayTag Ability_Behavior_SurvivesDeath;
 

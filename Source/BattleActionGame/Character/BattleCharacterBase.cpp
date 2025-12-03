@@ -97,7 +97,7 @@ void ABattleCharacterBase::PerformGroggy()
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		FGameplayTagContainer GameplayTags;
-		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_Groggy);
+		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Reaction_Groggy);
 		
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
 		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Groggy : %d"), bTrySuccess);
@@ -110,7 +110,7 @@ void ABattleCharacterBase::PerformPoiseBreak()
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		FGameplayTagContainer GameplayTags;
-		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_PoiseBreak);
+		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Reaction_PoiseBreak);
 		
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
 		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Poise : %d"), bTrySuccess);

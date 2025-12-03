@@ -4,11 +4,11 @@
 #include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/Messages/BattleHitMessage.h"
-#include "BattleActionGame/Messages/BattleVerbMessage.h"
+#include "BattleActionGame/Combat/BattleCombatData.h"
 #include "BattleActionGame/Combat/HitReactionTable.h"
 #include "BattleGameplayAbility_Attack_Parent.generated.h"
 
-struct FAttackData;
+
 enum class ECollisionMethodType : uint8;
 enum class EAttackType : uint8;
 
@@ -55,6 +55,17 @@ public:
 	bool IsHitCritical() const
 	{
 		return bHitCritical;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	bool GetAttackData(FAttackData& OutAttackData)
+	{
+		if (AttackData != nullptr)
+		{
+			OutAttackData = *AttackData;
+			return true;
+		}
+		return false;
 	}
 	
 protected:
