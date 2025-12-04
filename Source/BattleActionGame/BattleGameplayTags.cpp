@@ -39,6 +39,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	
 	AddTag(Ability_Type_Reaction_Groggy, "Ability.Type.Reaction.Groggy", "");
 	AddTag(Ability_Type_Reaction_PoiseBreak, "Ability.Type.Reaction.PoiseBreak", "");
+	AddTag(Ability_Type_Reaction_JustGuard, "Ability.Type.Reaction.JustGuard", "");
 	
 
 	
@@ -52,6 +53,8 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(InputTag_Move, "InputTag.Move", "");
 	AddTag(InputTag_Look_Mouse, "InputTag.Look.Mouse", "");
 	AddTag(InputTag_ReadyToggle, "InputTag.ReadyToggle", "");
+	AddTag(InputTag_SpecialKey, "InputTag.SpecialKey", "");
+	
 	
 	
 

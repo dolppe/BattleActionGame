@@ -336,6 +336,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this,&ThisClass::Input_LookMouse, false);
 					ABattlePlayerState* PS = GetPlayerState<ABattlePlayerState>();
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_ReadyToggle, ETriggerEvent::Triggered, PS, &ABattlePlayerState::ToggleReady, false);
+					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_SpecialKey, ETriggerEvent::Triggered, this, &ThisClass::Input_SpecialKeyPressed, false);
 				}
 				
 			}
@@ -439,6 +440,14 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 				BattleASC->AbilityInputTagReleased(InputTag);
 			}
 		}
+	}
+}
+
+void UBattleHeroComponent::Input_SpecialKeyPressed()
+{
+	if (SpecialKeyPressed.IsBound())
+	{
+		SpecialKeyPressed.Broadcast();
 	}
 }
 

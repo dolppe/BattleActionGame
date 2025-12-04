@@ -106,7 +106,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnHitEvent(const FBattleHitMessage& HitMessage);
-	
+
+	UFUNCTION(BlueprintCallable)
+	void AllowGuardEvent();
+
+	UFUNCTION(Server, Reliable)
+	void TryJustGuard(AActor* TryActor);
 
 protected:
 

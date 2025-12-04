@@ -9,6 +9,7 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "Item/BattleGameplayAbility_UseItem_AttributeBased.h"
 #include "Item/BattleItemData.h"
+#include "JustGuard/BattleGameplayAbility_JustGuardAttack.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCombatManagerComponent)
@@ -85,6 +86,30 @@ void UBattleCombatManagerComponent::OnHitEvent(const FBattleHitMessage& HitMessa
 		CurrentAttackGA->ReceivedHits(HitMessage);
 	}
 }
+
+void UBattleCombatManagerComponent::AllowGuardEvent()
+{
+	if (CurrentAttackGA->IsActive())
+	{
+		if (UBattleGameplayAbility_JustGuardAttack* JustGuardAttack = Cast<UBattleGameplayAbility_JustGuardAttack>(CurrentAttackGA))
+		{
+			JustGuardAttack->AllowGuardEvent();
+		}
+	}
+}
+
+void UBattleCombatManagerComponent::TryJustGuard_Implementation(AActor* TryActor)
+{
+	if (CurrentAttackGA->IsActive())
+	{
+		if (UBattleGameplayAbility_JustGuardAttack* JustGuardAttack = Cast<UBattleGameplayAbility_JustGuardAttack>(CurrentAttackGA))
+		{
+			JustGuardAttack->ReceivedGuard(TryActor);
+		}
+	}
+}
+
+
 
 void UBattleCombatManagerComponent::OnRep_AreaCenterData()
 {

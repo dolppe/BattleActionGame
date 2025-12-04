@@ -13,11 +13,6 @@ public:
 
 	UBattleGameplayAbility_TargetedAction_Parent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void SetTargetActor(AActor* InTargetActor)
-	{
-		TargetActor = InTargetActor;
-	}
-	
 protected:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

@@ -23,6 +23,7 @@
 
 UBattleUtilityAction_Attack::UBattleUtilityAction_Attack()
 {
+	ScoreMultiplier = 1.0f;
 }
 
 void UBattleUtilityAction_Attack::StartAction()

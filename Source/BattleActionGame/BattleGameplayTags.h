@@ -37,6 +37,7 @@ public:
 	
 	FGameplayTag Ability_Type_Reaction_Groggy;
 	FGameplayTag Ability_Type_Reaction_PoiseBreak;
+	FGameplayTag Ability_Type_Reaction_JustGuard;
 
 	FGameplayTag Ability_Behavior_SurvivesDeath;
 
@@ -47,6 +48,7 @@ public:
 	FGameplayTag InputTag_Move;
 	FGameplayTag InputTag_Look_Mouse;
 	FGameplayTag InputTag_ReadyToggle;
+	FGameplayTag InputTag_SpecialKey;
 
 	/*
 	 *	Status
