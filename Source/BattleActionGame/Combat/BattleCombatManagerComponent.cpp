@@ -1,10 +1,12 @@
 #include "BattleCombatManagerComponent.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "AttackCollisionMethod_CircularAOE.h"
 #include "AttackCollisionMethod_DirectionalSweep.h"
 #include "AttackCollisionMethod_SocketBasedLineTrace.h"
 #include "BattleGameplayAbility_ComboAttack.h"
+#include "NativeGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "Item/BattleGameplayAbility_UseItem_AttributeBased.h"
@@ -14,6 +16,9 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCombatManagerComponent)
 
+UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_WarnStrong, "GameplayCue.WarnSign.Strong");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_WarnJustClash, "GameplayCue.WarnSign.JustClash");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_WarnJustGuard, "GameplayCue.WarnSign.JustGuard");
 
 
 
@@ -109,7 +114,32 @@ void UBattleCombatManagerComponent::TryJustGuard_Implementation(AActor* TryActor
 	}
 }
 
+void UBattleCombatManagerComponent::OnAttackWarnSign()
+{
+	if (CurrentAttackGA->IsActive())
+	{
+		UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
+		
+		if (UBattleGameplayAbility_JustGuardAttack* JustGuardAttack = Cast<UBattleGameplayAbility_JustGuardAttack>(CurrentAttackGA))
+		{
+			JustGuardAttack->AllowGuardEvent();
+			ASC->ExecuteGameplayCue(TAG_Gameplay_WarnJustGuard);
+		}
+		else if (CurrentAttackGA->IsAllowedJustClash())
+		{
+			ASC->ExecuteGameplayCue(TAG_Gameplay_WarnJustClash);
+		}
+		else if (!CurrentAttackGA->IsAllowedJustDash())
+		{
+			ASC->ExecuteGameplayCue(TAG_Gameplay_WarnStrong);
+		}
 
+		if (ABattleCharacterBase* MyCharacter = Cast<ABattleCharacterBase>(GetOwner()))
+		{
+			MyCharacter->NetStopMotion(0.1f);
+		}
+	}
+}
 
 void UBattleCombatManagerComponent::OnRep_AreaCenterData()
 {

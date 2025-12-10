@@ -151,24 +151,13 @@ void ABattleCharacter::StartCriticalHit(FVector ImpactPoint, ABattleCharacterBas
 	
 	TargetActor->PerformGroggy();
 	
-	NetStopMotion(0.7f, 0.1f);
-	TargetActor->NetStopMotion(0.7f, 0.1f);
-
-	FVector DesiredViewPointLocation;
-	FRotator DesiredViewPointRotation;
-	
+	NetStopMotion(0.7f, 0.01f);
+	TargetActor->NetStopMotion(0.7f, 0.01f);
 	
 	FVector HitDir = (ImpactPoint - GetActorLocation()).GetSafeNormal();
 	float ImpactPointLength = HitDir.Length();
 	
-	//DesiredViewPointLocation = GetActorLocation() + HitDir*(ImpactPointLength*0.5f);
-	// DesiredViewPointLocation = GetActorLocation();
-	// DesiredViewPointLocation.Z = GetActorLocation().Z +300.f;
-	// DesiredViewPointRotation = ((ImpactPoint - DesiredViewPointLocation).GetSafeNormal()).Rotation();
-	
-	
 	FVector SideDir = FVector::CrossProduct(HitDir, FVector::UpVector);
-	
 	SideDir = SideDir.GetSafeNormal();
 	
 	if (ImpactPointLength < 500.f)
@@ -176,17 +165,15 @@ void ABattleCharacter::StartCriticalHit(FVector ImpactPoint, ABattleCharacterBas
 		ImpactPointLength = 500.f;
 	}
 	
-	FVector DesiredViewPointLocation1 = GetActorLocation() + HitDir*ImpactPointLength*0.7f + SideDir*ImpactPointLength;
-	FVector DesiredViewPointLocation2 = GetActorLocation() + HitDir*ImpactPointLength*0.7f - (SideDir*ImpactPointLength);
+	FVector DesiredViewPointLocation1 = GetActorLocation() + HitDir*ImpactPointLength*0.7f + SideDir*200;
+	FVector DesiredViewPointLocation2 = GetActorLocation() + HitDir*ImpactPointLength*0.7f - (SideDir*200);
 	
 	float Distance1 = (DesiredViewPointLocation1 - TargetActor->GetActorLocation()).SizeSquared();
 	float Distance2 = (DesiredViewPointLocation2 - TargetActor->GetActorLocation()).SizeSquared();
 	
-	DesiredViewPointLocation = (Distance1 > Distance2) ? DesiredViewPointLocation1 : DesiredViewPointLocation2;
-	
+	FVector DesiredViewPointLocation = (Distance1 > Distance2) ? DesiredViewPointLocation1 : DesiredViewPointLocation2;
 	DesiredViewPointLocation.Z = GetActorLocation().Z + 300.f;
-	
-	DesiredViewPointRotation = ((ImpactPoint - DesiredViewPointLocation).GetSafeNormal()).Rotation();
+	FRotator DesiredViewPointRotation = ((ImpactPoint - DesiredViewPointLocation).GetSafeNormal()).Rotation();
 	
 	
 	UBattleHeroComponent* HeroComponent = GetHeroComponent();
@@ -204,9 +191,8 @@ void ABattleCharacter::EndCriticalHit()
 
 	UE_LOG(LogBattle, Log, TEXT("BeforeRotation: %s"), *BeforeRotation.ToString());
 	UE_LOG(LogBattle, Log, TEXT("BeforeControl: %s"), *(GetViewRotation().ToString()));
-	GetController()->SetControlRotation(BeforeRotation);
+	NetSetControlRotation(BeforeRotation);
 	UE_LOG(LogBattle, Log, TEXT("AfterControl: %s"), *(GetViewRotation().ToString()));
-	
 	
 	if (HeroComponent != nullptr)
 	{

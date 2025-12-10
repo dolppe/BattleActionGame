@@ -26,8 +26,20 @@ UBattleHealthComponent* ABattleCharacterBase::GetHealthComponent() const
 	return nullptr;
 }
 
+void ABattleCharacterBase::NetSetControlRotation(const FRotator& NewRotation)
+{
+	if (IsLocallyControlled())
+	{
+		GetController()->SetControlRotation(NewRotation);
+	}
+	else
+	{
+		ClientSetControlRotation(NewRotation);
+	}
+}
+
 void ABattleCharacterBase::ServerPlayMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
-	FName StartSectionName)
+                                                            FName StartSectionName)
 {
 	MulticastPlayMontage(AnimMontage, InPlayRate, StartSectionName);
 }
@@ -164,6 +176,14 @@ void ABattleCharacterBase::MulticastStopMotion_Implementation(float StopSeconds,
 void ABattleCharacterBase::ServerStopMotion_Implementation(float StopSeconds, float TimeDilation)
 {
 	MulticastStopMotion_Implementation(StopSeconds, TimeDilation);
+}
+
+void ABattleCharacterBase::ClientSetControlRotation_Implementation(const FRotator& NewRotation)
+{
+	if (IsLocallyControlled())
+	{
+		Controller->SetControlRotation(NewRotation);
+	}
 }
 
 void ABattleCharacterBase::ResumeMotion()

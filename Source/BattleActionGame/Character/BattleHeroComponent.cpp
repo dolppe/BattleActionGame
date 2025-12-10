@@ -259,8 +259,8 @@ void UBattleHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHand
 	}
 }
 
-void UBattleHeroComponent::SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FVector& DesiredLocation,
-	const FRotator& DesiredRotation)
+void UBattleHeroComponent::SetDesiredCameraMode_Implementation(TSubclassOf<UBattleCameraMode> CameraMode,
+	const FVector& DesiredLocation, const FRotator& DesiredRotation)
 {
 	if (CameraMode)
 	{
@@ -270,13 +270,12 @@ void UBattleHeroComponent::SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> C
 	}
 }
 
-void UBattleHeroComponent::ClearDesiredCameraMode()
+void UBattleHeroComponent::ClearDesiredCameraMode_Implementation()
 {
 	DesiredCameraMode = nullptr;
 	DesiredViewPointLocation = FVector::ZeroVector;
 	DesiredViewPointRotation = FRotator::ZeroRotator;
 }
-
 
 void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComponent)
 {

@@ -113,6 +113,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void TryJustGuard(AActor* TryActor);
 
+	UFUNCTION()
+	void OnAttackWarnSign();
+
 protected:
 
 	UFUNCTION()

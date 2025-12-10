@@ -59,7 +59,7 @@ void UBattleGameplayAbility_JustDash::ActivateAbility(const FGameplayAbilitySpec
 		}
 		if (ABattleCharacterBase* JustDashCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 		{
-			JustDashCharacter->NetStopMotion(MySlowTime, 0.1);
+			JustDashCharacter->NetStopMotion(MySlowTime, 0.01f);
 		}
 
 		if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(ActorInfo->OwnerActor))

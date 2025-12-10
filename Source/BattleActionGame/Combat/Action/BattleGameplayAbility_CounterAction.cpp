@@ -61,10 +61,6 @@ void UBattleGameplayAbility_CounterAction::EndAbility(const FGameplayAbilitySpec
 
 void UBattleGameplayAbility_CounterAction::MoveToBestSpot()
 {
-	if (GetWorld()->GetNetMode() == NM_Client)
-	{
-		return;
-	}
 	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
 		FVector Direction = TargetActor->GetActorLocation() - Character->GetActorLocation();

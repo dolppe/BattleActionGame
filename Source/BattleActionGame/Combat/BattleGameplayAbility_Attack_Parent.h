@@ -67,6 +67,16 @@ public:
 		}
 		return false;
 	}
+
+	bool IsAllowedJustDash() const
+	{
+		return bAllowJustDash;
+	}
+
+	bool IsAllowedJustClash() const
+	{
+		return bAllowJustClash;
+	}
 	
 protected:
 

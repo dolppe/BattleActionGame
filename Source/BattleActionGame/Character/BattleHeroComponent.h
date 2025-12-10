@@ -46,8 +46,10 @@ public:
 	void SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
-	
+	UFUNCTION(Client, Reliable)
 	void SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FVector& DesiredLocation, const FRotator& DesiredRotation);
+
+	UFUNCTION(Client, Reliable)
 	void ClearDesiredCameraMode();
 
 	// Input

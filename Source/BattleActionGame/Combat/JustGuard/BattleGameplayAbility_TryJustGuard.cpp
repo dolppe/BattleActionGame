@@ -18,6 +18,11 @@ void UBattleGameplayAbility_TryJustGuard::ActivateAbility(const FGameplayAbility
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	if (TriggerEventData == nullptr)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+	}
+	
 	float AllowedTime = TriggerEventData->EventMagnitude;
 
 	if (IsLocallyControlled())

@@ -248,7 +248,7 @@ void UBattleGameplayAbility_Attack_Parent::ReceivedHits(const FBattleHitMessage&
 	BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"),AttackIdx);
 	BA_DEFAULT_LOG(LogBattle, Log, TEXT("HitMessageWindowIdx => %d"),HitMessage.WindowIndex);
 
-	bHitCritical = false;
+	
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		if (AttackIdx != HitMessage.WindowIndex)
@@ -276,6 +276,8 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 	const FAttackWindowData* AttackWindowData = &AttackData->AttackWindowDatas[AttackIdx];
 	ABattleCharacterBase* AvatarCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
 	ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(HitResult->GetActor());
+
+	bHitCritical = false;
 	
 	if (UBattleCombatManagerComponent* TargetCombatManagerComponent = Cast<UBattleCombatManagerComponent>(TargetCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
 	{
