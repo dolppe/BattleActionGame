@@ -24,6 +24,9 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
+
+	UFUNCTION(Server, Reliable)
+	void ServerKeyPressed();
 	
 	UFUNCTION()
 	void GuardKeyPressed();
@@ -33,6 +36,8 @@ private:
 	UBattleCombatManagerComponent* TargetCombatManager;
 	FDelegateHandle InputDelegateHandle;
 	FTimerHandle AbilityEndTimer;
+
+	bool bPressedKey = false;
 	
 };
 

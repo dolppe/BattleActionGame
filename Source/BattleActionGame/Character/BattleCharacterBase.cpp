@@ -112,7 +112,6 @@ void ABattleCharacterBase::PerformGroggy()
 		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Reaction_Groggy);
 		
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
-		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Groggy : %d"), bTrySuccess);
 	}
 	
 }
@@ -125,7 +124,6 @@ void ABattleCharacterBase::PerformPoiseBreak()
 		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Reaction_PoiseBreak);
 		
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
-		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Poise : %d"), bTrySuccess);
 	}
 }
 

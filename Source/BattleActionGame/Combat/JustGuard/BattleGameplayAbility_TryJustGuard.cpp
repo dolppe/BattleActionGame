@@ -1,6 +1,7 @@
 #include "BattleGameplayAbility_TryJustGuard.h"
 
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleHeroComponent.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 
@@ -10,6 +11,7 @@ UBattleGameplayAbility_TryJustGuard::UBattleGameplayAbility_TryJustGuard(const F
 	: Super(ObjectInitializer)
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 }
 
 void UBattleGameplayAbility_TryJustGuard::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -18,35 +20,37 @@ void UBattleGameplayAbility_TryJustGuard::ActivateAbility(const FGameplayAbility
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (TriggerEventData == nullptr)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-	}
-	
-	float AllowedTime = TriggerEventData->EventMagnitude;
+	bPressedKey = false;
 
-	if (IsLocallyControlled())
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("Start"));
+	
+	if (HasAuthority(&ActivationInfo))
 	{
-		bool bNeedEndAbility = false;
-		if (UBattleHeroComponent* HeroComponent = Cast<UBattleHeroComponent>(GetAvatarActorFromActorInfo()->GetComponentByClass(UBattleHeroComponent::StaticClass())))
-		{
-			InputDelegateHandle = HeroComponent->SpecialKeyPressed.AddUObject(this, &ThisClass::GuardKeyPressed);
-		}
-		else
-		{
-			bNeedEndAbility = true;
-		}
+		float AllowedTime = TriggerEventData->EventMagnitude;
 
 		if (const AActor* Instigator = TriggerEventData->Instigator)
 		{
+			BA_DEFAULT_LOG(LogBattle, Log, TEXT("TargetCombat Set"));
 			TargetCombatManager = Cast<UBattleCombatManagerComponent>(Instigator->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 		}
-		else
-		{
-			bNeedEndAbility = true;
-		}
 
-		if (bNeedEndAbility)
+		GetWorld()->GetTimerManager().SetTimer(AbilityEndTimer,
+			[this]()
+			{
+				this->EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+			},
+			AllowedTime, false
+		);
+	}
+
+	if (IsLocallyControlled())
+	{
+		if (UBattleHeroComponent* HeroComponent = Cast<UBattleHeroComponent>(GetAvatarActorFromActorInfo()->GetComponentByClass(UBattleHeroComponent::StaticClass())))
+		{
+			BA_DEFAULT_LOG(LogBattle, Log, TEXT("InputSet"));
+			InputDelegateHandle = HeroComponent->SpecialKeyPressed.AddUObject(this, &ThisClass::GuardKeyPressed);
+		}
+		else
 		{
 			EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		}
@@ -56,13 +60,7 @@ void UBattleGameplayAbility_TryJustGuard::ActivateAbility(const FGameplayAbility
 
 	
 
-	GetWorld()->GetTimerManager().SetTimer(AbilityEndTimer,
-		[this]()
-		{
-			this->EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-		},
-		AllowedTime, false
-	);
+
 	
 }
 
@@ -81,10 +79,32 @@ void UBattleGameplayAbility_TryJustGuard::EndAbility(const FGameplayAbilitySpecH
 	}
 }
 
-void UBattleGameplayAbility_TryJustGuard::GuardKeyPressed()
+void UBattleGameplayAbility_TryJustGuard::ServerKeyPressed_Implementation()
 {
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("ServerKeyPressed"));
+
+	if (GetWorld()->GetNetMode() == NM_Client)
+	{
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Client"));
+	}
+	else
+	{
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Server"));
+	}
 	if (TargetCombatManager != nullptr)
 	{
 		TargetCombatManager->TryJustGuard(GetAvatarActorFromActorInfo());
 	}
+}
+
+void UBattleGameplayAbility_TryJustGuard::GuardKeyPressed()
+{
+	if (!bPressedKey)
+	{
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Pressed"));
+		ServerKeyPressed();
+		bPressedKey = true;
+	}
+	
+
 }

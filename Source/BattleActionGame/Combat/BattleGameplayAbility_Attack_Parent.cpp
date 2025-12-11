@@ -30,7 +30,6 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("Start"));
 
 	AttackIdx = -1;
 	AlreadyHitActors.Empty();
@@ -54,7 +53,6 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("End"));
 	
 	if (Character->IsLocallyControlled())
 	{
@@ -245,9 +243,6 @@ EStrikeType UBattleGameplayAbility_Attack_Parent::GetStrikeType(int Index) const
 
 void UBattleGameplayAbility_Attack_Parent::ReceivedHits(const FBattleHitMessage& HitMessage)
 {
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"),AttackIdx);
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("HitMessageWindowIdx => %d"),HitMessage.WindowIndex);
-
 	
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
@@ -360,9 +355,6 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 				HitGCParams.Normal = HitResult->ImpactNormal;
 				HitGCParams.PhysicalMaterial = DefaultPhysicalMaterial;
 				HitGCParams.RawMagnitude = AttackIdx;
-
-				BA_DEFAULT_LOG(LogBattle, Log, TEXT("PartTag: %s"), *PhysicalMaterialWithTags->PartTag.ToString());
-
 
 				GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(HitEffectGCNTag, HitGCParams);
 			}

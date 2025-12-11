@@ -35,6 +35,7 @@ void UBattleCombatManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetime
 	DOREPLIFETIME(ThisClass, CurrentTargetActor);
 	DOREPLIFETIME(ThisClass, AreaCenterData);
 	DOREPLIFETIME(ThisClass, LastHitInfo);
+	DOREPLIFETIME(ThisClass, CurrentCombo);
 }
 
 void UBattleCombatManagerComponent::BeginPlay()
@@ -74,6 +75,15 @@ void UBattleCombatManagerComponent::SetComboGA(UBattleGameplayAbility_ComboAttac
 	CurrentCombo = InComboAttack;
 }
 
+void UBattleCombatManagerComponent::OnEndAbilityComboGA()
+{
+	GetWorld()->GetTimerManager().SetTimer(ComboEndTimerHandle, [this]()
+	{
+		CurrentCombo = nullptr;
+	},0.1f,false);
+	
+}
+
 void UBattleCombatManagerComponent::OnRep_CurrentUsedItemInfo()
 {
 	
@@ -86,6 +96,10 @@ UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(EColli
 
 void UBattleCombatManagerComponent::OnHitEvent(const FBattleHitMessage& HitMessage)
 {
+	if (CurrentAttackGA == nullptr)
+	{
+		return;
+	}
 	if (CurrentAttackGA->IsActive())
 	{
 		CurrentAttackGA->ReceivedHits(HitMessage);
@@ -94,6 +108,10 @@ void UBattleCombatManagerComponent::OnHitEvent(const FBattleHitMessage& HitMessa
 
 void UBattleCombatManagerComponent::AllowGuardEvent()
 {
+	if (CurrentAttackGA == nullptr)
+	{
+		return;
+	}
 	if (CurrentAttackGA->IsActive())
 	{
 		if (UBattleGameplayAbility_JustGuardAttack* JustGuardAttack = Cast<UBattleGameplayAbility_JustGuardAttack>(CurrentAttackGA))
@@ -105,6 +123,11 @@ void UBattleCombatManagerComponent::AllowGuardEvent()
 
 void UBattleCombatManagerComponent::TryJustGuard_Implementation(AActor* TryActor)
 {
+	if (CurrentAttackGA == nullptr)
+	{
+		return;
+	}
+	
 	if (CurrentAttackGA->IsActive())
 	{
 		if (UBattleGameplayAbility_JustGuardAttack* JustGuardAttack = Cast<UBattleGameplayAbility_JustGuardAttack>(CurrentAttackGA))
@@ -116,6 +139,10 @@ void UBattleCombatManagerComponent::TryJustGuard_Implementation(AActor* TryActor
 
 void UBattleCombatManagerComponent::OnAttackWarnSign()
 {
+	if (CurrentAttackGA == nullptr)
+	{
+		return;
+	}
 	if (CurrentAttackGA->IsActive())
 	{
 		UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
@@ -151,5 +178,9 @@ void UBattleCombatManagerComponent::OnRep_CurrentTargetActor()
 }
 
 void UBattleCombatManagerComponent::OnRep_LastHitInfo()
+{
+}
+
+void UBattleCombatManagerComponent::OnRep_CurrentCombo()
 {
 }

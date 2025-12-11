@@ -25,8 +25,6 @@ void UBattleGameplayAbility_JustGuard::ActivateAbility(const FGameplayAbilitySpe
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("JustGuard"));
-
 	if (IsLocallyControlled())
 	{
 		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
@@ -71,10 +69,64 @@ void UBattleGameplayAbility_JustGuard::PlayStartCue()
 	Super::PlayStartCue();
 }
 
+void UBattleGameplayAbility_JustGuard::ServerStartActionTrigger_Implementation(FGameplayTag Channel,
+	const FBattleVerbMessage& Notification)
+{
+	StartJustDash();
+}
+
 void UBattleGameplayAbility_JustGuard::StartActionTrigger(FGameplayTag Channel, const FBattleVerbMessage& Notification)
 {
 	Super::StartActionTrigger(Channel, Notification);
 
+	if (GetWorld()->GetNetMode() == NM_Client)
+	{
+		ServerStartActionTrigger(Channel,Notification);
+	}
+	else
+	{
+		StartJustDash();
+	}
+
+	
+}
+
+void UBattleGameplayAbility_JustGuard::OnHitStopEnd()
+{
+	if (UBattleHeroComponent* HeroComponent = Cast<UBattleHeroComponent>(TargetActor->GetComponentByClass(UBattleHeroComponent::StaticClass())))
+	{
+		HeroComponent->ClearDesiredCameraMode();
+	}
+
+	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), EnemyMontage, 1.0f);
+	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_JustGuard::OnCompleted);
+	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_JustGuard::OnInterrupted);
+	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_JustGuard::OnBlendOut);
+	PlayAttackMontage->ReadyForActivation();	
+
+	FVector Direction = (GetAvatarActorFromActorInfo()->GetActorLocation() - TargetActor->GetActorLocation()).GetSafeNormal();
+	Direction *= 1000.f;
+	Direction.Z = 300.f;
+
+	if (ABattleCharacterBase* EnemyCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
+	{
+		EnemyCharacter->LaunchCharacter(Direction, true, true);
+	}
+
+	Direction = -Direction;
+	Direction.Z = 300.f;
+
+	if (ABattleCharacterBase* PlayerCharacter = Cast<ABattleCharacterBase>(TargetActor))
+	{
+		PlayerCharacter->LaunchCharacter(Direction, true, true);
+	}
+
+	
+	
+}
+
+void UBattleGameplayAbility_JustGuard::StartJustDash()
+{
 	if (ABattleCharacterBase* EnemyCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 	{
 		EnemyCharacter->NetStopMotion(HitStopTime);
@@ -117,40 +169,5 @@ void UBattleGameplayAbility_JustGuard::StartActionTrigger(FGameplayTag Channel, 
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(HitStopEndHandle, this, &ThisClass::OnHitStopEnd, HitStopTime, false);
-	
-	
-}
-
-void UBattleGameplayAbility_JustGuard::OnHitStopEnd()
-{
-	if (UBattleHeroComponent* HeroComponent = Cast<UBattleHeroComponent>(TargetActor->GetComponentByClass(UBattleHeroComponent::StaticClass())))
-	{
-		HeroComponent->ClearDesiredCameraMode();
-	}
-
-	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), EnemyMontage, 1.0f);
-	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_JustGuard::OnCompleted);
-	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_JustGuard::OnInterrupted);
-	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_JustGuard::OnBlendOut);
-	PlayAttackMontage->ReadyForActivation();	
-
-	FVector Direction = (GetAvatarActorFromActorInfo()->GetActorLocation() - TargetActor->GetActorLocation()).GetSafeNormal();
-	Direction *= 1000.f;
-	Direction.Z = 300.f;
-
-	if (ABattleCharacterBase* EnemyCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
-	{
-		EnemyCharacter->LaunchCharacter(Direction, true, true);
-	}
-
-	Direction = -Direction;
-	Direction.Z = 300.f;
-
-	if (ABattleCharacterBase* PlayerCharacter = Cast<ABattleCharacterBase>(TargetActor))
-	{
-		PlayerCharacter->LaunchCharacter(Direction, true, true);
-	}
-
-	
 	
 }

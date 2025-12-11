@@ -65,6 +65,7 @@ public:
 	int GetCurrentComboIndex();
 
 	void SetComboGA(UBattleGameplayAbility_ComboAttack* InComboAttack);
+	void OnEndAbilityComboGA();
 
 	UFUNCTION()
 	void OnRep_CurrentUsedItemInfo();
@@ -132,10 +133,13 @@ private:
 	UFUNCTION()
 	void OnRep_LastHitInfo();
 
+	UFUNCTION()
+	void OnRep_CurrentCombo();
+
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentTargetActor)
 	TObjectPtr<AActor> CurrentTargetActor = nullptr;
 	
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentCombo)
 	UBattleGameplayAbility_ComboAttack* CurrentCombo = nullptr;
 	
 	uint8 ComboStep = 0;
@@ -150,5 +154,8 @@ private:
 	FHitInfo LastHitInfo;
 	
 	UBattleGameplayAbility_Attack_Parent* CurrentAttackGA = nullptr;
+
+	FTimerHandle ComboEndTimerHandle;
+
 
 };

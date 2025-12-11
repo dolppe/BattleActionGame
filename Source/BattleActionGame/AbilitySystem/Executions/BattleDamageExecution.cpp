@@ -73,8 +73,6 @@ void UBattleDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 		float ImpactPower = Spec.GetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_ImpactPower, true, 1.0f);
 		float TotalImpactDamage = ImpactPower - ImpactResistance;
 
-		UE_LOG(LogBattle, Log, TEXT("TotalImpactDamage %f, %s => %s"),TotalImpactDamage, *ExecutionParams.GetSourceAbilitySystemComponent()->GetName(),*ExecutionParams.GetTargetAbilitySystemComponent()->GetName());
-
 		if (TotalImpactDamage > 0.0f)
 		{
 			if (ABattleEnemyCharacter* TargetEnemy = Cast<ABattleEnemyCharacter>(TargetASC->GetAvatarActor()))

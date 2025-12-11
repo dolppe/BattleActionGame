@@ -21,6 +21,9 @@ protected:
 	virtual void PlaySpecialActionMontage() override;
 	virtual void PlayStartCue() override;
 
+	UFUNCTION(Server, Reliable)
+	void ServerStartActionTrigger(FGameplayTag Channel, const FBattleVerbMessage& Notification);
+	
 	virtual void StartActionTrigger(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 
 	UFUNCTION()
@@ -46,6 +49,10 @@ protected:
 	
 	FGameplayMessageListenerHandle StartListenerHandle;
 	FTimerHandle HitStopEndHandle;
+
+private:
+
+	void StartJustDash();
 	
 };
 

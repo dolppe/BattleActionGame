@@ -141,7 +141,6 @@ void ABattleCharacter::Reset()
 
 void ABattleCharacter::LaunchCharacter(FVector LaunchVelocity, bool bXYOverride, bool bZOverride)
 {
-	UE_LOG(LogBattle, Log, TEXT("ACharacter::LaunchCharacter '%s' (%f,%f,%f)"), *GetName(), LaunchVelocity.X, LaunchVelocity.Y, LaunchVelocity.Z);
 	Super::LaunchCharacter(LaunchVelocity, bXYOverride, bZOverride);
 }
 
@@ -188,11 +187,8 @@ void ABattleCharacter::StartCriticalHit(FVector ImpactPoint, ABattleCharacterBas
 void ABattleCharacter::EndCriticalHit()
 {
 	UBattleHeroComponent* HeroComponent = GetHeroComponent();
-
-	UE_LOG(LogBattle, Log, TEXT("BeforeRotation: %s"), *BeforeRotation.ToString());
-	UE_LOG(LogBattle, Log, TEXT("BeforeControl: %s"), *(GetViewRotation().ToString()));
+	
 	NetSetControlRotation(BeforeRotation);
-	UE_LOG(LogBattle, Log, TEXT("AfterControl: %s"), *(GetViewRotation().ToString()));
 	
 	if (HeroComponent != nullptr)
 	{
@@ -237,7 +233,6 @@ void ABattleCharacter::UnPossessed()
 void ABattleCharacter::HandleImpactDamage(AActor* DamageInstigator, AActor* DamageCauser,
 	const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude)
 {
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("HandleImpactDamage: %f"), DamageMagnitude);
 	if (DamageMagnitude >= 50.0f)
 	{
 		PerformGroggy();

@@ -23,7 +23,6 @@ void UBattleCombatSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		{
 			if (OnReceivedImpactDamage.IsBound())
 			{
-				UE_LOG(LogBattle, Log, TEXT("ImpactDamage %f"), Data.EvaluatedData.Magnitude);
 				const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
 				AActor* Instigator = EffectContext.GetOriginalInstigator();
 				AActor* Causer = EffectContext.GetEffectCauser();

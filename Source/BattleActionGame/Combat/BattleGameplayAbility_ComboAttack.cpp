@@ -88,7 +88,7 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 		
 	}
 	
-	CurrentCombatManager->SetComboGA(nullptr);
+	CurrentCombatManager->OnEndAbilityComboGA();
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

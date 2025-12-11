@@ -4,6 +4,7 @@
 #include "BattleEnemyData.h"
 #include "GameplayEffect.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySet.h"
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleCombatSet.h"
@@ -65,6 +66,7 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 		{
 			if (AbilitySet)
 			{
+				BA_DEFAULT_LOG(LogBattle, Log, TEXT("StartGive GA, GE, AttributeSet"));
 				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 			}
 		}
@@ -72,7 +74,11 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 		AbilitySystemComponent->SetTagRelationshipMapping(EnemyData->TagRelationshipMapping);
 	}
 
-	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+	if (HasAuthority())
+	{
+		HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);	
+	}
+	
 
 	if (const UBattleEnemySet* EnemySet  = AbilitySystemComponent->GetSet<UBattleEnemySet>())
 	{
@@ -81,9 +87,6 @@ void ABattleEnemyCharacter::PostInitializeComponents()
 		
 	}
 
-	
-
-	
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
