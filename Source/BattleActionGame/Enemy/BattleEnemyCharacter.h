@@ -36,8 +36,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ChangePhyMatPart(FName BoneName, FGameplayTag InGameplayTag);
-
-	void HandleGroggyState(AActor* GEInstigator, AActor* GECauser, const FGameplayEffectSpec& GEEffectSpec, float GEMagnitude);
 	
 	virtual void HandleDamageToPart(FName BoneName, FGameplayTag PartTag) override;
 

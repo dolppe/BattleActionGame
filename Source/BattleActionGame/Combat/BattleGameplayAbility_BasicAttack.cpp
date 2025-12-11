@@ -30,7 +30,7 @@ void UBattleGameplayAbility_BasicAttack::ActivateAbility(const FGameplayAbilityS
 
 	AttackData = &CurrentCombatManager->GetAttackData()->BasicAttacks[AttackMode];
 
-	const FName MontageSectionName = *FString::Printf(TEXT("%s%d"), *AttackData->MontageSectionName, 1);
+	const FName MontageSectionName = *FString::Printf(TEXT("%s"), *AttackData->MontageSectionName);
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), AttackData->Montage, 0.65f, MontageSectionName);
 	PlayAttackMontage->OnCompleted.AddDynamic(this, &UBattleGameplayAbility_BasicAttack::OnCompleted);

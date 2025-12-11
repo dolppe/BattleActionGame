@@ -259,8 +259,8 @@ void UBattleHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHand
 	}
 }
 
-void UBattleHeroComponent::SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FVector& DesiredLocation,
-	const FRotator& DesiredRotation)
+void UBattleHeroComponent::SetDesiredCameraMode_Implementation(TSubclassOf<UBattleCameraMode> CameraMode,
+	const FVector& DesiredLocation, const FRotator& DesiredRotation)
 {
 	if (CameraMode)
 	{
@@ -270,13 +270,12 @@ void UBattleHeroComponent::SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> C
 	}
 }
 
-void UBattleHeroComponent::ClearDesiredCameraMode()
+void UBattleHeroComponent::ClearDesiredCameraMode_Implementation()
 {
 	DesiredCameraMode = nullptr;
 	DesiredViewPointLocation = FVector::ZeroVector;
 	DesiredViewPointRotation = FRotator::ZeroRotator;
 }
-
 
 void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComponent)
 {
@@ -336,6 +335,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this,&ThisClass::Input_LookMouse, false);
 					ABattlePlayerState* PS = GetPlayerState<ABattlePlayerState>();
 					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_ReadyToggle, ETriggerEvent::Triggered, PS, &ABattlePlayerState::ToggleReady, false);
+					BattleIC->BindNativeAction(InputConfig, GameplayTags.InputTag_SpecialKey, ETriggerEvent::Triggered, this, &ThisClass::Input_SpecialKeyPressed, false);
 				}
 				
 			}
@@ -439,6 +439,14 @@ void UBattleHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 				BattleASC->AbilityInputTagReleased(InputTag);
 			}
 		}
+	}
+}
+
+void UBattleHeroComponent::Input_SpecialKeyPressed()
+{
+	if (SpecialKeyPressed.IsBound())
+	{
+		SpecialKeyPressed.Broadcast();
 	}
 }
 

@@ -30,7 +30,6 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("Start"));
 
 	AttackIdx = -1;
 	AlreadyHitActors.Empty();
@@ -54,7 +53,6 @@ void UBattleGameplayAbility_Attack_Parent::EndAbility(const FGameplayAbilitySpec
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("End"));
 	
 	if (Character->IsLocallyControlled())
 	{
@@ -245,10 +243,7 @@ EStrikeType UBattleGameplayAbility_Attack_Parent::GetStrikeType(int Index) const
 
 void UBattleGameplayAbility_Attack_Parent::ReceivedHits(const FBattleHitMessage& HitMessage)
 {
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("AttackIdx => %d"),AttackIdx);
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("HitMessageWindowIdx => %d"),HitMessage.WindowIndex);
-
-	bHitCritical = false;
+	
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		if (AttackIdx != HitMessage.WindowIndex)
@@ -276,6 +271,8 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 	const FAttackWindowData* AttackWindowData = &AttackData->AttackWindowDatas[AttackIdx];
 	ABattleCharacterBase* AvatarCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
 	ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(HitResult->GetActor());
+
+	bHitCritical = false;
 	
 	if (UBattleCombatManagerComponent* TargetCombatManagerComponent = Cast<UBattleCombatManagerComponent>(TargetCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
 	{
@@ -359,9 +356,6 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 				HitGCParams.PhysicalMaterial = DefaultPhysicalMaterial;
 				HitGCParams.RawMagnitude = AttackIdx;
 
-				BA_DEFAULT_LOG(LogBattle, Log, TEXT("PartTag: %s"), *PhysicalMaterialWithTags->PartTag.ToString());
-
-
 				GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(HitEffectGCNTag, HitGCParams);
 			}
 		}
@@ -378,14 +372,13 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 					
 			if (TSubclassOf<UCameraShakeBase> CameraShake = AvatarPlayerCharacter->GetCriticalCamera())
 			{
-				BattlePC->PlayerCameraManager->StartCameraShake(CameraShake, 1.0f);
+				BattlePC->ClientStartCameraShake(CameraShake, 1.0f);
 			}
 		}
 	}
-	
-	if (AttackWindowData->CameraShakeClass != nullptr)
+	else if (AttackWindowData->CameraShakeClass != nullptr)
 	{
-		BattlePC->PlayerCameraManager->StartCameraShake(AttackWindowData->CameraShakeClass, AttackWindowData->CameraShakeScale);
+		BattlePC->ClientStartCameraShake(AttackWindowData->CameraShakeClass, AttackWindowData->CameraShakeScale);
 	}
 	
 }

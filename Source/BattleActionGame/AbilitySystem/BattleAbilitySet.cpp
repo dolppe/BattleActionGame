@@ -1,6 +1,8 @@
 	#include "BattleAbilitySet.h"
 #include "Abilities/BattleGameplayAbility.h"
 #include "BattleAbilitySystemComponent.h"
+#include "BattleActionGame/BattleLogChannels.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAbilitySet)
 
 void FBattleAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle)
@@ -85,6 +87,7 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 		}
 	}
 
+
 	// GE
 	for (int32 EffectIndex = 0; EffectIndex < GrantedGameplayEffects.Num(); ++EffectIndex)
 	{
@@ -110,15 +113,18 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 	{
 		const FBattleAbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
 
+
 		if (!IsValid(SetToGrant.AttributeSet))
 		{
 			continue;
 		}
 
+		
 		const UAttributeSet* ConstAttributeSet = BattleASC->GetAttributeSet(SetToGrant.AttributeSet);
-
+		
 		if (ConstAttributeSet)
 		{
+			
 			UDataTable* InitData = SetToGrant.InitializationData.LoadSynchronous();
 			if (InitData)
 			{
@@ -126,9 +132,9 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 				AttributeSet->InitFromMetaDataTable(InitData);
 			}
 		}
-
 		else
 		{
+			
 			UAttributeSet* NewSet = NewObject<UAttributeSet>(BattleASC->GetOwner(), SetToGrant.AttributeSet);
 			if (!SetToGrant.InitializationData.IsNull())
 			{
@@ -138,7 +144,7 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 					NewSet->InitFromMetaDataTable(InitData);
 				}
 			}
-			
+
 			BattleASC->AddAttributeSetSubobject(NewSet);
 
 			if (OutGrantedHandles)

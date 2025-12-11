@@ -26,6 +26,30 @@ UBattleGameplayAbility::UBattleGameplayAbility(const FObjectInitializer& ObjectI
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+void UBattleGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	if (ActorInfo->AvatarActor != nullptr)
+	{
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s, %s: Start"), *ActorInfo->AvatarActor->GetName(), *this->GetName());	
+	}
+}
+
+void UBattleGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (ActorInfo->AvatarActor != nullptr)
+	{
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("%s, %s: End"), *ActorInfo->AvatarActor->GetName(), *this->GetName());
+	}
+	
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 UBattleAbilitySystemComponent* UBattleGameplayAbility::GetBattleAbilitySystemComponentFromActorInfo() const
 {
 	return (CurrentActorInfo ? Cast<UBattleAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent) : nullptr);

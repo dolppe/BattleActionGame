@@ -106,25 +106,25 @@ struct FAttackWindowData
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	TArray<TSubclassOf<UGameplayEffect>> AppliedEffectsToSelf;
 	
-	UPROPERTY(EditAnywhere, Category=Attack)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	float BaseDamage;
 	
-	UPROPERTY(EditAnywhere, Category=Attack)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	float AttackRate;
 
-	UPROPERTY(EditAnywhere, Category=Attack)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	float ImpactPower = 0.0f;
 
-	UPROPERTY(EditAnywhere, Category=Attack)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	EStrikeType StrikeType = EStrikeType::SwordA;
 
-	UPROPERTY(EditAnywhere, Category=Attack)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	float HitStopSeconds = 0.0f;
 
-	UPROPERTY(EditAnywhere, Category=Attack)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	TSubclassOf<UCameraShakeBase> CameraShakeClass = nullptr;
 
-	UPROPERTY(EditAnywhere, Category=Attack)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=Attack)
 	float CameraShakeScale = 1.0f;
 };
 

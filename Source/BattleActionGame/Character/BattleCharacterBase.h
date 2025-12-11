@@ -23,6 +23,8 @@ public:
 
 	virtual UBattleHealthComponent* GetHealthComponent() const;
 
+	void NetSetControlRotation(const FRotator& NewRotation);
+	
 	void NetPlayMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
 	UFUNCTION(BlueprintCallable)
@@ -61,6 +63,9 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerStopMotion(float StopSeconds, float TimeDilation = 0.0f);
+
+	UFUNCTION(Client, Reliable)
+	void ClientSetControlRotation(const FRotator& NewRotation);
 	
 	UFUNCTION()
 	void ResumeMotion();

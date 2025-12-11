@@ -89,11 +89,6 @@ void UBattleCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	{
 		DesiredView.PostProcessSettings = PostProcessSettings;
 	}
-
-	UE_LOG(LogTemp, Log, TEXT("Location:%s"), *DesiredView.Location.ToString());
-	UE_LOG(LogTemp, Log, TEXT("Rotation:%s"), *DesiredView.Rotation.ToString());
-	UE_LOG(LogTemp, Log, TEXT("Control Rotation:%s"), *CameraModeView.ControlRotation.ToString());
-	
 }
 
 PRAGMA_ENABLE_OPTIMIZATION

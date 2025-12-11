@@ -4,8 +4,10 @@
 #include "GameplayTagsManager.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
+#include "Camera/CameraComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_JustDash)
 
@@ -16,7 +18,7 @@ UBattleGameplayAbility_JustDash::UBattleGameplayAbility_JustDash(const FObjectIn
 	// 서버가 특정 기간동안 상태를 유지
 	// 클라는 이펙트와 함께 특수 키 입력이 가능한 상태로 변경
 	// 클라에서 특수키 입력하면 반격 Ability가 실행되도록 (서버에서 판정)
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	UGameplayTagsManager::Get().CallOrRegister_OnDoneAddingNativeTagsDelegate(FSimpleDelegate::CreateUObject(this, &ThisClass::DoneAddingNativeTags));
 }
@@ -42,24 +44,29 @@ void UBattleGameplayAbility_JustDash::ActivateAbility(const FGameplayAbilitySpec
 	if (HasAuthority(&ActivationInfo))
 	{
 		//BA_DEFAULT_LOG(LogBattle, Log, TEXT("SErverJustDash"));
-		FGameplayCueParameters Params;
-		Params.Instigator = const_cast<AActor*>(TriggerEventData->Instigator.Get());
-
+		// FGameplayCueParameters Params;
+		// Params.Instigator = const_cast<AActor*>(TriggerEventData->Instigator.Get());
+		//
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-		
-		ASC->ExecuteGameplayCue(GlobalJustDashEffectTag, Params);
-		ASC->ExecuteGameplayCue(OwnerJustDashEffectTag, Params);
+		//
+		// ASC->ExecuteGameplayCue(GlobalJustDashEffectTag, Params);
+		// ASC->ExecuteGameplayCue(OwnerJustDashEffectTag, Params);
 
 		GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectToSelf(GE_AllowedCounterAttack.GetDefaultObject(), 1.0f,ASC->MakeEffectContext());
+		if (ABattleCharacterBase* AttackCharacter = Cast<ABattleCharacterBase>(TriggerEventData->Instigator))
+		{
+			AttackCharacter->NetStopMotion(TargetStopTime);
+		}
+		if (ABattleCharacterBase* JustDashCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
+		{
+			JustDashCharacter->NetStopMotion(MySlowTime, 0.01f);
+		}
 
 		if (ABattlePlayerState* PS = Cast<ABattlePlayerState>(ActorInfo->OwnerActor))
 		{
 			PS->CombatStat.JustDashCount++;
 		}
-
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
-
 }
 
 void UBattleGameplayAbility_JustDash::EndAbility(const FGameplayAbilitySpecHandle Handle,

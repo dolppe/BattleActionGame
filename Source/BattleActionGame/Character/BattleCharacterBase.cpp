@@ -26,8 +26,20 @@ UBattleHealthComponent* ABattleCharacterBase::GetHealthComponent() const
 	return nullptr;
 }
 
+void ABattleCharacterBase::NetSetControlRotation(const FRotator& NewRotation)
+{
+	if (IsLocallyControlled())
+	{
+		GetController()->SetControlRotation(NewRotation);
+	}
+	else
+	{
+		ClientSetControlRotation(NewRotation);
+	}
+}
+
 void ABattleCharacterBase::ServerPlayMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
-	FName StartSectionName)
+                                                            FName StartSectionName)
 {
 	MulticastPlayMontage(AnimMontage, InPlayRate, StartSectionName);
 }
@@ -97,10 +109,9 @@ void ABattleCharacterBase::PerformGroggy()
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		FGameplayTagContainer GameplayTags;
-		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_Groggy);
+		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Reaction_Groggy);
 		
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
-		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Groggy : %d"), bTrySuccess);
 	}
 	
 }
@@ -110,10 +121,9 @@ void ABattleCharacterBase::PerformPoiseBreak()
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		FGameplayTagContainer GameplayTags;
-		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Action_PoiseBreak);
+		GameplayTags.AddTag(FBattleGameplayTags::Get().Ability_Type_Reaction_PoiseBreak);
 		
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
-		BA_DEFAULT_LOG(LogBattle,Log,TEXT("Poise : %d"), bTrySuccess);
 	}
 }
 
@@ -164,6 +174,14 @@ void ABattleCharacterBase::MulticastStopMotion_Implementation(float StopSeconds,
 void ABattleCharacterBase::ServerStopMotion_Implementation(float StopSeconds, float TimeDilation)
 {
 	MulticastStopMotion_Implementation(StopSeconds, TimeDilation);
+}
+
+void ABattleCharacterBase::ClientSetControlRotation_Implementation(const FRotator& NewRotation)
+{
+	if (IsLocallyControlled())
+	{
+		Controller->SetControlRotation(NewRotation);
+	}
 }
 
 void ABattleCharacterBase::ResumeMotion()

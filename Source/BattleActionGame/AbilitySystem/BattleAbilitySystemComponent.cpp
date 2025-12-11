@@ -295,7 +295,7 @@ void UBattleAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGamepl
 		TagRelationshipMapping->GetAbilityTagsToBlockAndCancel(AbilityTags, &ModifiedBlockTags, &ModifiedCancelTags);
 	}
 	
-	BA_DEFAULT_LOG(LogBattle,Log,TEXT("AbilityTag: %s, CancelTag: %s"), *AbilityTags.ToString(), *ModifiedCancelTags.ToString());
+	//BA_DEFAULT_LOG(LogBattle,Log,TEXT("AbilityTag: %s, CancelTag: %s"), *AbilityTags.ToString(), *ModifiedCancelTags.ToString());
 	
 	Super::ApplyAbilityBlockAndCancelTags(AbilityTags, RequestingAbility, bEnableBlockTags, ModifiedBlockTags,
 	                                      bExecuteCancelTags, ModifiedCancelTags);

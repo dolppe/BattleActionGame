@@ -23,14 +23,10 @@ void UBattleCameraMode_ThirdPerson::UpdateView(float DeltaTime)
 	// 만약 TargetOffsetCureve가 있으면, 해당 Curve의 벡터를 가져와서 Location에 적용함.
 	// 내 Pitch의 Rotation값에 따라서 타겟 Offset을 가져와서 적용하는 것.
 	// Curve => Curve 에셋임.
-
-	UE_LOG(LogTemp, Log, TEXT("====================================="));
-	UE_LOG(LogTemp, Log, TEXT("ControlRotation : %s"), *View.Rotation.ToString());
+	
 	if (TargetOffsetCurve)
 	{
 		const FVector TargetOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
-		UE_LOG(LogTemp, Log, TEXT("TargetOffset : %s"), *TargetOffset.ToString());
-		UE_LOG(LogTemp, Log, TEXT("RotateVector : %s"), *PivotRotation.RotateVector(TargetOffset).ToString());
 		View.Location = PivotLocation + PivotRotation.RotateVector(TargetOffset);
 	}
 }

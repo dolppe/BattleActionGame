@@ -12,6 +12,8 @@ class UBattleCameraMode;
 struct FGameplayAbilitySpecHandle;
 struct FBattleMappableConfigPair;
 
+DECLARE_MULTICAST_DELEGATE(FSpecialKeyPressed);
+
 UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
 class UBattleHeroComponent : public UPawnComponent, public IGameFrameworkInitStateInterface
 {
@@ -44,8 +46,10 @@ public:
 	void SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
-	
+	UFUNCTION(Client, Reliable)
 	void SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FVector& DesiredLocation, const FRotator& DesiredRotation);
+
+	UFUNCTION(Client, Reliable)
 	void ClearDesiredCameraMode();
 
 	// Input
@@ -54,6 +58,7 @@ public:
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
+	void Input_SpecialKeyPressed();
 
 	UFUNCTION(Server, Reliable)
 	void PerformDirectionalMove(FVector Direction, float Strength, float ZForce);
@@ -77,7 +82,8 @@ public:
 	{
 		return DesiredViewPointRotation;
 	}
-	
+
+	FSpecialKeyPressed SpecialKeyPressed;
 	
 protected:
 
