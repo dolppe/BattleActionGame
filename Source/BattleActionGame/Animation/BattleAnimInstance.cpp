@@ -20,6 +20,7 @@ void UBattleAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* A
 	GameplayTagPropertyMap.Initialize(this, ASC);
 }
 
+
 void UBattleAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();

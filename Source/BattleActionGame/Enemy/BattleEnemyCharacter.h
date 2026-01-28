@@ -37,7 +37,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangePhyMatPart(FName BoneName, FGameplayTag InGameplayTag);
 	
-	virtual void HandleDamageToPart(FName BoneName, FGameplayTag PartTag) override;
+	virtual void HandleDamageToPart(FGameplayTag PartTag, const FVector& AttackDirection) override;
 
 	UFUNCTION(BlueprintCallable)
 	void DestroyParts(TArray<FName> BoneNames);

@@ -359,7 +359,11 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 				GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(HitEffectGCNTag, HitGCParams);
 			}
 		}
-		TargetCharacter->HandleDamageToPart(HitResult->BoneName, PhysicalMaterialWithTags->PartTag);
+
+		FVector HitDirection = HitResult->ImpactPoint - AvatarCharacter->GetActorLocation();
+		HitDirection.Z = 0.0f;
+		
+		TargetCharacter->HandleDamageToPart(PhysicalMaterialWithTags->PartTag, HitDirection);
 	}
 
 	ABattlePlayerController* BattlePC = GetBattlePlayerControllerFromActorInfo();

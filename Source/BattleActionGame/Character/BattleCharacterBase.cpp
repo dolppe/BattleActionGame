@@ -76,7 +76,7 @@ void ABattleCharacterBase::MulticastPlayMontage_Implementation(UAnimMontage* Ani
 }
 
 
-void ABattleCharacterBase::HandleDamageToPart(FName BoneName, FGameplayTag PartTag)
+void ABattleCharacterBase::HandleDamageToPart(FGameplayTag PartTag, const FVector& AttackDirection)
 {
 }
 

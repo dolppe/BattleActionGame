@@ -19,8 +19,6 @@ public:
 
 	virtual void InitializeWithAbilitySystem(UAbilitySystemComponent* ASC);
 
-	
-
 protected:
 
 	virtual void NativeInitializeAnimation() override;
@@ -57,7 +55,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Character)
 	float JumpingThreshold;
-	
 	
 	
 	
