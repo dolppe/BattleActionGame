@@ -1,5 +1,6 @@
 #include "BattlePartsManagerComponent.h"
 
+#include "BrokenPartActor.h"
 #include "SkeletalRenderPublic.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Animation/BattleAnimInstance.h"
@@ -111,14 +112,7 @@ void UBattlePartsManagerComponent::DestroyParts(const FGameplayTag& PartTag, con
 {
 	if (HasAuthority())
 	{
-		if (!AppliedDestroyedParts.Contains(PartTag))
-		{
-			if (DestroyParts_Internal(PartTag))
-			{
-				DestroyedPartTags.Add(PartTag);
-				AddImpulseToPart_Multicast(PartTag, Impulse);
-			}
-		}
+		DestroyParts_Internal(PartTag, Impulse);
 	}
 }
 
@@ -127,45 +121,72 @@ void UBattlePartsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, DestroyedPartTags);
+	DOREPLIFETIME(ThisClass, DestroyedParts);
+	
 }
 
-void UBattlePartsManagerComponent::AddImpulseToPart_Multicast_Implementation(const FGameplayTag& PartTag,
-	const FVector& Impulse)
+void UBattlePartsManagerComponent::TryDestroyedParts(const FGameplayTag& PartTag, const FVector& Impulse, int Idx)
 {
-	PendingImpulse.Add(PartTag, Impulse);
-	TryPendingImpulse(PartTag);
+	if (!DestroyedParts.IsValidIndex(Idx))
+	{
+		return;
+	}
+	else if (DestroyedParts[Idx] == nullptr)
+	{
+		return;
+	}
+
+	DestroyParts_Internal(PartTag, Impulse);
 }
 
+
+PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattlePartsManagerComponent::OnRep_DestroyedPartTags()
 {
+	int Idx = 0;
+	
 	for (FGameplayTag& PartTag : DestroyedPartTags)
 	{
-		if (!AppliedDestroyedParts.Contains(PartTag))
+		if (!AppliedPartTags.Contains(PartTag))
 		{
-			DestroyParts_Internal(PartTag);
+			TryDestroyedParts(PartTag, FVector(), Idx);
 		}
+		Idx++;
 	}
 	
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
+void UBattlePartsManagerComponent::OnRep_DestroyedParts()
+{
+	int Idx = 0;
+	
+	for (FGameplayTag& PartTag : DestroyedPartTags)
+	{
+		if (!AppliedPartTags.Contains(PartTag))
+		{
+			TryDestroyedParts(PartTag, FVector(), Idx);
+		}
+		Idx++;
+	}
+}
+
 
 void UBattlePartsManagerComponent::DetachedFrameDelayed()
 {
 	for(FDismemberedLimbFrameDelay& Data : FrameDelayedDismemberedLimbs)
 	{
-		USkeletalMeshComponent* CachedDismemberedLimb = Data.SkeletalMeshComponent;
-		CachedDismemberedLimb->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-
-		CachedDismemberedLimb->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		CachedDismemberedLimb->SetCollisionObjectType(ECC_PhysicsBody);
+		ABrokenPartActor* BrokenActor = Data.BrokenActor;
+		USkeletalMeshComponent* BrokenMeshComp = BrokenActor->SkeletalMeshComponent;
+		BrokenActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		
-		CreateDestroyedPhysicsAsset(CachedDismemberedLimb, Data.BoneName);
 
-		CachedDismemberedLimb->SetSimulatePhysics(true);
+		BrokenMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		BrokenMeshComp->SetCollisionObjectType(ECC_PhysicsBody);
+		
+		CreateDestroyedPhysicsAsset(BrokenActor, Data.BoneName);
 
-		//CachedDismemberedLimb->AddImpulse(FVector(0.0f,0.0f, 10.f), Data.BoneName, true);
+		BrokenMeshComp->SetSimulatePhysics(true);
 	}
 
 	FrameDelayedDismemberedLimbs.Reset();
@@ -173,27 +194,27 @@ void UBattlePartsManagerComponent::DetachedFrameDelayed()
 
 
 
-USkeletalMeshComponent* UBattlePartsManagerComponent::CreateDestroyedPart(const FName& BoneName)
+ABrokenPartActor* UBattlePartsManagerComponent::CreateDestroyedPart(const FName& BoneName, const FGameplayTag& PartTag, const FVector& Impulse)
 {
 	FBodyInstance Body;
 	Body.SetObjectType(ECC_WorldStatic);
 	Body.SetResponseToAllChannels(ECR_Ignore);
 	Body.SetResponseToChannel(ECC_WorldStatic, ECR_Block);
 	Body.SetResponseToChannel(ECC_WorldStatic, ECR_Block);
-	
-	USkeletalMeshComponent* DestroyedPart = NewObject<USkeletalMeshComponent>(GetOwner());
+
+
+	ABrokenPartActor* DestroyedPart = GetWorld()->SpawnActor<ABrokenPartActor>();
 	USkeletalMeshComponent* OwnerMeshComp = GetOwnerSkeletalMeshComponent();
+	const FReferenceSkeleton& RefSkeleton = OwnerMeshComp->GetSkeletalMeshAsset()->GetRefSkeleton();
 	
 	DestroyedPart->AttachToComponent(OwnerMeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, BoneName);
-
-	DestroyedPart->RegisterComponent();
 	
-	DestroyedPart->SetSkeletalMesh(OwnerMeshComp->GetSkeletalMeshAsset());
-	DestroyedPart->SetPhysicsAsset(OwnerMeshComp->GetPhysicsAsset());
+	DestroyedPart->SkeletalMeshComponent->SetSkeletalMesh(OwnerMeshComp->GetSkeletalMeshAsset());
+	DestroyedPart->SkeletalMeshComponent->SetPhysicsAsset(OwnerMeshComp->GetPhysicsAsset());
 
-	DestroyedPart->SetAnimInstanceClass(DestroyedAnimInstance);
+	DestroyedPart->SkeletalMeshComponent->SetAnimInstanceClass(DestroyedAnimInstance);
 	
-	UDestroyedAnimInstance* AnimInstance = Cast<UDestroyedAnimInstance>(DestroyedPart->GetAnimInstance());
+	UDestroyedAnimInstance* AnimInstance = Cast<UDestroyedAnimInstance>(DestroyedPart->SkeletalMeshComponent->GetAnimInstance());
 
 	if (AnimInstance)
 	{
@@ -201,27 +222,52 @@ USkeletalMeshComponent* UBattlePartsManagerComponent::CreateDestroyedPart(const 
 	}
 
 	FDismemberedLimbFrameDelay Data;
-	Data.SkeletalMeshComponent = DestroyedPart;
+	Data.BrokenActor = DestroyedPart;
 	Data.BoneName = BoneName;
+	Data.PartTag = PartTag;
+	Data.Impulse = Impulse;
 
 	FrameDelayedDismemberedLimbs.Add(Data);
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::DetachedFrameDelayed);
+	
+	const int32 ParentBoneIndex = RefSkeleton.FindBoneIndex(BoneName);
+
+	TArray<FName> OutChildBoneNames;
+	
+	const int32 NumBones = RefSkeleton.GetNum();
+
+	FBoneInfo RootBoneInfo;
+
+	RootBoneInfo.BoneIndex = 0;
+
+	DestroyedPart->BoneInfos.Add(RootBoneInfo);
+
+	for (int32 BoneIndex = ParentBoneIndex + 1; BoneIndex < NumBones; ++BoneIndex)
+	{
+		int32 ParentIndex = RefSkeleton.GetParentIndex(BoneIndex);
+
+		while (ParentIndex != INDEX_NONE)
+		{
+			if (ParentIndex == ParentBoneIndex)
+			{
+				FBoneInfo BoneTransform;
+				BoneTransform.BoneIndex = BoneIndex;
+				DestroyedPart->BoneInfos.Add(BoneTransform);
+				break;
+			}
+			ParentIndex = RefSkeleton.GetParentIndex(ParentIndex);
+		}
+	}
 
 	return DestroyedPart;
-
-	
-	
 	
 }
 
 PRAGMA_ENABLE_OPTIMIZATION
 
-void UBattlePartsManagerComponent::CreateDestroyedPhysicsAsset(USkeletalMeshComponent* Component, FName BoneName) const
+void UBattlePartsManagerComponent::CreateDestroyedPhysicsAsset(ABrokenPartActor* BrokenPartActor, FName BoneName) const
 {
-
-
-
-
+	USkeletalMeshComponent* Component = BrokenPartActor->SkeletalMeshComponent;
 	const FReferenceSkeleton& RefSkeleton = Component->GetSkeletalMeshAsset()->GetRefSkeleton();
 
 	const int32 ParentBoneIndex = RefSkeleton.FindBoneIndex(BoneName);
@@ -265,7 +311,7 @@ void UBattlePartsManagerComponent::CreateDestroyedPhysicsAsset(USkeletalMeshComp
 		TerminatePhysicsBodies(NewPhysicsAsset, Index);
 	}
 	
-	Component->SetPhysicsAsset(NewPhysicsAsset, true);
+	BrokenPartActor->SkeletalMeshComponent->SetPhysicsAsset(NewPhysicsAsset);
 }
 
 void UBattlePartsManagerComponent::TerminatePhysicsBodies(UPhysicsAsset* PhysicsAsset, int32 Index) const
@@ -311,36 +357,13 @@ void UBattlePartsManagerComponent::TerminatePhysicsBodies(UPhysicsAsset* Physics
 }
 
 
-
-
-void UBattlePartsManagerComponent::TryPendingImpulse(const FGameplayTag& PartTag)
+bool UBattlePartsManagerComponent::DestroyParts_Internal(const FGameplayTag& PartTag, const FVector& Impulse)
 {
-	if (FPartData* PartData = PartsData.Find(PartTag))
-	{
-		if (!AppliedDestroyedParts.Find(PartTag))
-		{
-			return;
-		}
-		if (USkeletalMeshComponent* SkeletalMeshComponent = AppliedDestroyedParts.Find(PartTag)->Get())
-		{
-			if (FVector* ImpulseVector = PendingImpulse.Find(PartTag))
-			{
-				ImpulseVector->Z =200.f;
-				SkeletalMeshComponent->AddImpulse(*ImpulseVector);
-				SkeletalMeshComponent->AddImpulse(FVector(0.0f,0.0f,5.0f));
-				PendingImpulse.Remove(PartTag);
-			}
-		}
-	}
-}
-
-bool UBattlePartsManagerComponent::DestroyParts_Internal(const FGameplayTag& PartTag)
-{
-	if (AppliedDestroyedParts.Contains(PartTag))
+	if (AppliedPartTags.Contains(PartTag))
 	{
 		return false;
 	}
-
+	
 	USkeletalMeshComponent* SkeletalMeshComponent = GetOwnerSkeletalMeshComponent();
 	if (SkeletalMeshComponent == nullptr)
 	{
@@ -354,13 +377,70 @@ bool UBattlePartsManagerComponent::DestroyParts_Internal(const FGameplayTag& Par
 		SkeletalMeshComponent->HideBoneByName(BoneName, PBO_Term);
 		SkeletalMeshComponent->BreakConstraint(FVector(0),FVector(0), BoneName);
 
-		USkeletalMeshComponent* DestroyedPart = CreateDestroyedPart(BoneName);
+		if (HasAuthority())
+		{
+			ABrokenPartActor* DestroyedPart = CreateDestroyedPart(BoneName, PartTag, Impulse);
 
-		
-		
-		AppliedDestroyedParts.Add(PartTag, DestroyedPart);
-		TryPendingImpulse(PartTag);
-		
+			DestroyedPartTags.Add(PartTag);
+			DestroyedParts.Add(DestroyedPart);
+			AppliedPartTags.Add(PartTag);
+		}
+		else
+		{
+			int Idx = 0;
+			for (const FGameplayTag& SelectedPartTag : DestroyedPartTags)
+			{
+				if (SelectedPartTag == PartTag)
+				{
+					if (ABrokenPartActor* BrokenPartActor = DestroyedParts[Idx])
+					{
+						//BrokenPartActor
+						USkeletalMeshComponent* OwnerMeshComp = GetOwnerSkeletalMeshComponent();
+						USkeletalMeshComponent* BrokenMeshComp = BrokenPartActor->SkeletalMeshComponent;
+
+						BrokenMeshComp->SetSkeletalMesh(OwnerMeshComp->GetSkeletalMeshAsset());
+						BrokenMeshComp->SetPhysicsAsset(OwnerMeshComp->GetPhysicsAsset());
+
+						BrokenMeshComp->SetAnimInstanceClass(DestroyedAnimInstance);
+						UDestroyedAnimInstance* AnimInstance = Cast<UDestroyedAnimInstance>(BrokenPartActor->SkeletalMeshComponent->GetAnimInstance());
+						
+						if (AnimInstance)
+						{
+							AnimInstance->SetPartsName(BoneName);
+						}
+
+						//this->CreateDestroyedPhysicsAsset(BrokenPartActor, PartData->RootBoneName);
+						
+						// FBodyInstance Body;
+						// Body.SetObjectType(ECC_WorldStatic);
+						// Body.SetResponseToAllChannels(ECR_Ignore);
+						// Body.SetResponseToChannel(ECC_WorldStatic, ECR_Block);
+						// Body.SetResponseToChannel(ECC_WorldStatic, ECR_Block);
+						//
+						// BrokenMeshComp->SetCollisionObjectType(Body.GetObjectType());
+						// BrokenMeshComp->SetCollisionEnabled(Body.GetCollisionEnabled());
+						// BrokenMeshComp->SetCollisionResponseToChannels(Body.GetResponseToChannels());
+						// BrokenMeshComp->SetCanEverAffectNavigation(CanEverAffectNavigation());
+						//
+						// GetWorld()->GetTimerManager().SetTimerForNextTick([this, BrokenMeshComp, BrokenPartActor, PartData]()
+						// {
+						// 	BrokenMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+						// 	BrokenMeshComp->SetCollisionObjectType(ECC_PhysicsBody);
+						//
+						// 	this->CreateDestroyedPhysicsAsset(BrokenPartActor, PartData->RootBoneName);
+						//
+						// 	BrokenMeshComp->SetSimulatePhysics(true);
+						// });
+					}
+					else
+					{
+						return false;
+					}
+				}
+				Idx++;
+			}
+			AppliedPartTags.Add(PartTag);
+		}
 		return true;
 	}
 	

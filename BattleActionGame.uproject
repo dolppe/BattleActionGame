@@ -8,6 +8,11 @@
 			"Name": "BattleActionGame",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "BattleActionEditor",
+         	"Type": "UncookedOnly",
+         	"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [

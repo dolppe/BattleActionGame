@@ -7,6 +7,7 @@
 class UDestroyedAnimInstance;
 class ABattleEnemyCharacter;
 class UBattlePartsManagerComponent;
+class ABrokenPartActor;
 
 UENUM(BlueprintType)
 enum class EPartEventType : uint8
@@ -21,15 +22,15 @@ struct FDismemberedLimbFrameDelay
 	GENERATED_BODY()
 
 	FDismemberedLimbFrameDelay(){};
-	FDismemberedLimbFrameDelay(const FName InName, USkeletalMeshComponent* InMesh)
-	: BoneName(InName), SkeletalMeshComponent(InMesh){}
 	
 	UPROPERTY()
 	FName BoneName = NAME_None;
 	UPROPERTY()
-	USkeletalMeshComponent* SkeletalMeshComponent = nullptr;
+	ABrokenPartActor* BrokenActor = nullptr;
 	UPROPERTY()
 	FVector Impulse = FVector(0);
+	UPROPERTY()
+	FGameplayTag PartTag;
 };
 
 
@@ -110,19 +111,21 @@ public:
 
 protected:
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void AddImpulseToPart_Multicast(const FGameplayTag& PartTag, const FVector& Impulse);
-	
+	UFUNCTION()
+	void TryDestroyedParts(const FGameplayTag& PartTag, const FVector& Impulse, int Idx);
+
 	UFUNCTION()
 	void OnRep_DestroyedPartTags();
+
+	UFUNCTION()
+	void OnRep_DestroyedParts();
 
 	UFUNCTION()
 	void DetachedFrameDelayed();
 
 	UPROPERTY()
 	TArray<FDismemberedLimbFrameDelay> FrameDelayedDismemberedLimbs;
-
-
+	
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<EPhysicalSurface> DefaultSurfaceType = EPhysicalSurface::SurfaceType_Default;
 	
@@ -132,32 +135,27 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_DestroyedPartTags)
 	TArray<FGameplayTag> DestroyedPartTags;
 
+	UPROPERTY(ReplicatedUsing=OnRep_DestroyedParts)
+	TArray<ABrokenPartActor*> DestroyedParts;
+
+	TArray<FGameplayTag> AppliedPartTags;
+
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UDestroyedAnimInstance> DestroyedAnimInstance;
+
 
 private:
 
 	
-	void CreateDestroyedPhysicsAsset(USkeletalMeshComponent* Component, FName InLimb) const;
+	void CreateDestroyedPhysicsAsset(ABrokenPartActor* BrokenPartActor, FName InLimb) const;
 	void TerminatePhysicsBodies(UPhysicsAsset* PhysicsAsset, int32 Index) const;
 	
-
-	USkeletalMeshComponent* CreateDestroyedPart(const FName& BoneName);
+	ABrokenPartActor* CreateDestroyedPart(const FName& BoneName, const FGameplayTag& PartTag, const FVector& Impulse);
 	
-	void TryPendingImpulse(const FGameplayTag& PartTag);
-
-	bool DestroyParts_Internal(const FGameplayTag& PartTag);
+	bool DestroyParts_Internal(const FGameplayTag& PartTag, const FVector& Impulse);
 
 	USkeletalMeshComponent* GetOwnerSkeletalMeshComponent();
-	
-	TMap<FGameplayTag, TWeakObjectPtr<USkeletalMeshComponent>> AppliedDestroyedParts;
-
-	TMap<FGameplayTag, FVector> PendingImpulse;
-
-
-
-
-
 
 private:
 

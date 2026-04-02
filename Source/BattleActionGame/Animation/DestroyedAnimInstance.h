@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Animation/AnimInstance.h"
+#include "BattleActionGame/Physics/BrokenPartActor.h"
 #include "DestroyedAnimInstance.generated.h"
+
 
 UCLASS()
 class UDestroyedAnimInstance : public UAnimInstance
@@ -15,6 +17,7 @@ public:
 	{
 		PartName = PartBoneName;
 	}
+	
 
 protected:
 
