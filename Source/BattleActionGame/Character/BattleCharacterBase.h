@@ -28,7 +28,7 @@ public:
 	void NetPlayMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
 	UFUNCTION(BlueprintCallable)
-	virtual void HandleDamageToPart(FName BoneName, FGameplayTag PartTag);
+	virtual void HandleDamageToPart(FGameplayTag PartTag, const FVector& AttackDirection);
 
 	UFUNCTION(BlueprintCallable)
 	UPhysicalMaterial* GetPhysicalSurface(EPhysicalSurface PhysicalSurfaceType)

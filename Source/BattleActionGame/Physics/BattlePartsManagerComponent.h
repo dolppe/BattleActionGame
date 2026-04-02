@@ -4,7 +4,10 @@
 #include "Components/PawnComponent.h"
 #include "BattlePartsManagerComponent.generated.h"
 
+class UDestroyedAnimInstance;
 class ABattleEnemyCharacter;
+class UBattlePartsManagerComponent;
+class ABrokenPartActor;
 
 UENUM(BlueprintType)
 enum class EPartEventType : uint8
@@ -13,12 +16,31 @@ enum class EPartEventType : uint8
 	Destroy,
 };
 
+USTRUCT()
+struct FDismemberedLimbFrameDelay
+{
+	GENERATED_BODY()
+
+	FDismemberedLimbFrameDelay(){};
+	
+	UPROPERTY()
+	FName BoneName = NAME_None;
+	UPROPERTY()
+	ABrokenPartActor* BrokenActor = nullptr;
+	UPROPERTY()
+	FVector Impulse = FVector(0);
+	UPROPERTY()
+	FGameplayTag PartTag;
+};
+
+
+
 USTRUCT(BlueprintType)
 struct FPartEventData
 {
 	GENERATED_BODY()
 
-	void TriggerEvent(FPartData* PartData, ABattleEnemyCharacter* MyCharacter, const TArray<FName>& BoneNames);
+	void TriggerEvent(FPartData* PartData, UBattlePartsManagerComponent* PartsManager, FGameplayTag PartTag, const FVector& HitDirection);
 
 	UPROPERTY(EditAnywhere)
 	int TriggerHp;
@@ -36,7 +58,7 @@ struct FPartData
 {
 	GENERATED_BODY()
 
-	void HandleDamaged(ABattleEnemyCharacter* MyCharacter, int DamagedHp = 1);
+	void HandleDamaged(UBattlePartsManagerComponent* PartsManager, FGameplayTag PartTag, const FVector& HitDirection, int DamagedHp = 1);
 	bool WillDamageTrigger(int DamagedHp = 1);
 	
 	UPROPERTY(EditAnywhere)
@@ -49,7 +71,7 @@ struct FPartData
 	TArray<FPartEventData> PartEvents;
 	
 	UPROPERTY(EditAnywhere)
-	TArray<FName> BoneNames;
+	FName RootBoneName;
 
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<EPhysicalSurface> SurfaceState = SurfaceType_Default;
@@ -69,30 +91,79 @@ public:
 
 	UBattlePartsManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void InitializeComponent() override;
+
 	UFUNCTION(BlueprintCallable)
-	void HandleDamagedToPart(FName BoneName, FGameplayTag PartTag);
+	void HandleDamagedToPart(const FGameplayTag& PartTag, const FVector& HitDirection);
 	
 	UFUNCTION(BlueprintCallable)
-	EPhysicalSurface GetSurfaceStateFromPart(FGameplayTag PartTag);
+	EPhysicalSurface GetSurfaceStateFromPart(const FGameplayTag& PartTag);
 
 	UFUNCTION(BlueprintCallable)
-	bool IsPartDestroyed(FGameplayTag PartTag);
+	bool IsPartDestroyed(const FGameplayTag& PartTag);
 
 	UFUNCTION(BlueprintCallable)
-	bool WillPartEventTrigger(FGameplayTag PartTag);
-
+	bool WillPartEventTrigger(const FGameplayTag& PartTag);
 	
+	void DestroyParts(const FGameplayTag& PartTag, const FVector& Impulse);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 
+	UFUNCTION()
+	void TryDestroyedParts(const FGameplayTag& PartTag, const FVector& Impulse, int Idx);
+
+	UFUNCTION()
+	void OnRep_DestroyedPartTags();
+
+	UFUNCTION()
+	void OnRep_DestroyedParts();
+
+	UFUNCTION()
+	void DetachedFrameDelayed();
+
+	UPROPERTY()
+	TArray<FDismemberedLimbFrameDelay> FrameDelayedDismemberedLimbs;
+	
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<EPhysicalSurface> DefaultSurfaceType = EPhysicalSurface::SurfaceType_Default;
 	
 	UPROPERTY(EditAnywhere)
 	TMap<FGameplayTag, FPartData> PartsData;
 
+	UPROPERTY(ReplicatedUsing=OnRep_DestroyedPartTags)
+	TArray<FGameplayTag> DestroyedPartTags;
+
+	UPROPERTY(ReplicatedUsing=OnRep_DestroyedParts)
+	TArray<ABrokenPartActor*> DestroyedParts;
+
+	TArray<FGameplayTag> AppliedPartTags;
+
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UDestroyedAnimInstance> DestroyedAnimInstance;
+
+
+private:
+
 	
+	void CreateDestroyedPhysicsAsset(ABrokenPartActor* BrokenPartActor, FName InLimb) const;
+	void TerminatePhysicsBodies(UPhysicsAsset* PhysicsAsset, int32 Index) const;
+	
+	ABrokenPartActor* CreateDestroyedPart(const FName& BoneName, const FGameplayTag& PartTag, const FVector& Impulse);
+	
+	bool DestroyParts_Internal(const FGameplayTag& PartTag, const FVector& Impulse);
+
+	USkeletalMeshComponent* GetOwnerSkeletalMeshComponent();
+
+private:
+
+	FTimerHandle TempHandle;
+	FTimerHandle TestHandle;
 	
 	
 };
+
+
 

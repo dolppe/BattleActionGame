@@ -35,7 +35,7 @@ ABattleEnemyCharacter::ABattleEnemyCharacter(const FObjectInitializer& ObjectIni
 	
 	HealthComponent = CreateDefaultSubobject<UBattleHealthComponent>(TEXT("HealthComponent"));
 	PartsManagerComponent = CreateDefaultSubobject<UBattlePartsManagerComponent>(TEXT("PartsManagerComponent"));
-	
+	PartsManagerComponent->SetIsReplicated(true);
 	NetUpdateFrequency = 100.0f;
 }
 
@@ -103,14 +103,14 @@ void ABattleEnemyCharacter::ChangePhyMatPart(FName BoneName, FGameplayTag InGame
 	
 }
 
-void ABattleEnemyCharacter::HandleDamageToPart(FName BoneName, FGameplayTag PartTag)
+void ABattleEnemyCharacter::HandleDamageToPart(FGameplayTag PartTag, const FVector& AttackDirection)
 {
 	if (!HasAuthority())
 	{
 		return;
 	}
 
-	PartsManagerComponent->HandleDamagedToPart(BoneName, PartTag);
+	PartsManagerComponent->HandleDamagedToPart(PartTag, AttackDirection);
 }
 
 void ABattleEnemyCharacter::DestroyParts(TArray<FName> BoneNames)

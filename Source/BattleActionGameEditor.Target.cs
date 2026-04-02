@@ -10,6 +10,6 @@ public class BattleActionGameEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_1;
-		ExtraModuleNames.Add("BattleActionGame");
+		ExtraModuleNames.AddRange(new string[] { "BattleActionEditor", "BattleActionGame" });
 	}
 }
