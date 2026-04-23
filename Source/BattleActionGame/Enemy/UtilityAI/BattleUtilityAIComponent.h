@@ -15,40 +15,105 @@ class UBattleHealthComponent;
 UENUM(BlueprintType)
 enum class EBattleConsiderType : uint8
 {
-	// Single
+	/* 
+	 * Single - Simple
+	 */
+	
+	// [0 ~ 1] 0 => Hp가 0, 1 => Hp가 최대치
 	MyHp UMETA(DisplayName = "MyHp"),
+	// [0 or 1] 0 => Target이 없음, 1 => Target이 존재
 	HasTarget UMETA(DisplayName = "HasTarget"),
-	MyCombatPotential UMETA(DisplayName = "MyCombatPotential"),
-	IsTargetInSight UMETA(DisplayName = "IsTargetInSight"),
-	NearbyEnemyCount UMETA(DisplayName = "NearbyEnemyCount"),
-	ThreatScore UMETA(DisplayName = "ThreatScore"),
-	CombatDuration UMETA(DisplayName = "CombatDuration"),
-	NearbyWaterAmount UMETA(DisplayName = "NearbyWaterAmount"),
-	EnemyDirection UMETA(DisplayName = "EnemyDirection"),
-	IsAlone UMETA(DisplayName = "IsAlone"),
-	BreakLeftLeg UMETA(DisplayName = "BreakLeftLeg"),
-	BreakRightLeg UMETA(DisplayName = "BreakRightLeg"),
-	CanMovement UMETA(DisplayName = "CanMovement"),
-	EnemyDensity UMETA(DisplayName = "EnemyDensity"),
-	EnemyAverageDistance UMETA(DisplayName = "EnemyAverageDistance"),
+	// [0 or 1] 0 => Target이 왼쪽에 있음, 1 => Target이 오른쪽에 있음
+	TargetHorizontalDirection UMETA(DisplayName = "TargetHorizontalDirection"),
+	// [0 or 1] 0 => Target이 후방에 있음, 1 => Target이 전방에 있음
+	TargetForwardDirection UMETA(DisplayName = "TargetForwardDirection"),
+	// [0 ~ 1] 0 => Target이 바로 근처에 있음, 1 => Target이 먼 거리에 있음 
 	IsFarFromTarget UMETA(DisplayName = "IsFarFromTarget"),
+	// [0 ~ 1] 0 => Target이 보이지 않음, 1 => Target이 보임
+	TargetVisible UMETA(DisplayName = "TargetVisible"),
+	// [0 ~ 1] 0 =>  주변에 가까운 적이 없음, 1 => 주변에 가까운 적이 많음
+	NearbyEnemyPressure UMETA(DisplayName = "NearbyEnemyPressure"),
+	// [0 ~ 1] 0 => 비전투, 0.5 => 적정 전투 시간, 1 => 너무 오랫동안 전투 중
+	CombatDuration UMETA(DisplayName = "CombatDuration"),
+	// [0 ~ 1] 0 => 왼쪽에 적이 더 많음, 1 => 오른쪽에 적이 더 많음
+	EnemyDirection UMETA(DisplayName = "EnemyDirection"),
+	// [0 or 1] 0 => 비전투 중, 1 => 전투 중
+	IsInCombat UMETA(DisplayName = "IsInCombat"),
+	// [0 or 1] 0 => 왼쪽 다리가 멀쩡 함, 1 => 왼쪽 다리가 파괴됨
+	BreakLeftLeg UMETA(DisplayName = "BreakLeftLeg"),
+	// [0 or 1] 0 => 오른쪽 다리가 멀쩡 함, 1 => 오른쪽 다리가 파괴됨
+	BreakRightLeg UMETA(DisplayName = "BreakRightLeg"),
+	// [0 or 1] 0 => 움직일 수 없음, 1 => 움직일 수 있음
+	CanMove UMETA(DisplayName = "CanMove"),
+	// [0 or 1] 0 => 공격할 수 없음, 1 => 공격할 수 있음
+	CanAttack UMETA(DisplayName = "CanAttack"),
+	// [0 ~ 1] 0 => 적들이 밀집해 있음, 1 => 적들이 흩어져 있음
+	EnemySpread UMETA(DisplayName = "EnemySpread"),
+	// [0 ~ 1] 0 => 적들과의 평균 거리가 가까움, 1 => 적들과의 평균 거리가 멈
+	EnemyAverageDistance UMETA(DisplayName = "EnemyAverageDistance"),
+	// 미구현 => 주변에 물이 얼마나 있는지
+	NearbyWaterAmount UMETA(DisplayName = "NearbyWaterAmount"),
+	// 미구현 => 내가 독을 얼마나 가지고 있는지
 	PoisonAmount UMETA(DisplayName = "PoisonAmount"),
+	// 미구현 => 내가 전기를 얼마나 가지고 있는지
 	ElectricityAmount UMETA(DisplayName = "ElectricityAmount"),
+	// [0 or 1] 0 => 주변에 Cave가 없음, 1 => 주변에 Cave가 있음
 	NearByCave UMETA(DisplayName = "NearByCave"),
+	// [0 or 1] 0 => 주변에 Desert가 없음, 1 => 주변에 Desert가 있음
 	NearByDesert UMETA(DisplayName = "NearByDesert"),
+	// [0 or 1] 0 => 주변에 Ruin이 없음, 1 => 주변에 Ruin이 있음
 	NearByRuin UMETA(DisplayName = "NearByRuin"),
+	// [0 or 1] 0 => 주변에 좋은 Spot이 없음, 1 => 주변에 좋은 Spot이 있음 
 	NearByBestCombatSpot UMETA(DisplayName = "NearByBestCombatSpot"),
-	NeedCombatAreaChange UMETA(DisplayName = "NeedCombatAreaChange"),
-	NeedCombatReposition UMETA(DisplayName = "NeedCombatReposition"),
+	// [0 ~ 1] 0 => 적들에게 둘러 쌓여있지 않음, 1 => 적들에게 사방으로 둘러 쌓여있음
 	SurroundedRisk UMETA(DisplayName = "SurroundedRisk"),
+	// [0 or 1] 0 => 현재 자리가 좋음, 1 => 현재 자리가 구림 
 	PositionalDisadvantage UMETA(DisplayName = "PositionalDisadvantage"),
+	
+	/* 
+	 * Single - Complex
+	 */
+	
+	// [0 ~ 1] 0 => 전투할 여력이 없음, 1 => 만전의 상태
+	// 전투 가능한 상태인지를 나타냄
+	MyCombatPotential UMETA(DisplayName = "MyCombatPotential"),
+	// [0 ~ 1] 0 => 위협이 전혀 없음, 1 => 많이 위험한 상태
+	// 내가 받고 있는 위협 정도를 의미
+	ThreatScore UMETA(DisplayName = "ThreatScore"),
+	// [0 ~ 1] 0 => 현재 자리가 가장 좋음, 1 => 현재 자리가 매우 안좋음
+	// 전투 자리 재조정이 필요한지를 의미
+	NeedCombatReposition UMETA(DisplayName = "NeedCombatReposition"),
+	// [0 ~ 1] 0 => 지역을 이동할 필요가 없음, 1 => 지역 이동을 해야함
+	// 지역 이동이 필요한지를 의미
+	NeedCombatAreaChange UMETA(DisplayName = "NeedCombatAreaChange"),
+	
+	/* 
+	 * Array - Target - Simple
+	 * 
+	 * Target들에 대한 값들을 Array로 가짐.
+	 * Action쪽에서 Evaluate 함수와 합쳐져서 나온 점수들 중 가장 높은 점수를 가진 Target을 택함 
+	 * 해당 Target은 SelectedTarget에 저장됨. 즉, Action마다 선택되는 Target이 다른 것임
+	 */
 
-	// Array - Target
-	TargetDistanceNearly UMETA(DisplayName = "TargetDistanceNearly"),
+	// [0 ~ 1] 0 => 타겟과의 거리가 가까움, 1 => 타겟과의 거리가 멈 
+	TargetDistance UMETA(DisplayName = "TargetDistance"),
+	// [0 ~ 1] 0 => 타겟의 Hp가 낮음, 1 => 타겟의 Hp가 높음
 	TargetHp UMETA(DisplayName = "TargetHp"),
-	TargetPriority UMETA(DisplayName = "TargetPriority"),
-	TargetWeakness UMETA(DisplayName = "TargetWeakness"),
+	// [0 ~ 1] 0 => 독에 안걸린 상태, 1 => 독에 걸린 상태
 	TargetPoisonedState UMETA(DisplayName = "TargetPoisonedState"),
+	
+	/* 
+	* Array - Target - Complex
+	*/
+	
+	// [0 ~ 1] 0 => 타겟의 우선순위가 낮음, 1 => Target의 우선순위가 높음
+	// 타겟들에 대한 우선순위를 나타냄
+	TargetPriority UMETA(DisplayName = "TargetPriority"),
+	// [0 ~ 1] 0 => 타겟이 건강함, 1 => 타겟이 약해져있음
+	// 타겟들의 상태가 어떤지를 나타냄
+	TargetWeakness UMETA(DisplayName = "TargetWeakness"),
+	
+	
 	
 };
 
@@ -138,7 +203,7 @@ public:
 
 	// ArrayAxis
 
-	TArray<float> GetTargetDistanceNearly();
+	TArray<float> GetTargetDistance();
 	TArray<float> GetTargetHp();
 	TArray<float> GetTargetPriority();
 	TArray<float> GetTargetWeakness();
@@ -149,19 +214,22 @@ public:
 	float GetMyHp();
 	float GetTarget();
 	float GetMyCombatPotential();
-	float GetIsTargetInSight();
-	float GetNearbyEnemyCount();
+	float GetTargetHorizontalDirection();
+	float GetTargetForwardDirection();
+	float GetNearbyEnemyPressure();
 	float GetThreatScore();
 	float GetCombatDuration();
 	float GetNearbyWaterAmount();
 	float GetEnemyDirection();
-	float GetIsAlone();
+	float GetIsInCombat();
 	float GetBreakRightLeg();
 	float GetBreakLeftLeg();
-	float GetCanMovement();
-	float GetEnemyDensity();
+	float GetCanMove();
+	float GetEnemySpread();
 	float GetEnemyAverageDistance();
 	float GetIsFarFromTarget();
+	float GetCanAttack();
+	float GetTargetVisible();
 
 	float GetPoisonAmount();
 	float GetElectricityAmount();
@@ -215,6 +283,7 @@ public:
 	TArray<float> TargetHps;
 	
 	TMap<TObjectPtr<ABattleCharacterBase>, float> DamageStack;
+	float TotalDamage = 0.0f;
 	const float MaxDamageForPriority = 100.0f; 
 
 	float MyHp;
@@ -225,10 +294,11 @@ public:
 	float BestCombatTime;
 	float ThreatCharacterNum;
 
-	float EnemyDensity;
+	float EnemySpread;
 	float EnemyAverageDistance;
 
 	float SelectedTargetDistance;
+	bool bIsSelectedTargetVisible = false;
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;
