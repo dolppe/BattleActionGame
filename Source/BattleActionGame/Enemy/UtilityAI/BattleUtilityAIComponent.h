@@ -377,6 +377,10 @@ protected:
 
 	UPROPERTY()
 	UBattleUtilityAction* ActiveAction;
+	
+	UPROPERTY()
+	TArray<float> LastActiveTime;
+	
 	bool bActionComplete;
 
 	FTimerHandle TimerHandle;

@@ -47,6 +47,22 @@ public:
 	{
 		Weight = InWeight;
 	}
+	
+	float GetCoolTime() const
+	{
+		return CoolTime;
+	}
+	
+	float GetAgeTime() const
+	{
+		return AgeTime;
+	}
+	
+	float GetAgeRate() const
+	{
+		return AgeRate;
+	}
+	
 
 protected:
 
@@ -70,7 +86,15 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> BestTargets;
+	
+	UPROPERTY(EditAnywhere)
+	float CoolTime = 0.0f;
+	
+	UPROPERTY(EditAnywhere)
+	float AgeTime = 0.0f;
+	
+	UPROPERTY(EditAnywhere)
+	float AgeRate = 1.0f;
 
-	float ScoreMultiplier = 1.0f;
 	
 };

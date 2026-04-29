@@ -148,7 +148,7 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 		BestTargets.Add(ConsiderList->GetTargetPtr(CurrentType, BestIdx));
 	}
 	
-	return Result * Weight * ScoreMultiplier;
+	return Result * Weight;
 }
 
 PRAGMA_ENABLE_OPTIMIZATION

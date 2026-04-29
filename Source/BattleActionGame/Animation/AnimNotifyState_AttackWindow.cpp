@@ -29,7 +29,7 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 	if (CachedOwnerCharacter)
 	{
 		CachedCombatManager = Cast<UBattleCombatManagerComponent>(CachedOwnerCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
-		
+		CachedCombatManager->OnAttackStart();
 		if (CachedOwnerCharacter->IsLocallyControlled() || Cast<AAIController>(CachedOwnerCharacter->GetController()) != nullptr)
 		{
 

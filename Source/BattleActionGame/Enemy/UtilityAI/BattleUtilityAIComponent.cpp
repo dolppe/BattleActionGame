@@ -1244,6 +1244,8 @@ void UBattleUtilityAIComponent::BeginPlay()
 		NewAction->SetWeight(ActionConfig.Weight);
 
 		InstancedActions.Add(NewAction);
+		LastActiveTime.Add(0.0f);
+		
 		DebugActionsEnabled.Add(true);
 	}
 
@@ -1294,8 +1296,10 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	UBattleUtilityAction* BestAction = nullptr;
 
 	int ActionIdx = 0;
-
+	int SelectedActionIdx = 0;
 	UtilityAIScoreDatas.Empty();
+	
+	float CurTime = GetWorld()->GetTimeSeconds();
 	
 	for (UBattleUtilityAction* Action : InstancedActions)
 	{
@@ -1303,24 +1307,40 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		FUtilityAIScoreData UtilityAIScoreData;
 		UtilityAIScoreDatas.Add(UtilityAIScoreData);
 		
-		float CurScore = Action->EvaluateScore(ConsiderList);
-
+		float CurScore = 0.0f;
+		
+		// CoolTime이 지났으니 계산
+		if (CurTime - LastActiveTime[ActionIdx] >= Action->GetCoolTime())
+		{
+			CurScore = Action->EvaluateScore(ConsiderList);
+		}
+		
 		if (!DebugActionsEnabled[ActionIdx] || !UtilityAIData->ActionConfigs[ActionIdx].IsActive)
 		{
 			CurScore = 0.0f;
+		}
+		
+		// AgeTime보다 작으면 AgeRate를 적용해서 값을 작게 만듦
+		if (CurTime - LastActiveTime[ActionIdx] <= Action->GetAgeTime())
+		{
+			float AgeAlpha = (CurTime - LastActiveTime[ActionIdx]) / Action->GetAgeTime();
+			
+			CurScore *= FMath::Lerp(Action->GetAgeRate(), 1.0f, AgeAlpha);
 		}
 		
 		UtilityAIScoreDatas.Last().ActionScore = CurScore;		
 		
 		// FString DebugString = FString::Printf(TEXT("%s: %f"), *Action->GetName(), CurScore);
 		// GEngine->AddOnScreenDebugMessage(ActionIdx, 1.0f, FColor::Green, DebugString);
-		ActionIdx++;
 		
 		if (BestScore < CurScore)
 		{
 			BestScore = CurScore;
 			BestAction = Action;
+			SelectedActionIdx = ActionIdx;
 		}
+		
+		ActionIdx++;
 	}
 
 	FUtilityAITotalData UtilityAIDebugData;
@@ -1331,6 +1351,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		{
 		
 			ActiveAction = BestAction;
+			LastActiveTime[SelectedActionIdx] = CurTime;
 			ActiveAction->StartAction();
 			bActionComplete = false;
 
@@ -1347,6 +1368,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 			ActiveAction->EndAction();
 
 			ActiveAction = BestAction;
+			LastActiveTime[SelectedActionIdx] = CurTime;
 			ActiveAction->StartAction();
 			bActionComplete = false;
 
@@ -1363,6 +1385,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 			ActiveAction->EndAction();
 		
 			ActiveAction = BestAction;
+			LastActiveTime[SelectedActionIdx] = CurTime;
 			ActiveAction->StartAction();
 			bActionComplete = false;
 

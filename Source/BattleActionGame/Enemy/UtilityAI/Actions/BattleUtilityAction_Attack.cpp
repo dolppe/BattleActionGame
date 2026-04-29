@@ -1,6 +1,7 @@
 #include "BattleUtilityAction_Attack.h"
 
 #include "AbilitySystemComponent.h"
+#include "NavigationSystem.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
@@ -23,7 +24,7 @@
 
 UBattleUtilityAction_Attack::UBattleUtilityAction_Attack()
 {
-	ScoreMultiplier = 1.0f;
+	
 }
 
 void UBattleUtilityAction_Attack::StartAction()
@@ -32,11 +33,6 @@ void UBattleUtilityAction_Attack::StartAction()
 
 	ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
 
-	if (AgeRate >= 0.0f)
-	{
-		ScoreMultiplier = ScoreMultiplier * AgeRate;
-	}
-
 	if (CachedAIComponent->ConsiderList->SelectedTarget != nullptr)
 	{
 		if (UBattleCombatManagerComponent* CombatManager = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
@@ -44,8 +40,6 @@ void UBattleUtilityAction_Attack::StartAction()
 			CombatManager->SetCurrentTargetActor(CachedAIComponent->ConsiderList->SelectedTarget);
 		}
 	}
-	
-	StartAgeTimer();
 
 	StartAttack();
 	
@@ -65,32 +59,12 @@ bool UBattleUtilityAction_Attack::TickAction(float DeltaTime)
 	return true;
 }
 
-void UBattleUtilityAction_Attack::StartAgeTimer()
-{
-	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
-	
-	if (TimerManager.IsTimerActive(TimerHandle))
-	{
-		float RemainTime = TimerManager.GetTimerRemaining(TimerHandle);
-
-		TimerManager.ClearTimer(TimerHandle);
-		TimerManager.SetTimer(TimerHandle, this, &ThisClass::UpdateAge, AgeCycleTime + RemainTime, false);
-	}
-	else
-	{
-		TimerManager.SetTimer(TimerHandle, this, &ThisClass::UpdateAge, AgeCycleTime, false);
-	}
-}
 
 void UBattleUtilityAction_Attack::StartAttack()
 {
 	
 }
 
-void UBattleUtilityAction_Attack::UpdateAge()
-{
-	ScoreMultiplier = 1.0f;
-}
 
 
 /*
@@ -131,16 +105,6 @@ void UBattleUtilityAction_AttackSingle::StartAttack()
 	}
 }
 
-void UBattleUtilityAction_AttackSingle::StartAgeTimer()
-{
-	Super::StartAgeTimer();
-}
-
-void UBattleUtilityAction_AttackSingle::UpdateAge()
-{
-	Super::UpdateAge();
-}
-
 
 /*
  *
@@ -172,12 +136,6 @@ bool UBattleUtilityAction_AttackArea::TickAction(float DeltaTime)
 
 void UBattleUtilityAction_AttackArea::StartAttack()
 {
-	if (!IsSetAreaData)
-	{
-		GetAreaData();
-		IsSetAreaData = true;
-	}
-	
 	if (ASC)
 	{
 		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Attack))
@@ -201,60 +159,22 @@ void UBattleUtilityAction_AttackArea::StartAttack()
 			// GA->SetTargetData(Target) => 해당 함수 만들어서 Spot 넘겨주기
 			if (UGameplayAbility* InstancedAbility = AbilitySpec->GetPrimaryInstance())
 			{
-				if (UBattleGameplayAbility_TargetedAttack* InstancedGA = Cast<UBattleGameplayAbility_TargetedAttack>(InstancedAbility))
+				if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
 				{
-					if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
-					{
-						CombatManagerComponent->SetAreaCenterData(AttackAreaData);
-					}
-					
+					CombatManagerComponent->SetAreaCenterData(AttackAreaData);
 					ASC->TryActivateAbility(AbilitySpec->Handle);
 				}
+				
 			}
 		}
 	}
 }
-
-void UBattleUtilityAction_AttackArea::StartAgeTimer()
-{
-	Super::StartAgeTimer();
-}
-
-
-void UBattleUtilityAction_AttackArea::UpdateAge()
-{
-	Super::UpdateAge();
-}
-
-void UBattleUtilityAction_AttackArea::GetAreaData()
-{
-	if (ASC)
-	{
-		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Attack))
-		{
-			UBattleGameplayAbility_Attack_Parent* GA = Cast<UBattleGameplayAbility_Attack_Parent>(AbilitySpec->Ability);
-			int AttackIdx = GA->GetAttackMode();
-
-			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
-			{
-				UBattleCombatData* CombatData = CombatManagerComponent->GetAttackData();
-				if (CombatData->TargetedAttacks.IsValidIndex(AttackIdx))
-				{
-					// if (UAttackCollisionData_CircularAOE* CircularAoe = Cast<UAttackCollisionData_CircularAOE>(CombatData->TargetedAttacks[AttackIdx].CollisionMethod))
-					// {
-					// 	AreaNum = CircularAoe->AttackNum;
-					// 	AreaRadius = CircularAoe->AttackRadius;
-					// }
-				}
-			}
-		}
-	}
-}
-
 
 TArray<FVector> UBattleUtilityAction_AttackArea::GetBestSpots() const
 {
 	TArray<FVector> Locations;
+	TArray<FVector> Result;
+	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
 	
 	for (ABattleCharacterBase* Character : CachedAIComponent->ConsiderList->TargetActors)
 	{
@@ -266,7 +186,24 @@ TArray<FVector> UBattleUtilityAction_AttackArea::GetBestSpots() const
 
 	if (Locations.Num() <2)
 	{
-		return TArray<FVector>();
+		for (int Idx =0;Idx<Locations.Num();Idx++)
+		{
+			if (Idx >= AreaNum)
+			{
+				break;
+			}
+			FVector AreaData = Locations[Idx];
+			FNavLocation ProjectedNavLocation;	
+		
+			if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 3000.f)))
+			{
+				AreaData = ProjectedNavLocation.Location;
+			}
+		
+			Result.Add(AreaData);
+		}
+		
+		return Result;
 	}
 	
 	// 점 2개 선택 (조건에 맞는)
@@ -354,7 +291,7 @@ TArray<FVector> UBattleUtilityAction_AttackArea::GetBestSpots() const
 		return A.Key > B.Key;
 	});
 
-	TArray<FVector> Result;
+
 	
 	for (int Idx =0;Idx<CalcLocations.Num();Idx++)
 	{
@@ -363,6 +300,12 @@ TArray<FVector> UBattleUtilityAction_AttackArea::GetBestSpots() const
 			break;
 		}
 		FVector AreaData = CalcLocations[Idx].Value;
+		FNavLocation ProjectedNavLocation;	
+		
+		if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 3000.f)))
+		{
+			AreaData = ProjectedNavLocation.Location;
+		}
 		
 		Result.Add(AreaData);
 	}
@@ -419,19 +362,9 @@ bool UBattleUtilityAction_SpawnActor::TickAction(float DeltaTime)
 	return Super::TickAction(DeltaTime);
 }
 
-void UBattleUtilityAction_SpawnActor::StartAgeTimer()
-{
-	Super::StartAgeTimer();
-}
 
 void UBattleUtilityAction_SpawnActor::StartAttack()
 {
-	if (!IsSetSpawnData)
-	{
-		GetSpawnData();
-		IsSetSpawnData = true;
-	}
-	
 	if (ASC)
 	{
 		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Spawn))
@@ -463,38 +396,13 @@ void UBattleUtilityAction_SpawnActor::StartAttack()
 	
 }
 
-void UBattleUtilityAction_SpawnActor::UpdateAge()
-{
-	Super::UpdateAge();
-}
-
-void UBattleUtilityAction_SpawnActor::GetSpawnData()
-{
-	if (ASC)
-	{
-		if (FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromClass(GA_Spawn))
-		{
-			UBattleGameplayAbility_Special_Spawn* GA = Cast<UBattleGameplayAbility_Special_Spawn>(AbilitySpec->Ability);
-			int SpawnIdx = GA->GetSpawnMode();
-
-			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
-			{
-				UBattleCombatData* CombatData = CombatManagerComponent->GetAttackData();
-				if (CombatData->SpawnDatas.IsValidIndex(SpawnIdx))
-				{
-					const FSpecialSpawnData& SpawnData = CombatData->SpawnDatas[SpawnIdx];
-					SpawnActorNum = SpawnData.SpawnActorNum;
-					SpawnAreaRadius = SpawnData.SpawnRadius;
-				}
-			}
-		}
-	}
-}
 
 
 TArray<FVector> UBattleUtilityAction_SpawnActor::GetBestSpots() const
 {
 	TArray<FVector> Locations;
+	TArray<FVector> Result;
+	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
 	
 	for (ABattleCharacterBase* Character : CachedAIComponent->ConsiderList->TargetActors)
 	{
@@ -506,7 +414,24 @@ TArray<FVector> UBattleUtilityAction_SpawnActor::GetBestSpots() const
 
 	if (Locations.Num() <2)
 	{
-		return TArray<FVector>();
+		for (int Idx =0;Idx<Locations.Num();Idx++)
+		{
+			if (Idx >= SpawnActorNum)
+			{
+				break;
+			}
+			FVector AreaData = Locations[Idx];
+			FNavLocation ProjectedNavLocation;	
+		
+			if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 3000.f)))
+			{
+				AreaData = ProjectedNavLocation.Location;
+			}
+		
+			Result.Add(AreaData);
+		}
+		
+		return Result;
 	}
 	
 	// 점 2개 선택 (조건에 맞는)
@@ -593,8 +518,6 @@ TArray<FVector> UBattleUtilityAction_SpawnActor::GetBestSpots() const
 	{
 		return A.Key > B.Key;
 	});
-
-	TArray<FVector> Result;
 	
 	for (int Idx =0;Idx<CalcLocations.Num();Idx++)
 	{
@@ -603,6 +526,13 @@ TArray<FVector> UBattleUtilityAction_SpawnActor::GetBestSpots() const
 			break;
 		}
 		FVector AreaData = CalcLocations[Idx].Value;
+		
+		FNavLocation ProjectedNavLocation;	
+		
+		if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 3000.f)))
+		{
+			AreaData = ProjectedNavLocation.Location;
+		}
 		
 		Result.Add(AreaData);
 	}

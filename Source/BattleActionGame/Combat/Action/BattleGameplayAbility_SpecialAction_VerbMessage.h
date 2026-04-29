@@ -11,12 +11,12 @@ class UBattleGameplayAbility_SpecialAction_VerbMessage : public UBattleGameplayA
 public:
 
 	UBattleGameplayAbility_SpecialAction_VerbMessage(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-protected:
-
+	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
+protected:
+	
 	virtual void StartActionTrigger(FGameplayTag Channel, const FBattleVerbMessage& Notification);
 
 	UFUNCTION(BlueprintImplementableEvent)

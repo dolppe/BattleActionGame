@@ -79,11 +79,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBattleCombatData> CombatData;
 
+	UFUNCTION(BlueprintCallable)
 	void SetAreaCenterData(const TArray<FVector>& InAreaCenterData)
 	{
 		AreaCenterData = InAreaCenterData;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	TArray<FVector>& GetAreaCenterData()
 	{
 		return AreaCenterData;
@@ -104,6 +106,9 @@ public:
 	{
 		CurrentAttackGA = InCurrentAttackGA;
 	}
+	
+	UFUNCTION()
+	void OnAttackStart();
 
 	UFUNCTION(BlueprintCallable)
 	void OnHitEvent(const FBattleHitMessage& HitMessage);

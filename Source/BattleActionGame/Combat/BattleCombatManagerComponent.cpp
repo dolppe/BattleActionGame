@@ -94,6 +94,18 @@ UAttackCollisionMethod* UBattleCombatManagerComponent::GetCollisionMethod(EColli
 	return InstancedCollisionMethod[CollisionMethod];
 }
 
+void UBattleCombatManagerComponent::OnAttackStart()
+{
+	if (CurrentAttackGA == nullptr)
+	{
+		return;
+	}
+	if (CurrentAttackGA->IsActive())
+	{
+		CurrentAttackGA->OnAttackStart();
+	}
+}
+
 void UBattleCombatManagerComponent::OnHitEvent(const FBattleHitMessage& HitMessage)
 {
 	if (CurrentAttackGA == nullptr)

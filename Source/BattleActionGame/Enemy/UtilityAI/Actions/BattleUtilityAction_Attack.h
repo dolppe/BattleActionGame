@@ -29,23 +29,10 @@ public:
 	 * UtilityAction_Attack
 	 */
 	
-	virtual void StartAgeTimer();
-
 	virtual void StartAttack();
 
 protected:
-
-	UFUNCTION()
-	virtual void UpdateAge();
 	
-	FTimerHandle TimerHandle;
-
-	UPROPERTY(EditAnywhere)
-	float AgeCycleTime = 10.f;
-
-	UPROPERTY(EditAnywhere)
-	float AgeRate = 0.5f;
-
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;
 
@@ -75,11 +62,7 @@ public:
 	 */
 	 
 	virtual void StartAttack() override;
-	virtual void StartAgeTimer() override;
 
-protected:
-
-	virtual void UpdateAge() override;
 
 	
 private:
@@ -114,21 +97,17 @@ public:
 	 */
 	 
 	virtual void StartAttack() override;
-	virtual void StartAgeTimer() override;
-
-
-protected:
-	virtual void UpdateAge() override;
 
 private:
-
-	void GetAreaData();
+	
 	TArray<FVector> GetBestSpots() const;
 	TArray<FVector> GetTargetSpots() const;
 
+	UPROPERTY(EditAnywhere)
 	float AreaRadius = 1.0f;
+	
+	UPROPERTY(EditAnywhere)
 	int AreaNum = 1;
-	bool IsSetAreaData = false;
 
 	
 	UPROPERTY(EditDefaultsOnly)
@@ -156,27 +135,22 @@ public:
 	/*
 	 * UtilityAction_Attack
 	 */
-	
-	virtual void StartAgeTimer() override;
 
 	virtual void StartAttack() override;
 
-protected:
-	
-	virtual void UpdateAge() override;
 
 private:
-
-	void GetSpawnData();
+	
 	TArray<FVector> GetBestSpots() const;
 	TArray<FVector> GetTargetSpots() const;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UBattleGameplayAbility_Special_Spawn> GA_Spawn;
 
+	UPROPERTY(EditAnywhere)
 	int SpawnActorNum = 1;
-	int SpawnAreaRadius = 100.f;
-	bool IsSetSpawnData = false;
 	
+	UPROPERTY(EditAnywhere)
+	int SpawnAreaRadius = 100.f;
 	
 };

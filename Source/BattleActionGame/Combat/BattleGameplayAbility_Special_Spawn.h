@@ -2,12 +2,13 @@
 
 #include "GameplayMessageSubsystem.h"
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
+#include "BattleActionGame/Combat/Action/BattleGameplayAbility_SpecialAction_VerbMessage.h"
 #include "BattleGameplayAbility_Special_Spawn.generated.h"
 
 struct FSpecialSpawnData;
 
 UCLASS()
-class UBattleGameplayAbility_Special_Spawn : public UBattleGameplayAbility
+class UBattleGameplayAbility_Special_Spawn : public UBattleGameplayAbility_SpecialAction_VerbMessage
 {
 	GENERATED_BODY()
 public:
@@ -38,9 +39,6 @@ protected:
 	UFUNCTION()
 	virtual void OnBlendOut();
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnSpawnStart();
-
 	UFUNCTION()
 	void OnRep_SpawnCenterData();
 		
@@ -48,16 +46,14 @@ protected:
 	TArray<FVector> SpawnCenterData;
 
 	const FSpecialSpawnData* CurrentSpawnData;
-	
-	UFUNCTION()
-	void StartSpawn(FGameplayTag Channel, const FBattleVerbMessage& Notification);
+
+	virtual void StartActionTrigger(FGameplayTag Channel, const FBattleVerbMessage& Notification) override;
 
 	UPROPERTY()
 	TSubclassOf<AActor> SpawnActorClass;
 	
 private:
-	
-	FGameplayMessageListenerHandle StartListenerHandle;
+
 	
 	UPROPERTY()
 	TObjectPtr<UAnimMontage> CurrentSpawnMontage;
