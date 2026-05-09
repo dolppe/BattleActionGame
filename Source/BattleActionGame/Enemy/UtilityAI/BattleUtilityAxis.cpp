@@ -12,7 +12,7 @@ UBattleUtilityAxis::UBattleUtilityAxis()
 
 float UBattleUtilityAxis::CalcValue(float InValue)
 {
-	return UCalcFunctions::CalcValueWithFunction(FunctionType, InValue, Slope, Exponent, VerticalShift, HorizontalShift);
+	return UCalcFunctions::CalcValueWithFunction(FunctionType, InValue, Slope, Exponent, VerticalShift, HorizontalShift, MinValue, MaxValue);
 }
 
 float UBattleUtilityAxis::GetValue()

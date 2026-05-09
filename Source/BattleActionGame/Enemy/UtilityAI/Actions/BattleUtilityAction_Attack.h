@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BattleUtilityAction.h"
+#include "GameplayAbilitySpec.h"
 #include "BattleUtilityAction_Attack.generated.h"
 
 class UBattleGameplayAbility_Special_Spawn;
@@ -22,7 +23,7 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 
 	/*
@@ -32,6 +33,10 @@ public:
 	virtual void StartAttack();
 
 protected:
+	
+	bool bAbilityStart = false;
+	
+	FGameplayAbilitySpec* AbilitySpec;
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -55,7 +60,42 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
+
+	/*
+	 * UtilityAction_Attack
+	 */
+	 
+	virtual void StartAttack() override;
+
+
+	
+private:
+
+	
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBattleGameplayAbility_Attack_Parent> GA_Attack;
+
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_TargetChangeAttack : public UBattleUtilityAction_Attack
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_TargetChangeAttack();
+
+	/*
+	 * UtilityAction
+	 */
+
+	virtual void StartAction() override;
+
+	virtual void TickAction(float DeltaTime) override;
 
 	/*
 	 * UtilityAction_Attack
@@ -90,7 +130,7 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 	
 	/*
 	 * UtilityAction_Attack
@@ -129,7 +169,7 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 
 	/*

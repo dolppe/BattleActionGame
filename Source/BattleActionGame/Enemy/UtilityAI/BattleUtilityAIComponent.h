@@ -29,8 +29,8 @@ enum class EBattleConsiderType : uint8
 	TargetForwardDirection UMETA(DisplayName = "TargetForwardDirection"),
 	// [0 ~ 1] 0 => Target이 바로 근처에 있음, 1 => Target이 먼 거리에 있음 
 	IsFarFromTarget UMETA(DisplayName = "IsFarFromTarget"),
-	// [0 ~ 1] 0 => Target이 보이지 않음, 1 => Target이 보임
-	TargetVisible UMETA(DisplayName = "TargetVisible"),
+	// [0 ~ 1] 0 => Target과 나 사이의 장애물이 있음, 1 => Target과 나 사이에 장애물이 없음. 
+	TargetSightClear UMETA(DisplayName = "TargetSightClear"),
 	// [0 ~ 1] 0 =>  주변에 가까운 적이 없음, 1 => 주변에 가까운 적이 많음
 	NearbyEnemyPressure UMETA(DisplayName = "NearbyEnemyPressure"),
 	// [0 ~ 1] 0 => 비전투, 0.5 => 적정 전투 시간, 1 => 너무 오랫동안 전투 중
@@ -120,9 +120,9 @@ enum class EBattleConsiderType : uint8
 UENUM(BlueprintType)
 enum class EAxisType : uint8
 {
-	None,
 	Single,
 	Target,
+	None,
 };
 
 DECLARE_ENUM_TO_STRING(EBattleConsiderType);
@@ -229,7 +229,7 @@ public:
 	float GetEnemyAverageDistance();
 	float GetIsFarFromTarget();
 	float GetCanAttack();
-	float GetTargetVisible();
+	float GetTargetSightClear();
 
 	float GetPoisonAmount();
 	float GetElectricityAmount();
@@ -289,6 +289,11 @@ public:
 	float MyHp;
 	
 	bool bIsInCombat = false;
+	
+	float LastAttackTime = -1000.f;
+	bool bAllowedAttackTime = false;
+	const float AllowedAttackDuration = 1.0f;
+	
 	float CombatStartTime = -1;
 
 	float BestCombatTime;
@@ -298,7 +303,7 @@ public:
 	float EnemyAverageDistance;
 
 	float SelectedTargetDistance;
-	bool bIsSelectedTargetVisible = false;
+	bool bIsSelectedTargetSightClear = false;
 	
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
 	TObjectPtr<UBattleUtilityAIComponent> UtilityAIComponent;
@@ -335,6 +340,8 @@ public:
 	void CollectConsiderFactors();
 	
 	void SelectBestAction();
+	
+	bool CheckActionDistance(UBattleUtilityAction* UtilityAction, float SelectedTargetDistance);
 
 	void StartTimer();
 
@@ -381,6 +388,7 @@ protected:
 	UPROPERTY()
 	TArray<float> LastActiveTime;
 	
+
 	bool bActionComplete;
 
 	FTimerHandle TimerHandle;

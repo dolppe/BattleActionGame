@@ -13,6 +13,34 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Movement)
 
+PRAGMA_DISABLE_OPTIMIZATION
+
+UBattleUtilityAction_Wait::UBattleUtilityAction_Wait()
+{
+}
+
+void UBattleUtilityAction_Wait::StartAction()
+{
+	Super::StartAction();
+	
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+	{
+		this->bIsCompletedAction = true;
+	},
+	WaitSeconds, false);
+	
+}
+
+void UBattleUtilityAction_Wait::TickAction(float DeltaTime)
+{
+	Super::TickAction(DeltaTime);
+}
+
+void UBattleUtilityAction_Wait::EndAction()
+{
+	Super::EndAction();
+}
+
 UBAttleUtilityAction_PlayMontage::UBAttleUtilityAction_PlayMontage()
 {
 	Priority = 2;
@@ -26,13 +54,12 @@ void UBAttleUtilityAction_PlayMontage::StartAction()
 	AnimInstance = CachedAIComponent->ConsiderList->MyCharacter->GetMesh()->GetAnimInstance();
 }
 
-bool UBAttleUtilityAction_PlayMontage::TickAction(float DeltaTime)
+void UBAttleUtilityAction_PlayMontage::TickAction(float DeltaTime)
 {
 	if (AnimInstance->Montage_IsPlaying(AnimMontage))
 	{
-		return false;
+		bIsCompletedAction = true;
 	}
-	return true;
 }
 
 void UBAttleUtilityAction_PlayMontage::EndAction()
@@ -84,15 +111,15 @@ void UBattleUtilityAction_BackAway::StartAction()
 	
 }
 
-bool UBattleUtilityAction_BackAway::TickAction(float DeltaTime)
+void UBattleUtilityAction_BackAway::TickAction(float DeltaTime)
 {
 	if (RequestResult != EPathFollowingRequestResult::RequestSuccessful)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 	if (SelectedTarget == nullptr)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 	
 	
@@ -123,12 +150,12 @@ bool UBattleUtilityAction_BackAway::TickAction(float DeltaTime)
 		{
 			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
 			{
-				return false;
+				return;
 			}
 		}
 	}
 	
-	return true;	
+	bIsCompletedAction = true;
 }
 
 void UBattleUtilityAction_BackAway::EndAction()
@@ -224,11 +251,11 @@ void UBattleUtilityAction_Strafe::StartAction()
 	
 }
 
-bool UBattleUtilityAction_Strafe::TickAction(float DeltaTime)
+void UBattleUtilityAction_Strafe::TickAction(float DeltaTime)
 {
 	if (RequestResult != EPathFollowingRequestResult::RequestSuccessful)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 	
 	AActor* MyCharacter =  CachedAIComponent->ConsiderList->MyCharacter;
@@ -252,12 +279,12 @@ bool UBattleUtilityAction_Strafe::TickAction(float DeltaTime)
 		{
 			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
 			{
-				return false;
+				return;
 			}
 		}
 	}
 	
-	return true;	
+	bIsCompletedAction = true;
 }
 
 void UBattleUtilityAction_Strafe::EndAction()
@@ -289,17 +316,14 @@ void UBattleUtilityAction_AbilityAction::StartAction()
 	
 }
 
-bool UBattleUtilityAction_AbilityAction::TickAction(float DeltaTime)
+void UBattleUtilityAction_AbilityAction::TickAction(float DeltaTime)
 {
 
 	if (AbilitySpec->IsActive())
 	{
-		return false;
+		return;
 	}
-	else
-	{
-		return true;
-	}
+	bIsCompletedAction = true;
 }
 
 void UBattleUtilityAction_AbilityAction::EndAction()
@@ -332,12 +356,17 @@ void UBattleUtilityAction_MoveToTarget::EndAction()
 	Super::EndAction();
 }
 
-bool UBattleUtilityAction_MoveToTarget::TickAction(float DeltaTime)
+void UBattleUtilityAction_MoveToTarget::TickAction(float DeltaTime)
 {
 	if (CachedAIComponent->ConsiderList->SelectedTarget)
 	{
 		FVector MyLocation = MyCharacter->GetActorLocation();
 		FVector TargetLocation = CachedAIComponent->ConsiderList->SelectedTarget->GetActorLocation();
+		
+		if (FVector::DistSquared(TargetLocation,MyLocation) <= WantedDistance * WantedDistance)
+		{
+			bIsCompletedAction = true;
+		}
 		
 		FVector DirectionAwayFromTarget = (TargetLocation - MyLocation).GetSafeNormal();
 		FRotator TargetRotation = DirectionAwayFromTarget.Rotation();
@@ -352,12 +381,13 @@ bool UBattleUtilityAction_MoveToTarget::TickAction(float DeltaTime)
 		// 캐릭터에 새 회전값 적용
 		MyCharacter->SetActorRotation(NewRotation);
 		MyCharacter->AddMovementInput(DirectionAwayFromTarget);
+		
 
-		return false;
+		return;
 	}
 	else
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 }
 
@@ -387,11 +417,11 @@ void UBattleUtilityAction_TurnToTargetAndStare::EndAction()
 	Super::EndAction();
 }
 
-bool UBattleUtilityAction_TurnToTargetAndStare::TickAction(float DeltaTime)
+void UBattleUtilityAction_TurnToTargetAndStare::TickAction(float DeltaTime)
 {
 	if (bIsEnded)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 	
 	FVector TargetLocation = SelectedTarget->GetActorLocation();
@@ -414,8 +444,6 @@ bool UBattleUtilityAction_TurnToTargetAndStare::TickAction(float DeltaTime)
 		// 캐릭터의 회전을 업데이트
 		MyCharacter->SetActorRotation(NewRotation);	
 	}
-	
-	return false;	
 }
 
 UBattleUtilityAction_PatrolAround::UBattleUtilityAction_PatrolAround()
@@ -470,11 +498,11 @@ void UBattleUtilityAction_PatrolAround::EndAction()
 	Super::EndAction();
 }
 
-bool UBattleUtilityAction_PatrolAround::TickAction(float DeltaTime)
+void UBattleUtilityAction_PatrolAround::TickAction(float DeltaTime)
 {
 	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 
 	if (AIController)
@@ -483,12 +511,12 @@ bool UBattleUtilityAction_PatrolAround::TickAction(float DeltaTime)
 		{
 			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
 			{
-				return false;
+				return;
 			}
 		}
 	}
 	
-	return true;
+	bIsCompletedAction = true;
 	
 }
 
@@ -528,11 +556,11 @@ void UBattleUtilityAction_MoveToLocation::EndAction()
 	Super::EndAction();
 }
 
-bool UBattleUtilityAction_MoveToLocation::TickAction(float DeltaTime)
+void UBattleUtilityAction_MoveToLocation::TickAction(float DeltaTime)
 {
 	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 
 	if (AIController)
@@ -541,11 +569,11 @@ bool UBattleUtilityAction_MoveToLocation::TickAction(float DeltaTime)
 		{
 			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
 			{
-				return false;
+				return;
 			}
 		}
 	}
-	return true;
+	bIsCompletedAction = true;
 }
 
 FVector UBattleUtilityAction_MoveToLocation::GetLocation()
@@ -605,7 +633,7 @@ void UBattleUtilityAction_MoveToBestSpotWithRushAttack::StartAction()
 	FVector TargetLocation = CachedAIComponent->ConsiderList->BestSpotLocation;
 
 	ABattleCharacterBase* SelectedTargetActor = nullptr;
-	float MinDistance = BIG_NUMBER; 
+	float TargetMinDistance = BIG_NUMBER; 
 	
 
 	for (ABattleCharacterBase* TargetActor : CachedAIComponent->ConsiderList->TargetActors)
@@ -613,9 +641,9 @@ void UBattleUtilityAction_MoveToBestSpotWithRushAttack::StartAction()
 		FVector TargetActorLocation = TargetActor->GetActorLocation();
 
 		float Distance = (TargetActorLocation - TargetLocation).SizeSquared();
-		if (Distance < MinDistance)
+		if (Distance < TargetMinDistance)
 		{
-			MinDistance = Distance;
+			TargetMinDistance = Distance;
 			SelectedTargetActor = TargetActor;
 		}
 	}
@@ -637,11 +665,11 @@ void UBattleUtilityAction_MoveToBestSpotWithRushAttack::StartAction()
 	
 }
 
-bool UBattleUtilityAction_MoveToBestSpotWithRushAttack::TickAction(float DeltaTime)
+void UBattleUtilityAction_MoveToBestSpotWithRushAttack::TickAction(float DeltaTime)
 {
 	if (AbilitySpec->IsActive())
 	{
-		return false;
+		return;
 	}
 	else if (!bAbilityCompleted)
 	{
@@ -655,20 +683,20 @@ bool UBattleUtilityAction_MoveToBestSpotWithRushAttack::TickAction(float DeltaTi
 		if (TargetLocation.ContainsNaN())
 		{
 			EndAction();
-			return true;
+			bIsCompletedAction = true;
 		}
 		else
 		{
 			RequestResult = AIController->MoveToLocation(TargetLocation);
 		}
 		bAbilityCompleted = true;
-		return false;
+		return;
 	}
 
 
 	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
 	{
-		return true;	
+		bIsCompletedAction = true;
 	}
 	else if (AIController)
 	{
@@ -676,11 +704,11 @@ bool UBattleUtilityAction_MoveToBestSpotWithRushAttack::TickAction(float DeltaTi
 		{
 			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
 			{
-				return false;
+				return;
 			}
 		}
 	}
-	return true;
+	bIsCompletedAction = true;
 }
 
 UBattleUtilityAction_MoveToLocationWithGridMap::UBattleUtilityAction_MoveToLocationWithGridMap()
@@ -721,11 +749,11 @@ void UBattleUtilityAction_MoveToLocationWithGridMap::EndAction()
 	Super::EndAction();
 }
 
-bool UBattleUtilityAction_MoveToLocationWithGridMap::TickAction(float DeltaTime)
+void UBattleUtilityAction_MoveToLocationWithGridMap::TickAction(float DeltaTime)
 {
 	if (RequestResult != EPathFollowingRequestResult::Type::RequestSuccessful)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
 
 	if (AIController)
@@ -734,11 +762,11 @@ bool UBattleUtilityAction_MoveToLocationWithGridMap::TickAction(float DeltaTime)
 		{
 			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
 			{
-				return false;
+				return;
 			}
 		}
 	}
-	return true;
+	bIsCompletedAction = true;
 }
 
 UBattleUtilityAction_MoveToRuin::UBattleUtilityAction_MoveToRuin()
@@ -774,5 +802,7 @@ FVector UBattleUtilityAction_MoveToCave::GetLocation()
 	UBattleWorldInfoSubsystem* WorldInfoSubsystem = GetWorld()->GetSubsystem<UBattleWorldInfoSubsystem>();
 	return WorldInfoSubsystem->GetUtilitySpot(EUtilitySpotType::Resting)->GetActorLocation();
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 

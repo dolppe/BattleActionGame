@@ -13,6 +13,28 @@ class AAIController;
 struct FGameplayAbilitySpec;
 
 UCLASS()
+class UBattleUtilityAction_Wait : public UBattleUtilityAction
+{
+	GENERATED_BODY()
+public:
+	UBattleUtilityAction_Wait();
+	
+	virtual void StartAction() override;
+	virtual void TickAction(float DeltaTime) override;
+	virtual void EndAction() override;
+	
+protected:
+	
+	UPROPERTY(EditAnywhere)
+	float WaitSeconds = 2.0f;
+	
+	FTimerHandle TimerHandle;
+	
+};
+
+
+
+UCLASS()
 class UBAttleUtilityAction_PlayMontage : public UBattleUtilityAction
 {
 	GENERATED_BODY()
@@ -20,7 +42,7 @@ public:
 	UBAttleUtilityAction_PlayMontage();
 	
 	virtual void StartAction() override;
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 	virtual void EndAction() override;
 	
 protected:
@@ -40,7 +62,7 @@ public:
 	UBattleUtilityAction_BackAway();
 	
 	virtual void StartAction() override;
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 	virtual void EndAction() override;
 	
 protected:
@@ -65,7 +87,7 @@ public:
 	UBattleUtilityAction_Strafe();
 	
 	virtual void StartAction() override;
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 	virtual void EndAction() override;
 	
 protected:
@@ -94,7 +116,7 @@ public:
 	 */
 	
 	virtual void StartAction() override;
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 	virtual void EndAction() override;
 
 
@@ -128,11 +150,13 @@ public:
 
 	virtual void EndAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 	
 protected:
 
-
+	UPROPERTY(EditAnywhere)
+	float WantedDistance = 1000.f;
+	
 	TObjectPtr<ABattleCharacterBase> SelectedTarget;
 
 	TObjectPtr<ABattleCharacterBase> MyCharacter;
@@ -154,7 +178,7 @@ public:
 
 	virtual void EndAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 protected:
 	
@@ -180,7 +204,7 @@ public:
 
 	virtual void EndAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 protected:
 
@@ -200,7 +224,7 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 protected:
 
@@ -230,7 +254,7 @@ public:
 
 	virtual void EndAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 protected:
 
@@ -254,7 +278,7 @@ public:
 
 	virtual void EndAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 protected:
 

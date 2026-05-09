@@ -168,7 +168,7 @@ float UConsiderationFactors::GetThreatScore()
 	
 	Result *= GetPositionalDisadvantage() ? 1.2f : 0.8f;
 	
-	Result *= GetTargetVisible() ? 0.9f : 1.0f;
+	Result *= GetTargetSightClear() ? 0.9f : 1.0f;
 	
 	float SurroundedRisk = GetSurroundedRisk();
 	
@@ -333,13 +333,17 @@ float UConsiderationFactors::GetCanAttack()
 	{
 		return 0.0f;
 	}
+	if (!bAllowedAttackTime)
+	{
+		return 0.0f;
+	}
 	
 	return 1.0f;
 }
 
-float UConsiderationFactors::GetTargetVisible()
+float UConsiderationFactors::GetTargetSightClear()
 {
-	return bIsSelectedTargetVisible;
+	return bIsSelectedTargetSightClear;
 }
 
 float UConsiderationFactors::GetPoisonAmount()
@@ -806,10 +810,10 @@ TFunction<float()> UConsiderationFactors::GetConsiderFunction(EBattleConsiderTyp
 			return GetCanAttack();
 		};
 		break;
-	case EBattleConsiderType::TargetVisible:
+	case EBattleConsiderType::TargetSightClear:
 		return [this]() -> float
 		{
-			return GetTargetVisible();
+			return GetTargetSightClear();
 		};
 		break;
 
@@ -1022,6 +1026,8 @@ void UConsiderationFactors::SearchNearActors()
 	GetWorld()->OverlapMultiByChannel(OutOverlaps, Center, FQuat::Identity, Battle_TraceChannel_AttackToCharacter, FCollisionShape::MakeSphere(Radius));
 
 	ClearConsiderFactors();
+	
+	bAllowedAttackTime = GetWorld()->GetTimeSeconds() - LastAttackTime > AllowedAttackDuration; 
 
 	// 주변 Actor 탐색
 	if (!OutOverlaps.IsEmpty())
@@ -1146,18 +1152,15 @@ void UConsiderationFactors::SearchNearActors()
 			FHitResult HitResult;
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(MyCharacter);
-			const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, MyCharacter->GetActorLocation(), SelectedTarget->GetActorLocation(), Battle_TraceChannel_AttackToCharacter,Params);
-			
+			const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, MyCharacter->GetActorLocation(), SelectedTarget->GetActorLocation(), Battle_TraceChannel_WorldVisible,Params);
 			if (bHit)
 			{
-				if (SelectedTarget == HitResult.GetActor())
-				{
-					bIsSelectedTargetVisible = true;
-				}
+				// 사이에 장애물 존재
+				bIsSelectedTargetSightClear = false;
 			}
 			else
 			{
-				bIsSelectedTargetVisible = false;
+				bIsSelectedTargetSightClear = true;
 			}
 		}
 		
@@ -1240,11 +1243,10 @@ void UBattleUtilityAIComponent::BeginPlay()
 	for (FActionConfig ActionConfig : UtilityAIData->ActionConfigs)
 	{
 		UBattleUtilityAction* NewAction = NewObject<UBattleUtilityAction>(this, ActionConfig.ActionClass);
-		NewAction->InitAxis(ActionConfig.AxisConfigs, this);
-		NewAction->SetWeight(ActionConfig.Weight);
+		NewAction->InitAction(ActionConfig, this);
 
 		InstancedActions.Add(NewAction);
-		LastActiveTime.Add(0.0f);
+		LastActiveTime.Add(-1000.0f);
 		
 		DebugActionsEnabled.Add(true);
 	}
@@ -1301,6 +1303,14 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	
 	float CurTime = GetWorld()->GetTimeSeconds();
 	
+	float SelectedTargetDistance = -1.0f;
+	
+	if (ConsiderList->MyCharacter && ConsiderList->SelectedTarget)
+	{
+		SelectedTargetDistance = FVector::Distance(ConsiderList->MyCharacter->GetActorLocation(), ConsiderList->SelectedTarget->GetActorLocation());
+	}
+	
+	
 	for (UBattleUtilityAction* Action : InstancedActions)
 	{
 
@@ -1310,7 +1320,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		float CurScore = 0.0f;
 		
 		// CoolTime이 지났으니 계산
-		if (CurTime - LastActiveTime[ActionIdx] >= Action->GetCoolTime())
+		if (CurTime - LastActiveTime[ActionIdx] >= Action->GetCoolTime() && CheckActionDistance(Action, SelectedTargetDistance))
 		{
 			CurScore = Action->EvaluateScore(ConsiderList);
 		}
@@ -1347,11 +1357,11 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	
 	if (BestAction != nullptr)
 	{
-		if (ActiveAction == nullptr)
+		if (ActiveAction == nullptr || ActiveAction->IsCompleteAction())
 		{
-		
 			ActiveAction = BestAction;
 			LastActiveTime[SelectedActionIdx] = CurTime;
+			ActiveAction->SetStartAction();
 			ActiveAction->StartAction();
 			bActionComplete = false;
 
@@ -1360,29 +1370,58 @@ void UBattleUtilityAIComponent::SelectBestAction()
 			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
 		
 			OnScoreChanged.Broadcast(UtilityAIDebugData);
+			
+			FString Line = FString::Printf(TEXT("CurTime: %f, ActiveActionName: %s \n"), UtilityAIDebugData.CurTime, *UtilityAIDebugData.ActiveActionName);
+			
+			for (ActionIdx = 0; ActionIdx < UtilityAIDebugData.UtilityAIScoreData.Num(); ActionIdx++)
+			{
+				FUtilityAIScoreData& ScoreData = UtilityAIDebugData.UtilityAIScoreData[ActionIdx];
+				const FActionConfig& ActionConfig = UtilityAIData->ActionConfigs[ActionIdx];
+				
+				Line += FString::Printf(TEXT("%s(Action Name): %f(TotalScore) \n"), *ActionConfig.ActionClass->GetName(), ScoreData.ActionScore);
+				
+				for (int AxisIdx = 0; AxisIdx < ScoreData.NormalFactorConsiderType.Num(); AxisIdx++)
+				{
+					Line += FString::Printf(TEXT("%s(Axis Name): %f(FinalScore) <= %f(OriginScore) \n"), *EnumToString(ScoreData.NormalFactorConsiderType[AxisIdx]), ScoreData.NormalFactorScoreFinal[AxisIdx], ScoreData.NormalFactorScoreOrigin[AxisIdx]);
+				}
+				
+				if (ScoreData.ArrayFactorScore.Num() >0)
+				{
+					for (int ArrayAxisTargetIdx = 0; ArrayAxisTargetIdx < ScoreData.ArrayFactorScore[0].ArrayFactorScoreFinal.Num(); ArrayAxisTargetIdx++)
+					{
+						Line += FString::Printf(TEXT("Target %d: "), ArrayAxisTargetIdx);
+						for (int ArrayAxisIdx = 0; ArrayAxisIdx <ScoreData.ArrayFactorScore.Num(); ArrayAxisIdx++)
+						{
+							FArrayFactorData& ArrayFactorData = ScoreData.ArrayFactorScore[ArrayAxisIdx];
+							const FAxisConfig& ArrayAxisConfig = ActionConfig.AxisConfigs[ScoreData.NormalFactorScoreFinal.Num() + ArrayAxisIdx];
+							Line += FString::Printf(TEXT("%s(Axis Name): %f(FinalScore) <= %f(OrigineScore)\n"), *EnumToString(ArrayAxisConfig.ConsiderType), ArrayFactorData.ArrayFactorScoreFinal[ArrayAxisTargetIdx], ArrayFactorData.ArrayFactorScoreOrigin[ArrayAxisTargetIdx]);
+						}
+					}
+				}
+			}
+			
+			FFileHelper::SaveStringToFile(Line, *(FPaths::ProjectSavedDir() / TEXT("AIData.txt")),FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
 
 		}
-		else if (bActionComplete)
+		// else if (bActionComplete)
+		// {
+		// 	// 액션 수행
+		// 	ActiveAction = BestAction;
+		// 	LastActiveTime[SelectedActionIdx] = CurTime;
+		// 	ActiveAction->StartAction();
+		// 	bActionComplete = false;
+		//
+		// 	UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+		// 	UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+		// 	UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		//
+		// 	OnScoreChanged.Broadcast(UtilityAIDebugData);
+		//
+		// }
+		/*else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
 		{
 			// 액션 수행
 			ActiveAction->EndAction();
-
-			ActiveAction = BestAction;
-			LastActiveTime[SelectedActionIdx] = CurTime;
-			ActiveAction->StartAction();
-			bActionComplete = false;
-
-			UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
-			UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
-			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-		
-			OnScoreChanged.Broadcast(UtilityAIDebugData);
-		
-		}
-		else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
-		{
-			// 액션 수행
-			ActiveAction->EndAction();
 		
 			ActiveAction = BestAction;
 			LastActiveTime[SelectedActionIdx] = CurTime;
@@ -1395,7 +1434,7 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		
 			OnScoreChanged.Broadcast(UtilityAIDebugData);
 		
-		}
+		}*/
 	}
 
 	
@@ -1404,10 +1443,30 @@ void UBattleUtilityAIComponent::SelectBestAction()
 
 }
 
+bool UBattleUtilityAIComponent::CheckActionDistance(UBattleUtilityAction* UtilityAction, float SelectedTargetDistance)
+{
+	float CalcDistance = 0.0f;
+	switch (UtilityAction->GetDistanceSourceType())
+	{
+	case EDistanceSourceType::None:
+		return true;
+	case EDistanceSourceType::SelectedTarget:
+		CalcDistance = SelectedTargetDistance;
+		if (CalcDistance < 0.0f)
+		{
+			return false;
+		}
+		return UtilityAction->CanAllowedRange(CalcDistance);
+	default:
+		return true;
+	}
+	
+}
+
 void UBattleUtilityAIComponent::StartTimer()
 {
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UBattleUtilityAIComponent::SelectBestAction, UpdatePeriod, false);
+	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UBattleUtilityAIComponent::SelectBestAction, UpdatePeriod, false);
 }
 
 PRAGMA_ENABLE_OPTIMIZATION
@@ -1417,14 +1476,27 @@ void UBattleUtilityAIComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (!HasAuthority())
+	{
+		return;
+	}
 	if (ActiveAction)
 	{
-		bActionComplete = ActiveAction->TickAction(DeltaTime);
+		ActiveAction->TickAction(DeltaTime);
 
-		if (bActionComplete)
+		if (ActiveAction->IsCompleteAction())
 		{
+			ActiveAction->EndAction();
+			if (UBattleUtilityAction_Attack* UtilityAction = Cast<UBattleUtilityAction_Attack>(ActiveAction))
+			{
+				ConsiderList->LastAttackTime = GetWorld()->GetTimeSeconds();
+			}
 			SelectBestAction();
 		}
+	}
+	else
+	{
+		SelectBestAction();
 	}
 }
 

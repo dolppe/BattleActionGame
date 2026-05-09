@@ -39,13 +39,16 @@ public:
 		CachedAIComponent = InAIComponent;
 	}
 	
-	virtual void SetFunction(EAxisFunction InFunctionType, float InSlope, float InExponent, float InVertical, float InHorizontal)
+	virtual void SetFunction(EAxisFunction InFunctionType, float InSlope, float InExponent, float InVertical, float InHorizontal, float InMinValue, float InMaxValue)
 	{
 		FunctionType = InFunctionType;
 		Slope = InSlope;
 		Exponent = InExponent;
 		VerticalShift = InVertical;
 		HorizontalShift = InHorizontal;
+		MinValue = InMinValue;
+		MaxValue = InMaxValue;
+		
 	}
 
 	virtual float CalcValue(float InValue);
@@ -62,6 +65,8 @@ protected:
 	float Exponent;
 	float VerticalShift;
 	float HorizontalShift;
+	float MinValue;
+	float MaxValue;
 
 	UPROPERTY()
 	TObjectPtr<UBattleUtilityAIComponent> CachedAIComponent;
