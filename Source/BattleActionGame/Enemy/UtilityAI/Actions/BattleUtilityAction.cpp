@@ -11,9 +11,18 @@ UBattleUtilityAction::UBattleUtilityAction()
 {
 }
 
-void UBattleUtilityAction::InitAxis(TArray<FAxisConfig> AxisConfigs, UBattleUtilityAIComponent* UtilityAIComponent)
+void UBattleUtilityAction::InitAction(FActionConfig& ActionConfig, UBattleUtilityAIComponent* UtilityAIComponent)
 {
-	for (FAxisConfig AxisConfig : AxisConfigs)
+	Weight = ActionConfig.Weight;
+	CoolTime = ActionConfig.CoolTime;
+	AgeTime = ActionConfig.AgeTime;
+	AgeRate = ActionConfig.AgeRate;
+	DistanceSourceType = ActionConfig.DistanceSourceType;
+	MinDistance = ActionConfig.MinDistance;
+	MaxDistance = ActionConfig.MaxDistance;
+	
+	
+	for (FAxisConfig AxisConfig : ActionConfig.AxisConfigs)
 	{
 		if (AxisConfig.AxisType == EAxisType::Single)
 		{
@@ -21,7 +30,7 @@ void UBattleUtilityAction::InitAxis(TArray<FAxisConfig> AxisConfigs, UBattleUtil
 			NewAxis = NewObject<UBattleUtilityAxis>(this, UBattleUtilityAxis::StaticClass());
 
 			NewAxis->SetConsiderFactor(AxisConfig.ConsiderType);
-			NewAxis->SetFunction(AxisConfig.FunctionType, AxisConfig.Slope, AxisConfig.Exponent, AxisConfig.VerticalShift, AxisConfig.HorizontalShift);
+			NewAxis->SetFunction(AxisConfig.FunctionType, AxisConfig.Slope, AxisConfig.Exponent, AxisConfig.VerticalShift, AxisConfig.HorizontalShift, AxisConfig.AxisMinValue, AxisConfig.AxisMaxValue);
 			NewAxis->SetAIComponent(UtilityAIComponent);
 
 			AxisArray.Add(NewAxis);
@@ -32,7 +41,7 @@ void UBattleUtilityAction::InitAxis(TArray<FAxisConfig> AxisConfigs, UBattleUtil
 			NewArrayAxis = NewObject<UBattleUtilityArrayAxis>(this, UBattleUtilityArrayAxis::StaticClass());
 
 			NewArrayAxis->SetConsiderFactor(AxisConfig.ConsiderType);
-			NewArrayAxis->SetFunction(AxisConfig.FunctionType, AxisConfig.Slope, AxisConfig.Exponent, AxisConfig.VerticalShift, AxisConfig.HorizontalShift);
+			NewArrayAxis->SetFunction(AxisConfig.FunctionType, AxisConfig.Slope, AxisConfig.Exponent, AxisConfig.VerticalShift, AxisConfig.HorizontalShift, AxisConfig.AxisMinValue, AxisConfig.AxisMaxValue);
 			NewArrayAxis->SetAIComponent(UtilityAIComponent);
 			NewArrayAxis->SetAxisType(AxisConfig.AxisType);
 
@@ -148,7 +157,7 @@ float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderL
 		BestTargets.Add(ConsiderList->GetTargetPtr(CurrentType, BestIdx));
 	}
 	
-	return Result * Weight * ScoreMultiplier;
+	return Result * Weight;
 }
 
 PRAGMA_ENABLE_OPTIMIZATION
@@ -161,11 +170,27 @@ void UBattleUtilityAction::StartAction()
 void UBattleUtilityAction::EndAction()
 {
 	//UE_LOG(LogBattle, Log, TEXT("EndAction: %s"), *GetName());
+	bIsCompletedAction = true;
 }
 
-bool UBattleUtilityAction::TickAction(float DeltaTime)
+void UBattleUtilityAction::TickAction(float DeltaTime)
 {
+	
+}
+
+bool UBattleUtilityAction::CanAllowedRange(float InDistance)
+{
+	if (MinDistance <= InDistance && InDistance <= MaxDistance)
+	{
+		return true;
+	}
+	
 	return false;
+}
+
+void UBattleUtilityAction::SetStartAction()
+{
+	bIsCompletedAction = false;
 }
 
 

@@ -37,9 +37,7 @@ void UBattleGameplayAbility_Special_Spawn::ActivateAbility(const FGameplayAbilit
 
 	if (Character->IsLocallyControlled())
 	{
-		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-
-		StartListenerHandle = MessageSystem.RegisterListener(FBattleGameplayTags::Get().Combat_Attack_Event_Start, this, &UBattleGameplayAbility_Special_Spawn::StartSpawn);
+		
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
@@ -59,13 +57,7 @@ void UBattleGameplayAbility_Special_Spawn::EndAbility(const FGameplayAbilitySpec
 	
 	if (Character->IsLocallyControlled())
 	{
-		// 테스크 실행
-		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
 
-		if (StartListenerHandle.IsValid())
-		{
-			MessageSystem.UnregisterListener(StartListenerHandle);
-		}
 	}
 
 	if (GetWorld()->GetNetMode() != NM_Client)
@@ -114,9 +106,11 @@ void UBattleGameplayAbility_Special_Spawn::OnRep_SpawnCenterData()
 {
 }
 
-void UBattleGameplayAbility_Special_Spawn::StartSpawn(FGameplayTag Channel, const FBattleVerbMessage& Notification)
+
+void UBattleGameplayAbility_Special_Spawn::StartActionTrigger(FGameplayTag Channel,
+	const FBattleVerbMessage& Notification)
 {
-	OnSpawnStart();
+	Super::StartActionTrigger(Channel, Notification);
 	
 	ACharacter* Character = Cast<ACharacter>(CurrentActorInfo->AvatarActor);
 
@@ -138,5 +132,4 @@ void UBattleGameplayAbility_Special_Spawn::StartSpawn(FGameplayTag Channel, cons
 		
 		GetWorld()->SpawnActor(SpawnActorClass, &SpawnLocation, &SpawnRotation, SpawnParams);
 	}
-	
 }

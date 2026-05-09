@@ -78,6 +78,9 @@ public:
 		return bAllowJustClash;
 	}
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAttackStart();
+	
 protected:
 
 	virtual void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
@@ -90,8 +93,7 @@ protected:
 	virtual void OnBlendOut();
 	
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnAttackStart();
+
 	
 protected:
 	

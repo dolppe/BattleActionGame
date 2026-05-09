@@ -1,4 +1,4 @@
 Attribute,BaseValue,MinValue,MaxValue,DerivedAttributeInfo,bCanStack
-BattleCombatSet.AttackPower,20,0,1000,,False
+BattleCombatSet.AttackPower,130,0,1000,,False
 BattleCombatSet.ImpactDamage,0,0,1000,,False
-BattleCombatSet.ImpactResistance,0,0,1000,,False
+BattleCombatSet.ImpactResistance,20,0,1000,,False

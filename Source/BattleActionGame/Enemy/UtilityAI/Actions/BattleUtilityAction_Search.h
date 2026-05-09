@@ -20,7 +20,7 @@ public:
 
 	virtual void EndAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 	virtual float EvaluateScore(const UConsiderationFactors* ConsiderList) override;
 

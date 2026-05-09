@@ -53,13 +53,12 @@ void UBattleUtilityAction_SearchTarget::EndAction()
 	Super::EndAction();
 }
 
-bool UBattleUtilityAction_SearchTarget::TickAction(float DeltaTime)
+void UBattleUtilityAction_SearchTarget::TickAction(float DeltaTime)
 {
 	if (bSelected)
 	{
-		return true;
+		bIsCompletedAction = true;
 	}
-	return false;
 }
 
 float UBattleUtilityAction_SearchTarget::EvaluateScore(const UConsiderationFactors* ConsiderList)

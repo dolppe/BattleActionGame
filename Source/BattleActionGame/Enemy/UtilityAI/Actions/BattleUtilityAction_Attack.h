@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BattleUtilityAction.h"
+#include "GameplayAbilitySpec.h"
 #include "BattleUtilityAction_Attack.generated.h"
 
 class UBattleGameplayAbility_Special_Spawn;
@@ -22,30 +23,21 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 
 	/*
 	 * UtilityAction_Attack
 	 */
 	
-	virtual void StartAgeTimer();
-
 	virtual void StartAttack();
 
 protected:
-
-	UFUNCTION()
-	virtual void UpdateAge();
 	
-	FTimerHandle TimerHandle;
-
-	UPROPERTY(EditAnywhere)
-	float AgeCycleTime = 10.f;
-
-	UPROPERTY(EditAnywhere)
-	float AgeRate = 0.5f;
-
+	bool bAbilityStart = false;
+	
+	FGameplayAbilitySpec* AbilitySpec;
+	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> ASC;
 
@@ -68,18 +60,49 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 	/*
 	 * UtilityAction_Attack
 	 */
 	 
 	virtual void StartAttack() override;
-	virtual void StartAgeTimer() override;
 
-protected:
 
-	virtual void UpdateAge() override;
+	
+private:
+
+	
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBattleGameplayAbility_Attack_Parent> GA_Attack;
+
+	
+};
+
+UCLASS()
+class UBattleUtilityAction_TargetChangeAttack : public UBattleUtilityAction_Attack
+{
+	GENERATED_BODY()
+
+public:
+
+	UBattleUtilityAction_TargetChangeAttack();
+
+	/*
+	 * UtilityAction
+	 */
+
+	virtual void StartAction() override;
+
+	virtual void TickAction(float DeltaTime) override;
+
+	/*
+	 * UtilityAction_Attack
+	 */
+	 
+	virtual void StartAttack() override;
+
 
 	
 private:
@@ -107,28 +130,24 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 	
 	/*
 	 * UtilityAction_Attack
 	 */
 	 
 	virtual void StartAttack() override;
-	virtual void StartAgeTimer() override;
-
-
-protected:
-	virtual void UpdateAge() override;
 
 private:
-
-	void GetAreaData();
+	
 	TArray<FVector> GetBestSpots() const;
 	TArray<FVector> GetTargetSpots() const;
 
+	UPROPERTY(EditAnywhere)
 	float AreaRadius = 1.0f;
+	
+	UPROPERTY(EditAnywhere)
 	int AreaNum = 1;
-	bool IsSetAreaData = false;
 
 	
 	UPROPERTY(EditDefaultsOnly)
@@ -150,33 +169,28 @@ public:
 
 	virtual void StartAction() override;
 
-	virtual bool TickAction(float DeltaTime) override;
+	virtual void TickAction(float DeltaTime) override;
 
 
 	/*
 	 * UtilityAction_Attack
 	 */
-	
-	virtual void StartAgeTimer() override;
 
 	virtual void StartAttack() override;
 
-protected:
-	
-	virtual void UpdateAge() override;
 
 private:
-
-	void GetSpawnData();
+	
 	TArray<FVector> GetBestSpots() const;
 	TArray<FVector> GetTargetSpots() const;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UBattleGameplayAbility_Special_Spawn> GA_Spawn;
 
+	UPROPERTY(EditAnywhere)
 	int SpawnActorNum = 1;
-	int SpawnAreaRadius = 100.f;
-	bool IsSetSpawnData = false;
 	
+	UPROPERTY(EditAnywhere)
+	int SpawnAreaRadius = 100.f;
 	
 };

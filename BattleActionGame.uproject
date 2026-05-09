@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{3A8C2C9E-42B6-BBEE-82C7-4A9C01E14891}",
+	"EngineAssociation": "{95F5B094-46B3-2083-FC49-4882383FD4C3}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -11,8 +11,8 @@
 		},
 		{
 			"Name": "BattleActionEditor",
-         	"Type": "UncookedOnly",
-         	"LoadingPhase": "Default"
+			"Type": "UncookedOnly",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [
