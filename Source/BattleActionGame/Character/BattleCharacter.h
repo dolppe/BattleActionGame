@@ -5,12 +5,14 @@
 
 #include "BattleCharacter.generated.h"
 
+class ABattleObserverPawn;
 class UBattleHeroComponent;
 class UGameplayEffect;
 class UBattleHealthComponent;
 class UBattlePawnExtensionComponent;
 class UBattleCameraComponent;
 class UBattleCameraMode;
+class ABattlePlayerAIController;
 
 UCLASS()
 class ABattleCharacter : public ABattleCharacterBase
@@ -56,8 +58,32 @@ public:
 		return CriticalCameraShake;
 	}
 
+	ABattleObserverPawn* GetObserverPawn()
+	{
+		return ObserverPawn;
+	}
+	
+	void SetObserverPawn(ABattleObserverPawn* NewObserverPawn)
+	{
+		ObserverPawn = NewObserverPawn;
+	}
+	
+	ABattlePlayerAIController* GetAiController()
+	{
+		return AIController;
+	}
+	
+	void SetAIController(ABattlePlayerAIController* NewAIController)
+	{
+		AIController = NewAIController;
+	}
+	
+	virtual void PawnClientRestart() override;
+	
 
 protected:
+	
+	
 
 	void OnAbilitySystemInitialized();
 	void OnAbilitySystemUninitialized();
@@ -88,6 +114,9 @@ private:
 	FTimerHandle CriticalHandle;
 
 	FRotator BeforeRotation;
+	
+	ABattleObserverPawn* ObserverPawn;
+	ABattlePlayerAIController* AIController;
 
 	
 };

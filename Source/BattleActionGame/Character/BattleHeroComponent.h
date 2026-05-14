@@ -54,6 +54,7 @@ public:
 
 	// Input
 	void InitilizePlayerInput(UInputComponent* PlayerInputComponent);
+	void ChangePlayerInput(UInputComponent* PlayerInputComponent);
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
@@ -68,8 +69,7 @@ public:
 
 	UFUNCTION()
 	void OnKnockbackEnded(UAnimMontage* Montage, bool bInterrupted);
-
-	bool IsReadyToBindInputs() const;
+	
 	void AdditionalInputConfig(const UBattleInputConfig* InputConfig);
 	void RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig);
 
@@ -85,14 +85,15 @@ public:
 
 	FSpecialKeyPressed SpecialKeyPressed;
 	
+	void OnUnpossessed();
+	
 protected:
 
 	void Input_RotationCharacter(const FInputActionValue& InputActionValue);
-
+	
 	UPROPERTY(EditAnywhere)
 	TArray<FBattleMappableConfigPair> DefaultInputConfigs;
 	
-	bool bReadyToBindInputs;
 
 	UPROPERTY()
 	TSubclassOf<UBattleCameraMode> AbilityCameraMode;

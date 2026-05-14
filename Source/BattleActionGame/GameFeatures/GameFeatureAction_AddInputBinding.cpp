@@ -97,7 +97,7 @@ void UGameFeatureAction_AddInputBinding::AddInputMappingForPlayer(APawn* Pawn, F
 		if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
 		{
 			UBattleHeroComponent* HeroComponent = Pawn->FindComponentByClass<UBattleHeroComponent>();
-			if (HeroComponent && HeroComponent->IsReadyToBindInputs())
+			if (HeroComponent)
 			{
 				for (const TSoftObjectPtr<const UBattleInputConfig>& Entry : InputConfigs)
 				{
