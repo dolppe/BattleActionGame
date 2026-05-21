@@ -43,7 +43,8 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack);
 		
 	}
 }

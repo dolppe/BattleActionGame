@@ -9,6 +9,7 @@
 #include "NativeGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
+#include "BattleActionGame/Player/BattlePlayerAIController.h"
 #include "Item/BattleGameplayAbility_UseItem_AttributeBased.h"
 #include "Item/BattleItemData.h"
 #include "JustGuard/BattleGameplayAbility_JustGuardAttack.h"
@@ -77,6 +78,19 @@ void UBattleCombatManagerComponent::SetComboGA(UBattleGameplayAbility_ComboAttac
 
 void UBattleCombatManagerComponent::OnEndAbilityComboGA()
 {
+	
+	if (bWantedStrongAttack)
+	{
+		if (ACharacter* Character = Cast<ACharacter>(GetOwner()))
+		{
+			if (ABattlePlayerAIController* PlayerAIController = Cast<ABattlePlayerAIController>(Character->GetController()))
+			{
+				PlayerAIController->StartStrongAttack();
+			}
+		}
+		bWantedStrongAttack = false;
+	}
+	
 	GetWorld()->GetTimerManager().SetTimer(ComboEndTimerHandle, [this]()
 	{
 		CurrentCombo = nullptr;
@@ -179,6 +193,7 @@ void UBattleCombatManagerComponent::OnAttackWarnSign()
 		}
 	}
 }
+
 
 void UBattleCombatManagerComponent::OnRep_AreaCenterData()
 {

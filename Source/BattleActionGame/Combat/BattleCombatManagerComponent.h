@@ -121,6 +121,18 @@ public:
 
 	UFUNCTION()
 	void OnAttackWarnSign();
+	
+	UBattleGameplayAbility_Attack_Parent* GetCurrentAttackGA()
+	{
+		return CurrentAttackGA;
+	}
+	
+	void RequestStrongAttack()
+	{
+		bWantedStrongAttack = true;
+	}
+	
+	
 
 protected:
 
@@ -162,5 +174,6 @@ private:
 
 	FTimerHandle ComboEndTimerHandle;
 
+	bool bWantedStrongAttack = false;
 
 };

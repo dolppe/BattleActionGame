@@ -5,6 +5,7 @@
 #include "BattleActionGame/Input/BattleMappableConfigPair.h"
 #include "BattlePawnData.generated.h"
 
+class UBattleGameplayAbility_Attack_Parent;
 class UBattleCameraMode;
 class UBattleInputConfig;
 class UBattleAbilitySet;
@@ -40,5 +41,11 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Battle|Observer")
 	TArray<FBattleMappableConfigPair> ObserverInputConfigs;
+
+	UPROPERTY(EditDefaultsOnly, Category="Battle|AIController")
+	TSubclassOf<UBattleGameplayAbility_Attack_Parent> ComboGA;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Battle|AIController")
+	TSubclassOf<UBattleGameplayAbility_Attack_Parent> ComboStrongGA;
 };
 

@@ -40,8 +40,13 @@ void UBattleGameplayAbility_ConvertToAI::ActivateAbility(const FGameplayAbilityS
 			ABattleObserverPawn* NewObserverPawn = GetWorld()->SpawnActor<ABattleObserverPawn>(SpawnTransform, FRotator::ZeroRotator, SpawnParams);
 			
 			NewObserverPawn->AttachToActor(AvatarCharacter, FAttachmentTransformRules::SnapToTargetIncludingScale);
-			
-			if (UBattlePawnExtensionComponent* PawnExtensionComp = Cast<UBattlePawnExtensionComponent>(AvatarCharacter->GetComponentByClass(UBattlePawnExtensionComponent::StaticClass())))
+			UBattlePawnExtensionComponent* PawnExtensionComp = Cast<UBattlePawnExtensionComponent>(AvatarCharacter->GetComponentByClass(UBattlePawnExtensionComponent::StaticClass()));
+			const UBattlePawnData* PawnData = nullptr; 
+			if (PawnExtensionComp != nullptr)
+			{
+				PawnData = PawnExtensionComp->GetPawnData<UBattlePawnData>();
+			}
+			if (PawnData != nullptr)
 			{
 				NewObserverPawn->SetDefaultData(*PawnExtensionComp->GetPawnData<UBattlePawnData>());
 			}
@@ -53,6 +58,11 @@ void UBattleGameplayAbility_ConvertToAI::ActivateAbility(const FGameplayAbilityS
 			
 			ABattlePlayerAIController* PlayerAIController = GetWorld()->SpawnActor<ABattlePlayerAIController>(SpawnParams);
 			AvatarCharacter->SetAIController(PlayerAIController);
+			if (PawnData != nullptr)
+			{
+				PlayerAIController->SetAttackGA(PawnData->ComboGA, PawnData->ComboStrongGA);
+			}
+			
 			PlayerAIController->Possess(AvatarCharacter);
 
 		}

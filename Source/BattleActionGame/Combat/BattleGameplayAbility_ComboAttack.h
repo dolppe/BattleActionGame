@@ -28,6 +28,8 @@ public:
 		return CurrentComboIndex;
 	}
 	
+	void RequestNextCombo();
+	
 protected:
 	
 	FName GetNextSection();
@@ -43,9 +45,10 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 
-	virtual void OnCompleted() override;
-	virtual void OnInterrupted() override;
-	virtual void OnBlendOut() override;
+	UFUNCTION()
+	void OnMontageCompleted(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION()
+	void OnMontageBlendOut(UAnimMontage* Montage, bool bInterrupted);
 	
 	UFUNCTION()
 	void OnRep_HasNextComboInput();
