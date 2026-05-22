@@ -61,10 +61,29 @@ void ABattleCharacterBase::NetPlayMontage(UAnimMontage* AnimMontage, float InPla
 	
 }
 
-void ABattleCharacterBase::MulticastPlayMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
-															   FName StartSectionName)
+void ABattleCharacterBase::NetJumpToSection(UAnimMontage* AnimMontage, FName SectionName)
 {
-	//BA_DEFAULT_LOG(LogBattle, Log, TEXT("Multicast Start"));
+	if (HasAuthority())
+	{
+		MulticastJumpToSection(AnimMontage, SectionName);
+		//MulticastPlayMontage_Implementation(AnimMontage, 1.0f, NAME_None);
+	}
+	else
+	{
+		USkeletalMeshComponent* CharacterMesh = GetMesh();
+		if (UAnimInstance * AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr)
+		{
+			AnimInstance->Montage_JumpToSection(SectionName, AnimMontage);
+		}
+		
+		ServerJumpToSection(AnimMontage, SectionName);
+	}
+}
+
+void ABattleCharacterBase::MulticastPlayMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
+                                                               FName StartSectionName)
+{
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("Multicast Start"));
 	USkeletalMeshComponent* CharacterMesh = GetMesh();
 	UAnimInstance * AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr;
 	if (AnimInstance->Montage_IsPlaying(AnimMontage))
@@ -127,6 +146,20 @@ void ABattleCharacterBase::PerformPoiseBreak()
 	}
 }
 
+void ABattleCharacterBase::ServerJumpToSection_Implementation(UAnimMontage* AnimMontage, FName SectionName)
+{
+	MulticastJumpToSection(AnimMontage, SectionName);
+}
+
+void ABattleCharacterBase::MulticastJumpToSection_Implementation(UAnimMontage* AnimMontage, FName SectionName)
+{
+	USkeletalMeshComponent* CharacterMesh = GetMesh();
+	UAnimInstance * AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr;
+	AnimInstance->Montage_JumpToSection(SectionName, AnimMontage);
+	
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("JumpToSection Multicast Start"));
+}
+
 void ABattleCharacterBase::MulticastStopMotion_Implementation(float StopSeconds, float TimeDilation)
 {
 	// if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
@@ -173,7 +206,7 @@ void ABattleCharacterBase::MulticastStopMotion_Implementation(float StopSeconds,
 
 void ABattleCharacterBase::ServerStopMotion_Implementation(float StopSeconds, float TimeDilation)
 {
-	MulticastStopMotion_Implementation(StopSeconds, TimeDilation);
+	MulticastStopMotion(StopSeconds, TimeDilation);
 }
 
 void ABattleCharacterBase::ClientSetControlRotation_Implementation(const FRotator& NewRotation)

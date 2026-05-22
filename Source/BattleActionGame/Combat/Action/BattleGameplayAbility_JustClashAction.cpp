@@ -111,7 +111,7 @@ void UBattleGameplayAbility_JustClashAction::MoveToBestSpot()
 		LaunchDirection.Z = 500.0f;
 		Character->LaunchCharacter(LaunchDirection, true, true);
 		
-		DrawDebugLine(GetWorld(), Direction, Character->GetActorLocation(), FColor::Red, false, 10.f, 0, 0);
+		//DrawDebugLine(GetWorld(), Direction, Character->GetActorLocation(), FColor::Red, false, 10.f, 0, 0);
 		
 		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
@@ -144,7 +144,7 @@ void UBattleGameplayAbility_JustClashAction::MoveToBestSpot()
 		LaunchDirection.Z = 500.0f;
 		TargetCharacter->LaunchCharacter(LaunchDirection, true, true);
 		
-		DrawDebugLine(GetWorld(), Direction, TargetCharacter->GetActorLocation(), FColor::Blue, false, 10.f, 0, 0);
+		//DrawDebugLine(GetWorld(), Direction, TargetCharacter->GetActorLocation(), FColor::Blue, false, 10.f, 0, 0);
 		
 		//TargetCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}

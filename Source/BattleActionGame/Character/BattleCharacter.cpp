@@ -47,7 +47,6 @@ ABattleCharacter::ABattleCharacter(const FObjectInitializer& ObjectInitializer)
 		HealthComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
 		HealthComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
 	}
-	
 }
 
 UBattleAbilitySystemComponent* ABattleCharacter::GetBattleAbilitySystemComponent() const
@@ -75,6 +74,7 @@ void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PawnExtComponent->SetupPlayerInputComponent();
+	GetHeroComponent()->InitilizePlayerInput(PlayerInputComponent);
 }
 
 void ABattleCharacter::OnDeathStarted(AActor* OwningActor)
@@ -198,6 +198,19 @@ void ABattleCharacter::EndCriticalHit()
 
 }
 
+void ABattleCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	
+	if (IsLocallyControlled() && InputComponent)
+	{
+		if (UBattleHeroComponent* HeroComponent = GetHeroComponent())
+		{
+			HeroComponent->InitilizePlayerInput(InputComponent);
+		}
+	}
+}
+
 void ABattleCharacter::OnAbilitySystemInitialized()
 {
 	UBattleAbilitySystemComponent* ASC = GetBattleAbilitySystemComponent();
@@ -228,6 +241,7 @@ void ABattleCharacter::UnPossessed()
 	Super::UnPossessed();
 
 	PawnExtComponent->HandleControllerChanged();
+	GetHeroComponent()->OnUnpossessed();
 }
 
 void ABattleCharacter::HandleImpactDamage(AActor* DamageInstigator, AActor* DamageCauser,

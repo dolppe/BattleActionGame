@@ -17,6 +17,7 @@
 #include "Components/GameFrameworkComponentManager.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleHeroComponent)
 
@@ -29,9 +30,9 @@ UBattleHeroComponent::UBattleHeroComponent(const FObjectInitializer& ObjectIniti
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
-
-	bReadyToBindInputs = false;
 }
+
+PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattleHeroComponent::OnRegister()
 {
@@ -280,6 +281,7 @@ void UBattleHeroComponent::ClearDesiredCameraMode_Implementation()
 void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComponent)
 {
 	check(PlayerInputComponent);
+	
 
 	const APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn)
@@ -342,12 +344,47 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 		}
 	}
 
-	if (ensure(!bReadyToBindInputs))
-	{
-		bReadyToBindInputs = true;
-	}
+
 
 	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
+}
+
+void UBattleHeroComponent::ChangePlayerInput(UInputComponent* PlayerInputComponent)
+{
+	check(PlayerInputComponent);
+
+	const APawn* Pawn = GetPawn<APawn>();
+	if (!Pawn)
+	{
+		return;
+	}
+
+	const APlayerController* PC = GetController<APlayerController>();
+	check(PC);
+
+	const ULocalPlayer* LP = PC->GetLocalPlayer();
+	check(LP);
+
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	check(Subsystem); 
+
+	// EnhancedInputLocalPlayerSubsystem에 매핑 컨텍스트을 초기화 시켜줌.
+	Subsystem->ClearAllMappings();
+	
+	// HeroComponent에 있는 Input Mapping Context를 순회하며, 이를 EnhancedInputLocalPlayerSubsystem에 추가함.
+	for (const FBattleMappableConfigPair& Pair : DefaultInputConfigs)
+	{
+		if (Pair.bShouldActivateAutomatically)
+		{
+			FModifyContextOptions Options = {};
+			Options.bIgnoreAllPressedKeysUntilRelease = false;
+
+			// 내부적으로 Input Mapping Context를 추가함.
+			// 이를 먼저 추가해야 바인딩을 제대로 진행할 수 있음.
+			Subsystem->AddPlayerMappableConfig(Pair.Config.LoadSynchronous(), Options);
+		}
+	}
+
 }
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
@@ -516,12 +553,6 @@ void UBattleHeroComponent::OnKnockbackEnded(UAnimMontage* Montage, bool bInterru
 	
 }
 
-
-bool UBattleHeroComponent::IsReadyToBindInputs() const
-{
-	return bReadyToBindInputs;
-}
-
 void UBattleHeroComponent::AdditionalInputConfig(const UBattleInputConfig* InputConfig)
 {
 	TArray<uint32> BindHandles;
@@ -553,6 +584,11 @@ void UBattleHeroComponent::RemoveAdditionalInputConfig(const UBattleInputConfig*
 }
 
 
+void UBattleHeroComponent::OnUnpossessed()
+{
+
+}
+
 void UBattleHeroComponent::Input_RotationCharacter(const FInputActionValue& InputActionValue)
 {
 	ACharacter* Character = GetPawn<ACharacter>();
@@ -579,3 +615,6 @@ void UBattleHeroComponent::Input_RotationCharacter(const FInputActionValue& Inpu
 
 	
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
+

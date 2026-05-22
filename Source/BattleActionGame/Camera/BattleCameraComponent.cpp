@@ -1,5 +1,7 @@
 #include "BattleCameraComponent.h"
 #include "BattleCameraMode.h"
+#include "BattleActionGame/BattleLogChannels.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCameraComponent)
 
 UBattleCameraComponent::UBattleCameraComponent(const FObjectInitializer& ObjectInitializer)
@@ -10,7 +12,7 @@ UBattleCameraComponent::UBattleCameraComponent(const FObjectInitializer& ObjectI
 void UBattleCameraComponent::UpdateCameraModes()
 {
 	check(CameraModeStack);
-
+	
 	if (DetermineCameraModeDelegate.IsBound())
 	{
 		// CameraMode의 Class를 가져오는 것임.

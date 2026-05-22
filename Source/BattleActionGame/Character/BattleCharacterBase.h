@@ -5,6 +5,7 @@
 
 #include "BattleCharacterBase.generated.h"
 
+struct FGameplayTag;
 class UBattleCombatManagerComponent;
 class UBattleHealthComponent;
 
@@ -26,6 +27,8 @@ public:
 	void NetSetControlRotation(const FRotator& NewRotation);
 	
 	void NetPlayMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
+	
+	void NetJumpToSection(UAnimMontage* AnimMontage, FName SectionName);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleDamageToPart(FGameplayTag PartTag, const FVector& AttackDirection);
@@ -53,10 +56,16 @@ public:
 protected:
 	
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastPlayMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
+	void MulticastPlayMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName= NAME_None);
 
 	UFUNCTION(Server, Reliable)
 	void ServerPlayMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastJumpToSection(UAnimMontage* AnimMontage, FName SectionName);
+	
+	UFUNCTION(Server, Reliable)
+	void ServerJumpToSection(UAnimMontage* AnimMontage, FName SectionName);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastStopMotion(float StopSeconds, float TimeDilation = 0.0f);
