@@ -37,8 +37,8 @@ void UAttackCollisionMethod_CircularAOE::StartCollisionCheck(TArray<FHitResult>&
 			FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
 			float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
 			FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
-			DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 5.f, 0, 0);
-			DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, FColor::Green,false, 10.f);
+			DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 3.f, 0, 0);
+			DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, FColor::Green,false, 3.f);
 #endif
 			
 		}	

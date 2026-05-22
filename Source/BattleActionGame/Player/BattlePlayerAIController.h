@@ -60,10 +60,16 @@ protected:
 	TSubclassOf<UBattleGameplayAbility_Attack_Parent> GA_ComboAttack;
 	TSubclassOf<UBattleGameplayAbility_Attack_Parent> GA_StrongAttack;
 	
+	TArray<FVector> AvoidPaths;
+	int AvoidPathIndex = 0;
+	
 	float ThinkPeriod = 0.3f;
 	float LastThinkTime = -1000.f;
 	float AllowedAttackRange = 1100.f;
 	float AllowedMoveRange = 400.f;
+	
+	UPROPERTY(EditAnywhere)
+	bool bUsePerfectMoving = true;
 	
 };
 

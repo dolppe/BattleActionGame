@@ -128,6 +128,17 @@ public:
 	FGameplayTag Gameplay_Message_Ready;
 	FGameplayTag Gameplay_Message_Unready;
 	
+	/*
+	 *
+	 */
+	
+	FGameplayTag AI_Attack_Intent;
+	FGameplayTag AI_Attack_Intent_Front;
+	FGameplayTag AI_Attack_Intent_Around;
+	FGameplayTag AI_Attack_Intent_Rush;
+	FGameplayTag AI_Attack_Intent_AOE;
+	FGameplayTag AI_Attack_Intent_Random;
+	
 
 protected:
 

@@ -37,8 +37,8 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitRes
 		FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
 		float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
 		FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
-		DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 10.f, 0, 0);
-		DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, FColor::Green,false, 10.f);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.f, 0, 0);
+		DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, FColor::Green,false, 2.f);
 	
 #endif
 		
@@ -70,7 +70,7 @@ void UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(USkeletalMeshCo
 
 		UWorld* World = MeshComp->GetWorld();
 	
-		DrawDebugLine(World, Start, End, FColor::Green, false, 10.f, 0, 0);
+		DrawDebugLine(World, Start, End, FColor::Green, false, 2.f, 0, 0);
 		DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, CollisionData->AttackRadius,CapsuleRotation, FColor::Green,false, 2.f);
 	}
 

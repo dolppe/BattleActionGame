@@ -91,6 +91,8 @@ void UBattleGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHa
 	
 	CurrentCombatManager->OnEndAbilityComboGA();
 	
+	BA_DEFAULT_LOG(LogBattle, Log,TEXT("ENDENDENDEND"));
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -115,7 +117,7 @@ FName UBattleGameplayAbility_ComboAttack::GetNextSection()
 
 void UBattleGameplayAbility_ComboAttack::StartComboTimer(FName MontageSectionName)
 {
-
+	BA_DEFAULT_LOG(LogBattle, Log,TEXT("StartComboTimer"));
 	const float CurrentMontageSectionLength = AttackData->Montage->GetSectionLength(AttackData->Montage->GetSectionIndex(MontageSectionName));
 
 	float ComboInputCheckTime = CurrentMontageSectionLength*0.7;
@@ -125,6 +127,7 @@ void UBattleGameplayAbility_ComboAttack::StartComboTimer(FName MontageSectionNam
 
 	if (AllowedInputTime >0.0f)
 	{
+		BA_DEFAULT_LOG(LogBattle, Log,TEXT("StartComboTimer => Delegate"));
 		GetWorld()->GetTimerManager().SetTimer(ComboAllowedTimerHandle, this, &UBattleGameplayAbility_ComboAttack::AllowInput, AllowedInputTime, false);
 		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &UBattleGameplayAbility_ComboAttack::CheckComboInput, ComboInputCheckTime, false);
 	}
@@ -134,12 +137,13 @@ void UBattleGameplayAbility_ComboAttack::StartComboTimer(FName MontageSectionNam
 void UBattleGameplayAbility_ComboAttack::CheckComboInput()
 {
 	ComboTimerHandle.Invalidate();
-	
+	BA_DEFAULT_LOG(LogBattle, Log,TEXT("CheckComboInput"));
 	if (bHasNextComboInput)
 	{
 		FName MontageSection = GetNextSection();
 		if (!CurrentComboAttackData->Montage->IsValidSectionName(MontageSection))
 		{
+			BA_DEFAULT_LOG(LogBattle, Log,TEXT("CheckComboInput => MontageEnd"));
 			bool bReplicatedEndAbility = true;
 			bool bWasCancelled = false;
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
@@ -147,6 +151,7 @@ void UBattleGameplayAbility_ComboAttack::CheckComboInput()
 		}
 		if (ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo()))
 		{
+			BA_DEFAULT_LOG(LogBattle, Log,TEXT("CheckComboInput => MontageJump"));
 			CharacterBase->NetJumpToSection(CurrentComboAttackData->Montage, MontageSection);
 			
 		}
@@ -156,12 +161,14 @@ void UBattleGameplayAbility_ComboAttack::CheckComboInput()
 		bHasNextComboInput = false;
 		bAllowedInput = false;
 	}
-	else if (IsLocallyControlled())
+	else
 	{
+		BA_DEFAULT_LOG(LogBattle, Log,TEXT("CheckComboInput => NotInput"));
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 	}
+	
 }
 
 void UBattleGameplayAbility_ComboAttack::AllowInput()

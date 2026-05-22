@@ -74,7 +74,7 @@ void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(USkeletalMes
 	FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
 	float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
 	FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
-	DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, SocketCollisionData->AttackRadius,CapsuleRotation, HitColor,false, 10.f);
+	DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, SocketCollisionData->AttackRadius,CapsuleRotation, HitColor,false, 2.f);
 }
 
 void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheckWithLerpNotStep(TArray<FHitResult>& OutHitResults, FVector& CurWeaponStart,

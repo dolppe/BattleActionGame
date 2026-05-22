@@ -133,6 +133,18 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(Gameplay_Message_Ready, "Gameplay.Message.Ready", "");
 	AddTag(Gameplay_Message_Unready, "Gameplay.Message.Unready", "");
 	
+	/*
+	 * AI
+	 */
+	
+	AddTag(AI_Attack_Intent, "AI.Attack.Intent", "");
+	AddTag(AI_Attack_Intent_Front, "AI.Attack.Intent.Front", "");
+	AddTag(AI_Attack_Intent_Around, "AI.Attack.Intent.Around", "");
+	AddTag(AI_Attack_Intent_Rush, "AI.Attack.Intent.Rush", "");
+	AddTag(AI_Attack_Intent_AOE, "AI.Attack.Intent.AOE", "");
+	AddTag(AI_Attack_Intent_Random, "AI.Attack.Intent.Random", "");
+	
+	
 	
 	
 }
