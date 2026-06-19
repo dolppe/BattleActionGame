@@ -45,6 +45,10 @@ void UBattleEnemySet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		}
 	}
 
+	if (GetPoiseValue() >= GetMaxPoiseValue())
+	{
+		SetPoiseValue(GetMaxPoiseValue());
+	}
 	if (GetPoiseValue() <= 0.0f)
 	{
 		if (OnPoiseBreakState.IsBound())

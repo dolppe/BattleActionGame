@@ -26,6 +26,21 @@ void FBattleAbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* Set)
 		GrantedAttributeSets.Add(Set);
 }
 
+const TArray<FGameplayAbilitySpecHandle>& FBattleAbilitySet_GrantedHandles::GetGameplayAbilityHandes() const
+{
+	return AbilitySpecHandles;
+}
+
+const TArray<FActiveGameplayEffectHandle>& FBattleAbilitySet_GrantedHandles::GetGameplayEffectHandles() const
+{
+	return GameplayEffectHandles;
+}
+
+const TArray<TObjectPtr<UAttributeSet>>& FBattleAbilitySet_GrantedHandles::GetAttributeSets() const
+{
+	return GrantedAttributeSets;
+}
+
 void FBattleAbilitySet_GrantedHandles::TakeFromAbilitySystem(UBattleAbilitySystemComponent* BattleASC)
 {
 	check(BattleASC);

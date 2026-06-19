@@ -33,6 +33,7 @@ static FDamageStatics& DamageStatics()
 UBattleDamageExecution::UBattleDamageExecution()
 {
 	RelevantAttributesToCapture.Add(DamageStatics().AttackPowerDef);
+	RelevantAttributesToCapture.Add(DamageStatics().ImpactResistanceDef);
 }
 
 
@@ -75,7 +76,7 @@ void UBattleDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 
 		if (TotalImpactDamage > 0.0f)
 		{
-			if (ABattleEnemyCharacter* TargetEnemy = Cast<ABattleEnemyCharacter>(TargetASC->GetAvatarActor()))
+			if (const UBattleEnemySet* EnemySet = TargetASC->GetSet<UBattleEnemySet>())
 			{
 				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleEnemySet::GetGroggyValueAttribute(), EGameplayModOp::Additive, TotalImpactDamage));
 				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UBattleEnemySet::GetPoiseValueAttribute(), EGameplayModOp::Additive, -TotalImpactDamage));

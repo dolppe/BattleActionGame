@@ -73,8 +73,14 @@ void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PawnExtComponent->SetupPlayerInputComponent();
-	GetHeroComponent()->InitilizePlayerInput(PlayerInputComponent);
+	if (PawnExtComponent)
+	{
+		PawnExtComponent->SetupPlayerInputComponent();
+	}
+	if (GetHeroComponent())
+	{
+		GetHeroComponent()->InitilizePlayerInput(PlayerInputComponent);
+	}
 }
 
 void ABattleCharacter::OnDeathStarted(AActor* OwningActor)

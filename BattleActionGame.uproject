@@ -58,6 +58,10 @@
 		{
 			"Name": "NetworkPredictionInsights",
 			"Enabled": true
+		},
+		{
+			"Name": "FunctionalTestingEditor",
+			"Enabled": true
 		}
 	]
 }

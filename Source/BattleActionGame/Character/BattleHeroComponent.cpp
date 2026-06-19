@@ -137,7 +137,7 @@ bool UBattleHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Ma
 		if (Pawn->IsLocallyControlled() && !Pawn->IsBotControlled())
 		{
 			ABattlePlayerController* BattlePC = GetController<ABattlePlayerController>();
-
+		
 			if (!Pawn->InputComponent || !BattlePC || !BattlePC->GetLocalPlayer())
 			{
 				return false;
@@ -290,13 +290,21 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 	}
 
 	const APlayerController* PC = GetController<APlayerController>();
-	check(PC);
-
+	
+	if (PC == nullptr)
+	{
+		return;
+	}
 	const ULocalPlayer* LP = PC->GetLocalPlayer();
-	check(LP);
-
+	if (LP == nullptr)
+	{
+		return;
+	}
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-	check(Subsystem); 
+	if (Subsystem == nullptr)
+	{
+		return;
+	}
 
 	// EnhancedInputLocalPlayerSubsystem에 매핑 컨텍스트을 초기화 시켜줌.
 	Subsystem->ClearAllMappings();

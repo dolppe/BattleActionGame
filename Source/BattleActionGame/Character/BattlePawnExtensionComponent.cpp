@@ -239,7 +239,7 @@ void UBattlePawnExtensionComponent::InitializeAbilitySystem(UBattleAbilitySystem
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
 
-	if (ensure(PawnData))
+	if (PawnData)
 	{
 		InASC->SetTagRelationshipMapping(PawnData->TagRelationshipMapping);
 	}
