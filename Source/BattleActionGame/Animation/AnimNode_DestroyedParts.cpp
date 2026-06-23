@@ -45,46 +45,54 @@ void FAnimNode_DestroyedParts::EvaluateComponentSpace_AnyThread(FComponentSpaceP
 		{
 			return;
 		}
-		TArray<FBoneInfo>& BoneInfos = BrokenActor->BoneInfos;
-
-		if (BoneInfos.Num() != 0)
-		{
-			TArray<FBoneTransform> BoneTransforms;
-			
-
-			bool bIsChanged = false;
-
-			for (FBoneInfo& BoneInfo : BoneInfos)
-			{
-				if (BoneInfo.BoneTransform.GetLocation().IsNearlyZero())
-				{
-					continue;
-				}
-				bIsChanged = true;
-				FBoneTransform BoneTransform;
-				BoneTransform.Transform = BoneInfo.BoneTransform;
-				BoneTransform.BoneIndex = FCompactPoseBoneIndex(BoneInfo.BoneIndex);
-				
-				BoneTransforms.Add(BoneTransform);
-			}
-
-			if (bIsChanged)
-			{
-				Output.Pose.LocalBlendCSBoneTransforms(BoneTransforms, 1.0f);	
-			}
-			
-		}
-
 		
+		TArray<FBoneTransform> BoneTransforms;
+		
+		if (MakeBoneTransforms(BoneTransforms, BrokenActor->BoneInfos))
+		{
+			Output.Pose.LocalBlendCSBoneTransforms(BoneTransforms, 1.0f);	
+		}
 		
 	}
 	
 }
 
 
+bool FAnimNode_DestroyedParts::MakeBoneTransforms(TArray<FBoneTransform>& OutBoneTransform, TArray<FBoneInfo>& BoneInfos)
+{
+	if (BoneInfos.Num() != 0)
+	{
+		bool bIsChanged = false;
+
+		for (FBoneInfo& BoneInfo : BoneInfos)
+		{
+			if (BoneInfo.BoneTransform.GetLocation().IsNearlyZero())
+			{
+				continue;
+			}
+			bIsChanged = true;
+			FBoneTransform BoneTransform;
+			BoneTransform.Transform = BoneInfo.BoneTransform;
+			BoneTransform.BoneIndex = FCompactPoseBoneIndex(BoneInfo.BoneIndex);
+				
+			OutBoneTransform.Add(BoneTransform);
+		}
+
+		if (bIsChanged)
+		{
+			return true;	
+		}
+	}
+	
+	return false;
+	
+}
+
 void FAnimNode_DestroyedParts::PreUpdate(const UAnimInstance* InAnimInstance)
 {
 	FAnimNode_Base::PreUpdate(InAnimInstance);
+	
+	BrokenActor = nullptr; 
 
 	if (InAnimInstance)
 	{

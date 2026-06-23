@@ -10,41 +10,19 @@ void UAnimNotify_EndingState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 	const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
+	
+	AllowMovementTag(MeshComp);	
+}
 
+void UAnimNotify_EndingState::AllowMovementTag(USkeletalMeshComponent* MeshComp)
+{
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner()))
 	{
-
-		// {
-		// 	TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("AllowC"));
-		// 	AllowFuncC(MeshComp);
-		// }
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(TEXT("BlockC"));
-			BlockFuncC(MeshComp);	
-		}
-		
-
-		
-		
-
-		//ASC->RemoveActiveGameplayEffectBySourceEffect(RemoveGE1,ASC);
-		//ASC->RemoveActiveGameplayEffectBySourceEffect(RemoveGE2,ASC);
-		
+		ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Status_Action_Attack,0);
+		ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Block_Movement, 0);	
 	}
-}
-
-void UAnimNotify_EndingState::BlockFuncC(USkeletalMeshComponent* MeshComp)
-{
-	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner());
-	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack,3);
-	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
-}
-
-void UAnimNotify_EndingState::AllowFuncC(USkeletalMeshComponent* MeshComp)
-{
-	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner());
-	ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_Action_Attack,5);
-	ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation);
-	ASC->AddLooseGameplayTag(FBattleGameplayTags::Get().Allow_Movement);
+	
+	
 	
 }
+

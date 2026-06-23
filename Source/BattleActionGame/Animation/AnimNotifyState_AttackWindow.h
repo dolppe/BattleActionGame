@@ -22,6 +22,9 @@ public:
 
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) override;
 	
+	void MakeUniqueHitResults(const TArray<FHitResult>& InHitResults, TArray<FHitResult>& OutHitResult);
+	void SendHitResults(const TArray<FHitResult>& SendHitResults, float HitTime,UBattleCombatManagerComponent* CombatManager);
+	
 protected:
 
 	UPROPERTY(EditAnywhere)
@@ -29,14 +32,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly)
 	TArray<UAttackCollisionData*> CollisionDatas;
+	
+	
 
 private:
 
-	void DrawDebugBegin(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
-	void DrawDebugTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
-	
-	
-	UBattleCombatManagerComponent* CachedCombatManager = nullptr;
-	ABattleCharacterBase* CachedOwnerCharacter = nullptr;
-	
+	void DrawDebugBegin(USkeletalMeshComponent* MeshComp);
+	void DrawDebugTick(USkeletalMeshComponent* MeshComp);
+		
 };

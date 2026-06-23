@@ -12,23 +12,7 @@ class UAnimNotify_CommitState : public UAnimNotify
 public:
 
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+	void BlockMovementWithRotationTag(USkeletalMeshComponent* MeshComp);
 
-	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
-
-protected:
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UGameplayEffect> ApplyGE;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UGameplayEffect> RemoveGE; 
-
-private:
-
-	void BlockFuncB(USkeletalMeshComponent* MeshComp);
-	void AllowFuncB(USkeletalMeshComponent* MeshComp);
-
-	USkeletalMeshComponent* CachedMesh;
 	
 };

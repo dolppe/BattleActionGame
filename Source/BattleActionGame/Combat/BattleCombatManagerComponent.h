@@ -111,7 +111,7 @@ public:
 	void OnAttackStart();
 
 	UFUNCTION(BlueprintCallable)
-	void OnHitEvent(const FBattleHitMessage& HitMessage);
+	virtual void OnHitEvent(const FBattleHitMessage& HitMessage);
 
 	UFUNCTION(BlueprintCallable)
 	void AllowGuardEvent();
