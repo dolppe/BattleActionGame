@@ -43,7 +43,7 @@ class UBattleCameraMode : public UObject
 	GENERATED_BODY()
 public:
 	UBattleCameraMode(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
+	
 	UBattleCameraComponent* GetBattleCameraComponent() const;
 	AActor* GetTargetActor() const;
 	
@@ -127,8 +127,6 @@ public:
 	void EvaluateStack(float DeltaTime, FBattleCameraModeView& OutCameraModeView);
 	void UpdateStack(float DeltaTime);
 	void BlendStack(FBattleCameraModeView& OutCameraModeView) const;
-
-	void GetBlendInfo(float& OutWeightOfTopLayer, FGameplayTag& OutTagOfTopLayer) const;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<UBattleCameraMode>> CameraModeInstances;

@@ -375,21 +375,5 @@ void UBattleCameraModeStack::BlendStack(FBattleCameraModeView& OutCameraModeView
 	
 }
 
-void UBattleCameraModeStack::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayTag& OutTagOfTopLayer) const
-{
-	if (CameraModeStack.Num() == 0)
-	{
-		OutWeightOfTopLayer = 1.0f;
-		OutTagOfTopLayer = FGameplayTag();
-		return;
-	}
-	else
-	{
-		UBattleCameraMode* TopEntry = CameraModeStack.Last();
-		check(TopEntry);
-		OutWeightOfTopLayer = TopEntry->GetBlendWeight();
-		OutTagOfTopLayer = TopEntry->GetCameraTypeTag();
-	}
-}
 
 PRAGMA_ENABLE_OPTIMIZATION
