@@ -61,14 +61,13 @@ public:
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 	void Input_SpecialKeyPressed();
 
+	bool CalcKnockbackVector(const FVector& Direction, float Strength, float ZForce, FVector& OutVector);
+	
 	UFUNCTION(Server, Reliable)
 	void PerformDirectionalMove(FVector Direction, float Strength, float ZForce);
 
 	UFUNCTION(BlueprintCallable)
 	void PerformKnockback(FVector Direction, float Strength, float ZForce);
-
-	UFUNCTION()
-	void OnKnockbackEnded(UAnimMontage* Montage, bool bInterrupted);
 	
 	void AdditionalInputConfig(const UBattleInputConfig* InputConfig);
 	void RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig);

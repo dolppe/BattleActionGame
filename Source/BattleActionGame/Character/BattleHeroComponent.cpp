@@ -495,22 +495,44 @@ void UBattleHeroComponent::Input_SpecialKeyPressed()
 	}
 }
 
+bool UBattleHeroComponent::CalcKnockbackVector(const FVector& Direction, float Strength, float ZForce,
+	FVector& OutVector)
+{
+	if (Direction.IsNearlyZero())
+	{
+		return false;
+	}
+	if (Strength == 0.0f)
+	{
+		return false;
+	}
+	
+	OutVector = Direction*Strength;
+	OutVector.Z = ZForce;
+	
+	return true;
+	
+}
+
 void UBattleHeroComponent::PerformDirectionalMove_Implementation(FVector Direction, float Strength, float ZForce)
 {
 	//BA_SUBLOG(LogBattle, Warning, TEXT("Perform Suc"));
 	APawn* Pawn = GetPawn<APawn>();
 
-	Direction = Direction * Strength;
-	Direction.Z = ZForce;
-	
+	FVector CalcVector;
 	if (ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(Pawn))
 	{
-		if (HasAuthority())
+		if (CalcKnockbackVector(Direction, Strength, ZForce, CalcVector))
 		{
-			Character->GetCharacterMovement()->AirControl = 0.0f;
-			Character->LaunchCharacter(Direction*Strength, true, true);
+			if (HasAuthority())
+			{
+				Character->GetCharacterMovement()->AirControl = 0.0f;
+				Character->LaunchCharacter(CalcVector, true, true);
+			}
 		}
 	}
+	
+
 	
 }
 
@@ -537,27 +559,6 @@ void UBattleHeroComponent::PerformKnockback(FVector Direction, float Strength, f
 		
 	
 	
-	
-}
-
-void UBattleHeroComponent::OnKnockbackEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (Montage == KnockbackMontage)
-	{
-		APawn* Pawn = GetPawn<APawn>();
-
-		if (ABattleCharacter* Character = Cast<ABattleCharacter>(Pawn))
-		{
-			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
-			{
-				ASC->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Status_KnockBack);
-			}
-			
-			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
-			AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::OnKnockbackEnded);
-		}
-		
-	}
 	
 }
 

@@ -94,7 +94,11 @@ protected:
 	UFUNCTION()
 	void HandleImpactDamage(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
 
-
+	UPROPERTY(EditAnywhere)
+	float PoiseBreakThreshold = 25.f;
+	
+	UPROPERTY(EditAnywhere)
+	float GroggyThreshold = 50.f;
 
 	
 private:

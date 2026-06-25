@@ -234,7 +234,6 @@ void UBattlePawnExtensionComponent::InitializeAbilitySystem(UBattleAbilitySystem
 	}
 
 	APawn* Pawn = GetPawnChecked<APawn>();
-	AActor* ExistingAvatar = InASC->GetAvatarActor();
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
