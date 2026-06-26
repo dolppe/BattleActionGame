@@ -556,7 +556,7 @@ TArray<float> UConsiderationFactors::GetTargetPriority()
 	{
 		float Result = (1 - TargetDistances[Idx]);
 
-		if (DamageStack.Contains(TargetActors[Idx]))
+		if (TotalDamage > 0.0f && DamageStack.Contains(TargetActors[Idx]))
 		{
 			float DamageRate = DamageStack[TargetActors[Idx]] / TotalDamage;
 
@@ -887,6 +887,11 @@ EAxisType UConsiderationFactors::GetAxisType(EBattleConsiderType ConsiderType)
 
 void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* UtilityAIData, UBattleUtilityAIComponent* InUtilityAIComponent)
 {
+	if (UtilityAIData == nullptr || InUtilityAIComponent == nullptr)
+	{
+		return;
+	}
+	
 	for (EBattleConsiderType ConsiderType: UtilityAIData->Consider)
 	{
 		if (GetAxisType(ConsiderType) == EAxisType::Single)
@@ -907,10 +912,14 @@ void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* Uti
 	BestCombatTime = UtilityAIComponent->BestCombatTime;
 	ThreatCharacterNum = UtilityAIComponent->ThreatCharacterNum;
 
-	if (UBattleHealthComponent* HealthComponent = MyCharacter->GetHealthComponent())
+	if (MyCharacter)
 	{
-		HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnCharacterHealthChanged);
+		if (UBattleHealthComponent* HealthComponent = MyCharacter->GetHealthComponent())
+		{
+			HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnCharacterHealthChanged);
+		}	
 	}
+	
 }
 
 void UConsiderationFactors::ClearConsiderFactors()
@@ -967,7 +976,7 @@ void UConsiderationFactors::SearchNearSpots()
 				//DrawDebugPoint(GetWorld(), Poly.Center, 10.0f, FColor::Red, false, 10.f);
 				AreaFlags.Add(AreaFlag);
 
-				if (!bFindBestLocation && (AreaFlag & AREA_Corner) != 0|| (AreaFlag & AREA_HighArea) != 0)
+				if (!bFindBestLocation && ((AreaFlag & AREA_Corner) != 0|| (AreaFlag & AREA_HighArea) != 0))
 				{
 					CornerOrHighAreaLocation = Poly.Center;
 					bFindBestLocation = true;
@@ -1236,6 +1245,11 @@ void UBattleUtilityAIComponent::BeginPlay()
 	Super::BeginPlay();
 
 	if (GetWorld()->GetNetMode() == NM_Client)
+	{
+		return;
+	}
+	
+	if (UtilityAIData == nullptr)
 	{
 		return;
 	}

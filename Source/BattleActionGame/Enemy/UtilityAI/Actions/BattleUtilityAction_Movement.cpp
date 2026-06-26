@@ -116,10 +116,12 @@ void UBattleUtilityAction_BackAway::TickAction(float DeltaTime)
 	if (RequestResult != EPathFollowingRequestResult::RequestSuccessful)
 	{
 		bIsCompletedAction = true;
+		return;
 	}
 	if (SelectedTarget == nullptr)
 	{
 		bIsCompletedAction = true;
+		return;
 	}
 	
 	
@@ -258,8 +260,16 @@ void UBattleUtilityAction_Strafe::TickAction(float DeltaTime)
 		bIsCompletedAction = true;
 	}
 	
+	
 	AActor* MyCharacter =  CachedAIComponent->ConsiderList->MyCharacter;
 	AActor* SelectedTarget = CachedAIComponent->ConsiderList->SelectedTarget;
+	
+	if (MyCharacter == nullptr || SelectedTarget == nullptr)
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
 	FVector ToTargetLocation = (SelectedTarget->GetActorLocation() - MyCharacter->GetActorLocation()).GetSafeNormal2D();
 	
 	FRotator TargetRotation = ToTargetLocation.Rotation();

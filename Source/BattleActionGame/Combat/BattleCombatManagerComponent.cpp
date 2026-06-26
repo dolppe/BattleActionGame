@@ -55,7 +55,13 @@ void UBattleCombatManagerComponent::BeginPlay()
 
 void UBattleCombatManagerComponent::UseItem(EItemType Item)
 {
-	GetPawn<ABattleCharacterBase>()->GetAbilitySystemComponent()->TryActivateAbilityByClass(ItemTypeToAbility[Item]);
+	if (ABattleCharacterBase* Character = GetPawn<ABattleCharacterBase>())
+	{
+		if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
+		{
+			ASC->TryActivateAbilityByClass(ItemTypeToAbility[Item]);
+		}
+	}
 }
 
 int UBattleCombatManagerComponent::GetCurrentComboIndex()

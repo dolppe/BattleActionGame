@@ -66,6 +66,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void ClearItems();
 	
+	virtual void BeginPlay() override;
 	
 protected:
 	
@@ -78,7 +79,7 @@ protected:
 	UPROPERTY()
 	int NumSlots = 4;
 
-	virtual void BeginPlay() override;
+	
 	
 private:
 

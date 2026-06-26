@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BattleActionGame/Character/BattleCharacter.h"
-#include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
+
 
 #include "BattleCharacterTests.generated.h"
 
@@ -65,16 +65,5 @@ public:
 	int GroggyCount = 0;
 	int PoiseBreakCount = 0;
 	
-	
-};
-
-UCLASS()
-class UMockTestBattleCombatManagerComponent : public UBattleCombatManagerComponent
-{
-	GENERATED_BODY()
-public:
-	virtual void OnHitEvent(const FBattleHitMessage& HitMessage) override;
-	
-	int HitEventCount;
 	
 };

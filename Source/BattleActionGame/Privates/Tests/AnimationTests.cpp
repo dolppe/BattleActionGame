@@ -3,7 +3,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "BattleActorTestFixture.h"
-#include "BattleCharacterTests.h"
+#include "BattleCombatTests.h"
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/Animation/AnimNode_DestroyedParts.h"
 #include "BattleActionGame/Animation/AnimNotifyState_AttackWindow.h"

@@ -81,11 +81,11 @@ void UBattleGameplayAbility_UseItem_AttributeBased::EndAbility(const FGameplayAb
 	{
 		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 		MessageSubsystem.UnregisterListener(UseItemHandle);
-		GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
+		GetAbilitySystemComponentFromActorInfo()->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Block_Movement, 0);
 	}
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FBattleGameplayTags::Get().Block_Movement);
+		GetAbilitySystemComponentFromActorInfo()->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Block_Movement, 0);
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

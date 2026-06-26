@@ -271,8 +271,3 @@ void AMockTestBattleCharacter::TestHandleImpactDamage(float DamageMagnitude)
 	HandleImpactDamage(nullptr, nullptr, Spec, DamageMagnitude);
 }
 
-void UMockTestBattleCombatManagerComponent::OnHitEvent(const FBattleHitMessage& HitMessage)
-{
-	HitEventCount++;
-	Super::OnHitEvent(HitMessage);
-}
