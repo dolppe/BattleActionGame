@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 
 
@@ -67,3 +68,31 @@ public:
 	
 	
 };
+
+UCLASS()
+class AMockTestBattleCharacterBase : public ABattleCharacterBase
+{
+	GENERATED_BODY()
+
+public:
+	AMockTestBattleCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+	{
+		
+	}
+	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override
+	{
+		return ASC;
+	}
+	
+	virtual UBattleAbilitySystemComponent* GetBattleAbilitySystemComponent() const override
+	{
+		return ASC;
+	}
+	
+	UBattleAbilitySystemComponent* ASC = nullptr;
+	
+	
+};
+

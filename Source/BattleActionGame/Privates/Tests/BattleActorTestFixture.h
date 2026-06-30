@@ -20,12 +20,24 @@ public:
 	{
 	}
 	
+	void SetInitializationValues(UWorld::InitializationValues* InIVS)
+	{
+		IVS = InIVS;
+	}
+	
 	bool SetupWorld()
 	{
 		ClearWorld();
 		
-		World = UWorld::CreateWorld(EWorldType::Game, false, TEXT("BattleActorTestWorld"));
-			
+		if (IVS == nullptr)
+		{
+			World = UWorld::CreateWorld(EWorldType::Game, false, TEXT("BattleActorTestWorld"));
+		}
+		else
+		{
+			World = UWorld::CreateWorld(EWorldType::Game, false, TEXT("BattleActorTestWorld"), NULL, true, ERHIFeatureLevel::Num, IVS);
+		}
+		
 		if (!World)
 		{
 			return false;
@@ -80,6 +92,7 @@ public:
 
 private:
 	
+	UWorld::InitializationValues* IVS;
 	UWorld* World;
 
 	

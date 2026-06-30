@@ -8,6 +8,15 @@ struct FActionConfig;
 class UConsiderationFactors;
 class UBattleUtilityAxis;
 struct FAxisConfig;
+class UNavigationSystemV1;
+
+
+namespace BattleUtilityActionHelper
+{
+	TArray<FVector> FindBestSpotsWithGreedy(UNavigationSystemV1* NavSystem, TArray<FVector> SpotLists, float AreaRadius, int AreaNum);
+	
+}
+
 
 UCLASS(BlueprintType, Blueprintable)
 class UBattleUtilityAction : public UObject
@@ -103,7 +112,7 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> BestTargets;
 	
-	float Weight;
+	float Weight = 1.f;
 	
 	float CoolTime = 0.0f;
 	float AgeTime = 0.0f;

@@ -205,7 +205,7 @@ float UConsiderationFactors::GetCombatDuration()
 	}
 	else
 	{
-		float CombatTime = GetWorld()->GetTimeSeconds() - CombatStartTime;
+		float CombatTime = CurTime - CombatStartTime;
 		CombatTime = FMath::Clamp(CombatTime/BestCombatTime *0.5, 0.0f, 1.0f);
 
 		return CombatTime;
@@ -350,14 +350,14 @@ float UConsiderationFactors::GetPoisonAmount()
 {
 	// 내가 Poison을 얼마나 가지고 있는지를 나타냄
 	// 0.0f이면 아예 없는 것, 1.0f는 가득 찬 것
-	return 1.0f;
+	return PoisonAmount;
 }
 
 float UConsiderationFactors::GetElectricityAmount()
 {
 	// 내가 Poison을 얼마나 가지고 있는지를 나타냄
 	// 0.0f이면 아예 없는 것, 1.0f는 가득 찬 것
-	return 1.0f;
+	return ElectricAmount;
 }
 
 float UConsiderationFactors::GetNearByCave()
@@ -931,11 +931,14 @@ void UConsiderationFactors::ClearConsiderFactors()
 
 void UConsiderationFactors::GetConsiderListData()
 {
+	MyHp = MyCharacter->GetHealthComponent()->GetHealthNormalized();
+	CurTime = GetWorld()->GetTimeSeconds();
 	SearchNearActors();
 
 	SearchNearSpots();
 
-	MyHp = MyCharacter->GetHealthComponent()->GetHealthNormalized();
+
+	
 }
 
 void UConsiderationFactors::SearchNearSpots()
@@ -1036,7 +1039,7 @@ void UConsiderationFactors::SearchNearActors()
 
 	ClearConsiderFactors();
 	
-	bAllowedAttackTime = GetWorld()->GetTimeSeconds() - LastAttackTime > AllowedAttackDuration; 
+	bAllowedAttackTime = CurTime - LastAttackTime > AllowedAttackDuration; 
 
 	// 주변 Actor 탐색
 	if (!OutOverlaps.IsEmpty())
@@ -1066,7 +1069,7 @@ void UConsiderationFactors::SearchNearActors()
 	}
 	else if (!TargetActors.IsEmpty() && bIsInCombat == false)
 	{
-		CombatStartTime = GetWorld()->GetTimeSeconds();
+		CombatStartTime = CurTime;
 		bIsInCombat = true;
 	}
 
@@ -1305,17 +1308,60 @@ PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattleUtilityAIComponent::SelectBestAction()
 {
-
+	if (ConsiderList == nullptr)
+	{
+		return;
+	}
+	
 	CollectConsiderFactors();
 	
-	float BestScore = 0.0f;
-	UBattleUtilityAction* BestAction = nullptr;
 
+	
+	int SelectedActionIdx = CalcActionsScore();
+	
+	UBattleUtilityAction* BestAction = nullptr;
+	
+	if (InstancedActions.IsValidIndex(SelectedActionIdx))
+	{
+		BestAction = InstancedActions[SelectedActionIdx];
+	}
+
+	FUtilityAITotalData UtilityAIDebugData;
+	
+	if (BestAction != nullptr)
+	{
+		if (ActiveAction == nullptr || ActiveAction->IsCompleteAction())
+		{
+			ActiveAction = BestAction;
+			LastActiveTime[SelectedActionIdx] = ConsiderList->CurTime;
+			ActiveAction->SetStartAction();
+			ActiveAction->StartAction();
+			bActionComplete = false;
+
+			UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
+			UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
+			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+		
+			OnScoreChanged.Broadcast(UtilityAIDebugData);
+			
+			WriteSelectBestActionLog(UtilityAIDebugData);
+		}
+	}
+
+	
+	StartTimer();
+	
+
+}
+
+int UBattleUtilityAIComponent::CalcActionsScore()
+{
+	float BestScore = 0.0f;
 	int ActionIdx = 0;
-	int SelectedActionIdx = 0;
+	int SelectedActionIdx = -1;
 	UtilityAIScoreDatas.Empty();
 	
-	float CurTime = GetWorld()->GetTimeSeconds();
+	float CurWorldTime = ConsiderList->CurTime;
 	
 	float SelectedTargetDistance = -1.0f;
 	
@@ -1323,7 +1369,6 @@ void UBattleUtilityAIComponent::SelectBestAction()
 	{
 		SelectedTargetDistance = FVector::Distance(ConsiderList->MyCharacter->GetActorLocation(), ConsiderList->SelectedTarget->GetActorLocation());
 	}
-	
 	
 	for (UBattleUtilityAction* Action : InstancedActions)
 	{
@@ -1334,20 +1379,25 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		float CurScore = 0.0f;
 		
 		// CoolTime이 지났으니 계산
-		if (CurTime - LastActiveTime[ActionIdx] >= Action->GetCoolTime() && CheckActionDistance(Action, SelectedTargetDistance))
+		if (CurWorldTime - LastActiveTime[ActionIdx] >= Action->GetCoolTime() && CheckActionDistance(Action, SelectedTargetDistance))
 		{
 			CurScore = Action->EvaluateScore(ConsiderList);
 		}
 		
-		if (!DebugActionsEnabled[ActionIdx] || !UtilityAIData->ActionConfigs[ActionIdx].IsActive)
+		if (DebugActionsEnabled.Num() == InstancedActions.Num() && !DebugActionsEnabled[ActionIdx])
+		{
+			CurScore = 0.0f;
+		}
+			
+		if (UtilityAIData && UtilityAIData->ActionConfigs.Num() == InstancedActions.Num() && !UtilityAIData->ActionConfigs[ActionIdx].IsActive)
 		{
 			CurScore = 0.0f;
 		}
 		
 		// AgeTime보다 작으면 AgeRate를 적용해서 값을 작게 만듦
-		if (CurTime - LastActiveTime[ActionIdx] <= Action->GetAgeTime())
+		if (CurWorldTime - LastActiveTime[ActionIdx] <= Action->GetAgeTime())
 		{
-			float AgeAlpha = (CurTime - LastActiveTime[ActionIdx]) / Action->GetAgeTime();
+			float AgeAlpha = (CurWorldTime - LastActiveTime[ActionIdx]) / Action->GetAgeTime();
 			
 			CurScore *= FMath::Lerp(Action->GetAgeRate(), 1.0f, AgeAlpha);
 		}
@@ -1360,101 +1410,14 @@ void UBattleUtilityAIComponent::SelectBestAction()
 		if (BestScore < CurScore)
 		{
 			BestScore = CurScore;
-			BestAction = Action;
 			SelectedActionIdx = ActionIdx;
 		}
 		
 		ActionIdx++;
 	}
-
-	FUtilityAITotalData UtilityAIDebugData;
 	
-	if (BestAction != nullptr)
-	{
-		if (ActiveAction == nullptr || ActiveAction->IsCompleteAction())
-		{
-			ActiveAction = BestAction;
-			LastActiveTime[SelectedActionIdx] = CurTime;
-			ActiveAction->SetStartAction();
-			ActiveAction->StartAction();
-			bActionComplete = false;
-
-			UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
-			UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
-			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-		
-			OnScoreChanged.Broadcast(UtilityAIDebugData);
-			
-			FString Line = FString::Printf(TEXT("CurTime: %f, ActiveActionName: %s \n"), UtilityAIDebugData.CurTime, *UtilityAIDebugData.ActiveActionName);
-			
-			for (ActionIdx = 0; ActionIdx < UtilityAIDebugData.UtilityAIScoreData.Num(); ActionIdx++)
-			{
-				FUtilityAIScoreData& ScoreData = UtilityAIDebugData.UtilityAIScoreData[ActionIdx];
-				const FActionConfig& ActionConfig = UtilityAIData->ActionConfigs[ActionIdx];
-				
-				Line += FString::Printf(TEXT("%s(Action Name): %f(TotalScore) \n"), *ActionConfig.ActionClass->GetName(), ScoreData.ActionScore);
-				
-				for (int AxisIdx = 0; AxisIdx < ScoreData.NormalFactorConsiderType.Num(); AxisIdx++)
-				{
-					Line += FString::Printf(TEXT("%s(Axis Name): %f(FinalScore) <= %f(OriginScore) \n"), *EnumToString(ScoreData.NormalFactorConsiderType[AxisIdx]), ScoreData.NormalFactorScoreFinal[AxisIdx], ScoreData.NormalFactorScoreOrigin[AxisIdx]);
-				}
-				
-				if (ScoreData.ArrayFactorScore.Num() >0)
-				{
-					for (int ArrayAxisTargetIdx = 0; ArrayAxisTargetIdx < ScoreData.ArrayFactorScore[0].ArrayFactorScoreFinal.Num(); ArrayAxisTargetIdx++)
-					{
-						Line += FString::Printf(TEXT("Target %d: "), ArrayAxisTargetIdx);
-						for (int ArrayAxisIdx = 0; ArrayAxisIdx <ScoreData.ArrayFactorScore.Num(); ArrayAxisIdx++)
-						{
-							FArrayFactorData& ArrayFactorData = ScoreData.ArrayFactorScore[ArrayAxisIdx];
-							const FAxisConfig& ArrayAxisConfig = ActionConfig.AxisConfigs[ScoreData.NormalFactorScoreFinal.Num() + ArrayAxisIdx];
-							Line += FString::Printf(TEXT("%s(Axis Name): %f(FinalScore) <= %f(OrigineScore)\n"), *EnumToString(ArrayAxisConfig.ConsiderType), ArrayFactorData.ArrayFactorScoreFinal[ArrayAxisTargetIdx], ArrayFactorData.ArrayFactorScoreOrigin[ArrayAxisTargetIdx]);
-						}
-					}
-				}
-			}
-			
-			FFileHelper::SaveStringToFile(Line, *(FPaths::ProjectSavedDir() / TEXT("AIData.txt")),FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
-
-		}
-		// else if (bActionComplete)
-		// {
-		// 	// 액션 수행
-		// 	ActiveAction = BestAction;
-		// 	LastActiveTime[SelectedActionIdx] = CurTime;
-		// 	ActiveAction->StartAction();
-		// 	bActionComplete = false;
-		//
-		// 	UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
-		// 	UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
-		// 	UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-		//
-		// 	OnScoreChanged.Broadcast(UtilityAIDebugData);
-		//
-		// }
-		/*else if (BestAction != ActiveAction && BestAction->GetPriority() > ActiveAction->GetPriority())
-		{
-			// 액션 수행
-			ActiveAction->EndAction();
-		
-			ActiveAction = BestAction;
-			LastActiveTime[SelectedActionIdx] = CurTime;
-			ActiveAction->StartAction();
-			bActionComplete = false;
-
-			UtilityAIDebugData.UtilityAIScoreData = UtilityAIScoreDatas;
-			UtilityAIDebugData.ActiveActionName = ActiveAction->GetName();
-			UtilityAIDebugData.CurTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-		
-			OnScoreChanged.Broadcast(UtilityAIDebugData);
-		
-		}*/
-	}
-
+	return SelectedActionIdx;
 	
-	StartTimer();
-	
-
 }
 
 bool UBattleUtilityAIComponent::CheckActionDistance(UBattleUtilityAction* UtilityAction, float SelectedTargetDistance)
@@ -1524,4 +1487,45 @@ void UBattleUtilityAIComponent::BreakParts(FGameplayTag GameplayTag)
 	{
 		ConsiderList->bBreakRightLeg = true;
 	}
+}
+
+void UBattleUtilityAIComponent::WriteSelectBestActionLog(FUtilityAITotalData& UtilityAIDebugData)
+{
+	if (UtilityAIData == nullptr)
+	{
+		return;
+	}
+	
+	FString Line = FString::Printf(TEXT("CurTime: %f, ActiveActionName: %s \n"), UtilityAIDebugData.CurTime, *UtilityAIDebugData.ActiveActionName);
+			
+	for (int ActionIdx = 0; ActionIdx < UtilityAIDebugData.UtilityAIScoreData.Num(); ActionIdx++)
+	{
+		FUtilityAIScoreData& ScoreData = UtilityAIDebugData.UtilityAIScoreData[ActionIdx];
+		const FActionConfig& ActionConfig = UtilityAIData->ActionConfigs[ActionIdx];
+				
+		Line += FString::Printf(TEXT("%s(Action Name): %f(TotalScore) \n"), *ActionConfig.ActionClass->GetName(), ScoreData.ActionScore);
+				
+		for (int AxisIdx = 0; AxisIdx < ScoreData.NormalFactorConsiderType.Num(); AxisIdx++)
+		{
+			Line += FString::Printf(TEXT("%s(Axis Name): %f(FinalScore) <= %f(OriginScore) \n"), *EnumToString(ScoreData.NormalFactorConsiderType[AxisIdx]), ScoreData.NormalFactorScoreFinal[AxisIdx], ScoreData.NormalFactorScoreOrigin[AxisIdx]);
+		}
+				
+		if (ScoreData.ArrayFactorScore.Num() >0)
+		{
+			for (int ArrayAxisTargetIdx = 0; ArrayAxisTargetIdx < ScoreData.ArrayFactorScore[0].ArrayFactorScoreFinal.Num(); ArrayAxisTargetIdx++)
+			{
+				Line += FString::Printf(TEXT("Target %d: "), ArrayAxisTargetIdx);
+				for (int ArrayAxisIdx = 0; ArrayAxisIdx <ScoreData.ArrayFactorScore.Num(); ArrayAxisIdx++)
+				{
+					FArrayFactorData& ArrayFactorData = ScoreData.ArrayFactorScore[ArrayAxisIdx];
+					const FAxisConfig& ArrayAxisConfig = ActionConfig.AxisConfigs[ScoreData.NormalFactorScoreFinal.Num() + ArrayAxisIdx];
+					Line += FString::Printf(TEXT("%s(Axis Name): %f(FinalScore) <= %f(OrigineScore)\n"), *EnumToString(ArrayAxisConfig.ConsiderType), ArrayFactorData.ArrayFactorScoreFinal[ArrayAxisTargetIdx], ArrayFactorData.ArrayFactorScoreOrigin[ArrayAxisTargetIdx]);
+				}
+			}
+		}
+	}
+			
+	FFileHelper::SaveStringToFile(Line, *(FPaths::ProjectSavedDir() / TEXT("AIData.txt")),FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
+
+	
 }
