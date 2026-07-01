@@ -30,23 +30,15 @@ public:
 	virtual UBattleHealthComponent* GetHealthComponent() const override;
 
 	virtual void PostInitializeComponents() override;
-
-	UFUNCTION(BlueprintCallable)
-	void AttackBreakablePart(FGameplayTag InGameplayTag);
-
-	UFUNCTION(BlueprintCallable)
-	void ChangePhyMatPart(FName BoneName, FGameplayTag InGameplayTag);
 	
 	virtual void HandleDamageToPart(FGameplayTag PartTag, const FVector& AttackDirection) override;
-
-	UFUNCTION(BlueprintCallable)
-	void DestroyParts(TArray<FName> BoneNames);
+	
 
 	UFUNCTION()
-	virtual void OnPoiseBreak(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
+	virtual void OnPoiseBreakRequest(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
 
 	UFUNCTION()
-	virtual void OnGroggyState(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
+	virtual void OnGroggyStateRequest(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude);
 
 protected:
 	

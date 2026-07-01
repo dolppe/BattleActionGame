@@ -24,13 +24,13 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	CachedOwnerCharacter = Cast<ABattleCharacterBase>(MeshComp->GetOwner());
+	ABattleCharacterBase* OwnerCharacter = Cast<ABattleCharacterBase>(MeshComp->GetOwner());
 
-	if (CachedOwnerCharacter)
+	if (OwnerCharacter)
 	{
-		CachedCombatManager = Cast<UBattleCombatManagerComponent>(CachedOwnerCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
-		CachedCombatManager->OnAttackStart();
-		if (CachedOwnerCharacter->IsLocallyControlled() || Cast<AAIController>(CachedOwnerCharacter->GetController()) != nullptr)
+		UBattleCombatManagerComponent* CombatManager = Cast<UBattleCombatManagerComponent>(OwnerCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
+		CombatManager->OnAttackStart();
+		if (OwnerCharacter->IsLocallyControlled() || Cast<AAIController>(OwnerCharacter->GetController()) != nullptr)
 		{
 
 			TArray<FHitResult> HitResultsWithModify;
@@ -38,44 +38,18 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 			for (UAttackCollisionData* CollisionData : CollisionDatas)
 			{
 				TArray<FHitResult> HitResults;
-				CachedCombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->StartCollisionCheck(HitResults, CollisionData);
+				CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->StartCollisionCheck(HitResults, CollisionData);
 
-				if (HitResults.Num() >0)
-				{
-					for (const FHitResult& HitResult : HitResults)
-					{
-						auto Pred = [&HitResult](const FHitResult& OtherHitResult)
-						{
-							return OtherHitResult.HitObjectHandle == HitResult.HitObjectHandle;
-						};
-
-						if (!HitResultsWithModify.ContainsByPredicate(Pred))
-						{
-							HitResultsWithModify.Add(HitResult);
-						}
-					}
-				}
+				MakeUniqueHitResults(HitResults, HitResultsWithModify);
 			}
-
 			
-			if (HitResultsWithModify.Num() >0)
-			{
-				FBattleHitMessage HitMessage;
-
-				HitMessage.HitResults = HitResultsWithModify;
-				HitMessage.WindowIndex = AttackIdx;
-				HitMessage.HitTime = MeshComp->GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-
-				CachedCombatManager->OnHitEvent(HitMessage);
-			}
+			SendHitResults(HitResultsWithModify, CombatManager->GetWorld()->GetGameState()->GetServerWorldTimeSeconds(), CombatManager);
+			
 		}
 	}
 	else
 	{
-		for (UAttackCollisionData* CollisionData : CollisionDatas)
-		{
-			DrawDebugBegin(MeshComp, CollisionData);
-		}
+		DrawDebugBegin(MeshComp);
 	}
 	
 	
@@ -92,76 +66,89 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 	float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
-
-	if (CachedOwnerCharacter && CachedCombatManager)
+	
+	if (ABattleCharacterBase* OwnerCharacter = Cast<ABattleCharacterBase>(MeshComp->GetOwner()))
 	{
-		if (CachedOwnerCharacter->IsLocallyControlled() || Cast<AAIController>(CachedOwnerCharacter->GetController()) != nullptr)
+		if (UBattleCombatManagerComponent* CombatManager = Cast<UBattleCombatManagerComponent>(OwnerCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
 		{
-			TArray<FHitResult> HitResultsWithModify;
-		
-			for (UAttackCollisionData* CollisionData : CollisionDatas)
+			if (OwnerCharacter->IsLocallyControlled() || Cast<AAIController>(OwnerCharacter->GetController()) != nullptr)
 			{
-				if (CachedCombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->IsNeedTick())
+				TArray<FHitResult> HitResultsWithModify;
+		
+				for (UAttackCollisionData* CollisionData : CollisionDatas)
 				{
-					TArray<FHitResult> HitResults;
-					CachedCombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->TickCollisionCheck(HitResults, CollisionData, FrameDeltaTime);
-				
-					if (HitResults.Num() >0)
+					if (CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->IsNeedTick())
 					{
-						for (const FHitResult& HitResult : HitResults)
-						{
-							auto Pred = [&HitResult](const FHitResult& OtherHitResult)
-							{
-								return OtherHitResult.HitObjectHandle == HitResult.HitObjectHandle;
-							};
-
-							if (!HitResultsWithModify.ContainsByPredicate(Pred))
-							{
-								HitResultsWithModify.Add(HitResult);
-							}
-						}
+						TArray<FHitResult> HitResults;
+						CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->TickCollisionCheck(HitResults, CollisionData, FrameDeltaTime);
+				
+						MakeUniqueHitResults(HitResults, HitResultsWithModify);
 					}
 				}
-			}
-		
-			if (HitResultsWithModify.Num() > 0)
-			{
-				FBattleHitMessage HitMessage;
-				HitMessage.HitResults = HitResultsWithModify;
-				HitMessage.WindowIndex = AttackIdx;
-
-				CachedCombatManager->OnHitEvent(HitMessage);
+				SendHitResults(HitResultsWithModify, CombatManager->GetWorld()->GetGameState()->GetServerWorldTimeSeconds(), CombatManager);
 			}
 		}
-		
 	}
 	else
 	{
-		for (UAttackCollisionData* CollisionData : CollisionDatas)
+		DrawDebugTick(MeshComp);
+	}
+}
+
+
+void UAnimNotifyState_AttackWindow::MakeUniqueHitResults(const TArray<FHitResult>& InHitResults,
+	TArray<FHitResult>& OutHitResult)
+{
+	if (InHitResults.Num() >0)
+	{
+		for (const FHitResult& HitResult : InHitResults)
 		{
-			DrawDebugTick(MeshComp, CollisionData);
+			auto Pred = [&HitResult](const FHitResult& OtherHitResult)
+			{
+				return OtherHitResult.HitObjectHandle == HitResult.HitObjectHandle;
+			};
+
+			if (!OutHitResult.ContainsByPredicate(Pred))
+			{
+				OutHitResult.Add(HitResult);
+			}
 		}
 	}
 }
 
-void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData)
+void UAnimNotifyState_AttackWindow::SendHitResults(const TArray<FHitResult>& SendHitResults, float HitTime,
+	UBattleCombatManagerComponent* CombatManager)
+{
+	if (SendHitResults.Num() >0)
+	{
+		FBattleHitMessage HitMessage;
+
+		HitMessage.HitResults = SendHitResults;
+		HitMessage.WindowIndex = AttackIdx;
+		HitMessage.HitTime = HitTime;
+
+		CombatManager->OnHitEvent(HitMessage);
+	}
+}
+
+void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshComp)
 {
 	for (UAttackCollisionData* CollisionData : CollisionDatas)
 	{
 		if (CollisionData->CollisionMethodType == ECollisionMethodType::DirectionalSweep)
 		{
-			UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(MeshComp, AttackCollisionData);
+			UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(MeshComp, CollisionData);
 		}
 	}
 }
 
-void UAnimNotifyState_AttackWindow::DrawDebugTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData)
+void UAnimNotifyState_AttackWindow::DrawDebugTick(USkeletalMeshComponent* MeshComp)
 {
 	for (UAttackCollisionData* CollisionData : CollisionDatas)
 	{
 		if (CollisionData->CollisionMethodType == ECollisionMethodType::SocketBasedLineTrace)
 		{
-			UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(MeshComp, AttackCollisionData);
+			UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(MeshComp, CollisionData);
 		}
 	}
 }

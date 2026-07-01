@@ -13,7 +13,7 @@ UBattleUtilityAction_SearchTarget::UBattleUtilityAction_SearchTarget()
 void UBattleUtilityAction_SearchTarget::StartAction()
 {
 	Super::StartAction();
-	bSelected = false;
+
 	AActor* SelectTarget = nullptr;
 	for (AActor* BestTarget : BestTargets)
 	{
@@ -21,7 +21,7 @@ void UBattleUtilityAction_SearchTarget::StartAction()
 		{
 			continue;
 		}
-		if (BestTarget->IsA(ABattleCharacter::StaticClass()))
+		if (BestTarget->IsA(ABattleCharacterBase::StaticClass()))
 		{
 			SelectTarget = BestTarget;
 			break;
@@ -30,22 +30,23 @@ void UBattleUtilityAction_SearchTarget::StartAction()
 
 	if (SelectTarget == nullptr)
 	{
-		// 도주시 거리가 멀어져서 Distance 안쪽으로 Target이 없는 경우 캐싱해둔 Target 제거
-
 		for (AActor* Target : CachedAIComponent->ConsiderList->TargetActors)
 		{
 			SelectTarget = Target;
 			break;
 		}
 		
-		CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(SelectTarget);
+		if (SelectTarget != nullptr)
+		{
+			CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(SelectTarget);	
+		}
 	}
 	else
 	{
 		CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(SelectTarget);
 	}
 
-	bSelected = true;
+	bIsCompletedAction = true;
 }
 
 void UBattleUtilityAction_SearchTarget::EndAction()
@@ -55,10 +56,7 @@ void UBattleUtilityAction_SearchTarget::EndAction()
 
 void UBattleUtilityAction_SearchTarget::TickAction(float DeltaTime)
 {
-	if (bSelected)
-	{
-		bIsCompletedAction = true;
-	}
+
 }
 
 float UBattleUtilityAction_SearchTarget::EvaluateScore(const UConsiderationFactors* ConsiderList)

@@ -4,6 +4,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGamePhaseAbility)
 
 UBattleGamePhaseAbility::UBattleGamePhaseAbility(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateNo;
 	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;

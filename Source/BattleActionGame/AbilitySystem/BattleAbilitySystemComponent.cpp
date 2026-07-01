@@ -21,10 +21,14 @@ UBattleAbilitySystemComponent::UBattleAbilitySystemComponent(const FObjectInitia
 
 void UBattleAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (UBattleGlobalAbilitySystem* GlobalAbilitySystem = GetWorld()->GetSubsystem<UBattleGlobalAbilitySystem>())
+	if (GetWorld())
 	{
-		GlobalAbilitySystem->UnregisterASC(this);
+		if (UBattleGlobalAbilitySystem* GlobalAbilitySystem = GetWorld()->GetSubsystem<UBattleGlobalAbilitySystem>())
+		{
+			GlobalAbilitySystem->UnregisterASC(this);
+		}	
 	}
+	
 	Super::EndPlay(EndPlayReason);
 }
 

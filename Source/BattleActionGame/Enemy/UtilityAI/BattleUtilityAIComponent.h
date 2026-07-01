@@ -293,9 +293,13 @@ public:
 	float LastAttackTime = -1000.f;
 	bool bAllowedAttackTime = false;
 	const float AllowedAttackDuration = 1.0f;
+	float CurTime = 0.f;
 	
 	float CombatStartTime = -1;
 
+	float PoisonAmount = 1.0f;
+	float ElectricAmount = 1.0f;
+	
 	float BestCombatTime;
 	float ThreatCharacterNum;
 
@@ -340,6 +344,7 @@ public:
 	void CollectConsiderFactors();
 	
 	void SelectBestAction();
+	int CalcActionsScore();
 	
 	bool CheckActionDistance(UBattleUtilityAction* UtilityAction, float SelectedTargetDistance);
 
@@ -362,6 +367,16 @@ public:
 			DebugActionsEnabled[Index] = bEnabled;
 		}
 	}
+	
+	TArray<TObjectPtr<UBattleUtilityAction>>& GetInstancedActions()
+	{
+		return InstancedActions;
+	}
+	
+	TArray<float>& GetLastActiveTime()
+	{
+		return LastActiveTime;
+	}
 
 	friend class UBattleUtilityAxis;
 	friend class UBattleUtilityArrayAxis;
@@ -375,6 +390,8 @@ public:
 	FUtilityAIScoreDelegate OnScoreChanged;
 	
 protected:
+	
+	void WriteSelectBestActionLog(FUtilityAITotalData& UtilityAIDebugData);
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<const UBattleUtilityAIData> UtilityAIData;

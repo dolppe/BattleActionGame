@@ -84,7 +84,7 @@ public:
 
 	virtual float CalcValue(float InValue) override;
 	virtual EAxisType GetAxisType() override;
-	TArray<float> GetArrayValue();
+	virtual TArray<float> GetArrayValue();
 
 protected:
 	

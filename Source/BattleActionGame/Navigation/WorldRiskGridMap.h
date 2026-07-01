@@ -10,6 +10,17 @@ USTRUCT(BlueprintType)
 struct FRiskCellOffset
 {
 	GENERATED_BODY()
+	
+	FRiskCellOffset()
+	{
+		
+	}
+	
+	FRiskCellOffset(int IndX, int IndY, float InRiskValue)
+		: dX(IndX), dY(IndY), RiskValue(InRiskValue)
+	{
+		
+	}
 
 	UPROPERTY(EditAnywhere)
 	int dX;
@@ -42,6 +53,9 @@ struct FGridMapInitData
 
 	UPROPERTY(EditDefaultsOnly)
 	float AllowUpdateTime = 5.0f;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float RiskWeight = 2.0f;
 };
 
 
@@ -69,8 +83,14 @@ struct FGridChunk
 		
 	}
 	
-	FIntPoint GetCellIdx(const FVector& Location);
-	float GetRiskValue(const FVector& Location);
+	FGridChunk()
+	{
+		
+	}
+	
+	FIntPoint GetCellIdx(const FVector& Location) const;
+	float GetRiskValue(const FVector& Location) const;
+	float GetRiskValue(FIntPoint CellIdx) const;
 	
 	void UpdateChunk();
 	void SetRiskValue(const FVector& Location);
@@ -104,6 +124,7 @@ public:
 	
 	float GetRiskValue(const FVector& Location);
 	void UpdateRisk(const FVector& Location);
+	bool GetChunk(const FVector& Location, FGridChunk& OutChunk);
 
 	FGridMapInitData InitData;
 

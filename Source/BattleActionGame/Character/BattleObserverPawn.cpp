@@ -35,6 +35,7 @@ void ABattleObserverPawn::SetDefaultData(const UBattlePawnData& PawnData)
 {
 	if (HasAuthority())
 	{
+		
 		InputData = PawnData.ObserverInputData;
 		InputConfigs = PawnData.ObserverInputConfigs;
 		DefaultCameraMode = PawnData.ObserverDefaultCameraMode;		

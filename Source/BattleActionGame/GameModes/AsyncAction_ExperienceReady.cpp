@@ -58,7 +58,10 @@ void UAsyncAction_ExperienceReady::Step2_ListenToExperienceLoading(AGameStateBas
 	check(GameState);
 
 	UBattleExperienceManagerComponent* ExperienceManagerComponent = GameState->FindComponentByClass<UBattleExperienceManagerComponent>();
-	check (ExperienceManagerComponent);
+	if (ExperienceManagerComponent == nullptr)
+	{
+		return;
+	}
 
 	if (ExperienceManagerComponent->IsExperienceLoaded())
 	{

@@ -73,8 +73,14 @@ void ABattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PawnExtComponent->SetupPlayerInputComponent();
-	GetHeroComponent()->InitilizePlayerInput(PlayerInputComponent);
+	if (PawnExtComponent)
+	{
+		PawnExtComponent->SetupPlayerInputComponent();
+	}
+	if (GetHeroComponent())
+	{
+		GetHeroComponent()->InitilizePlayerInput(PlayerInputComponent);
+	}
 }
 
 void ABattleCharacter::OnDeathStarted(AActor* OwningActor)
@@ -154,7 +160,7 @@ void ABattleCharacter::StartCriticalHit(FVector ImpactPoint, ABattleCharacterBas
 	TargetActor->NetStopMotion(0.7f, 0.01f);
 	
 	FVector HitDir = (ImpactPoint - GetActorLocation()).GetSafeNormal();
-	float ImpactPointLength = HitDir.Length();
+	float ImpactPointLength = FVector::Dist2D(ImpactPoint, GetActorLocation());
 	
 	FVector SideDir = FVector::CrossProduct(HitDir, FVector::UpVector);
 	SideDir = SideDir.GetSafeNormal();
@@ -247,11 +253,11 @@ void ABattleCharacter::UnPossessed()
 void ABattleCharacter::HandleImpactDamage(AActor* DamageInstigator, AActor* DamageCauser,
 	const FGameplayEffectSpec& DamageEffectSpec, float DamageMagnitude)
 {
-	if (DamageMagnitude >= 50.0f)
+	if (DamageMagnitude >= GroggyThreshold)
 	{
 		PerformGroggy();
 	}
-	else if (DamageMagnitude >= 25.f)
+	else if (DamageMagnitude >= PoiseBreakThreshold)
 	{
 		PerformPoiseBreak();
 	}

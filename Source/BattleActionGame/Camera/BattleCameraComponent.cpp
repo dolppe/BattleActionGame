@@ -25,12 +25,6 @@ void UBattleCameraComponent::UpdateCameraModes()
 	
 }
 
-void UBattleCameraComponent::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayTag& OutTagOfTopLayer) const
-{
-	check(CameraModeStack);
-	CameraModeStack->GetBlendInfo(OutWeightOfTopLayer, OutTagOfTopLayer);
-}
-
 void UBattleCameraComponent::OnRegister()
 {
 	Super::OnRegister();

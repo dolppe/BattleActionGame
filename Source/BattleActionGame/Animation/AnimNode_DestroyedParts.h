@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNodeBase.h"
+#include "BattleActionGame/Physics/BrokenPartActor.h"
 #include "AnimNode_DestroyedParts.generated.h"
 
 class ABrokenPartActor;
@@ -15,6 +16,8 @@ public:
 	// Input link
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Links)
 	FComponentSpacePoseLink ComponentPose;
+	
+	bool MakeBoneTransforms(TArray<FBoneTransform>& OutBoneTransform, TArray<FBoneInfo>& BoneInfos);
 
 	// FAnimNode_Base interface
 	virtual bool HasPreUpdate() const override { return true; }

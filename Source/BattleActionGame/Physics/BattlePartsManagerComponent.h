@@ -17,11 +17,11 @@ enum class EPartEventType : uint8
 };
 
 USTRUCT()
-struct FDismemberedLimbFrameDelay
+struct FDestroyedPartsData
 {
 	GENERATED_BODY()
 
-	FDismemberedLimbFrameDelay(){};
+	FDestroyedPartsData(){};
 	
 	UPROPERTY()
 	FName BoneName = NAME_None;
@@ -48,7 +48,7 @@ struct FPartEventData
 	UPROPERTY(EditAnywhere)
 	EPartEventType EventType;
 
-	UPROPERTY(EditAnywhere, meta=(EditCondition="TriggerType == ETriggerType::Damage"))
+	UPROPERTY(EditAnywhere, meta=(EditCondition="EventType == EPartEventType::Damage"))
 	TEnumAsByte<EPhysicalSurface> NextSurfaceType;
 	
 };
@@ -124,7 +124,7 @@ protected:
 	void DetachedFrameDelayed();
 
 	UPROPERTY()
-	TArray<FDismemberedLimbFrameDelay> FrameDelayedDismemberedLimbs;
+	TArray<FDestroyedPartsData> FrameDelayedDestroyedPartsDatas;
 	
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<EPhysicalSurface> DefaultSurfaceType = EPhysicalSurface::SurfaceType_Default;

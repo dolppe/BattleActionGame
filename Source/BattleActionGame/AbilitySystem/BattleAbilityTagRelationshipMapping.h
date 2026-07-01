@@ -8,7 +8,8 @@ USTRUCT()
 struct FBattleAbilityTagRelationship
 {
 	GENERATED_BODY()
-
+	
+public:
 	UPROPERTY(EditAnywhere, Category=Ability, meta = (Categories = "Gameplay.Action"))
 	FGameplayTag AbilityTag;
 
@@ -35,15 +36,17 @@ class UBattleAbilityTagRelationshipMapping : public UDataAsset
 {
 	GENERATED_BODY()
 
-private:
-	
-	UPROPERTY(EditAnywhere, Category=Ability, meta=(TitleProperty="AbilityTag"))
-	TArray<FBattleAbilityTagRelationship> AbilityTagRelationships;
-
 public:
 	
 	void GetAbilityTagsToBlockAndCancel(const FGameplayTagContainer& AbilityTags, FGameplayTagContainer* OutTagsToBlock, FGameplayTagContainer* OutTagsToCancel) const;
 	
 	void GetRequiredAndBlockedActivationTags(const FGameplayTagContainer& AbilityTags, FGameplayTagContainer* OutActivationRequired, FGameplayTagContainer* OutActivationBlocked) const;
+	
+protected:
+	
+	UPROPERTY(EditAnywhere, Category=Ability, meta=(TitleProperty="AbilityTag"))
+	TArray<FBattleAbilityTagRelationship> AbilityTagRelationships;
+
+
 	
 };

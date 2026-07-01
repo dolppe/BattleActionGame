@@ -43,9 +43,9 @@ public:
 	TArray<FBattleMappableConfigPair> ObserverInputConfigs;
 
 	UPROPERTY(EditDefaultsOnly, Category="Battle|AIController")
-	TSubclassOf<UBattleGameplayAbility_Attack_Parent> ComboGA;
+	TSubclassOf<UBattleGameplayAbility_Attack_Parent> AIComboGA;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Battle|AIController")
-	TSubclassOf<UBattleGameplayAbility_Attack_Parent> ComboStrongGA;
+	TSubclassOf<UBattleGameplayAbility_Attack_Parent> AIComboStrongGA;
 };
 

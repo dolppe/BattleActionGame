@@ -72,6 +72,10 @@ struct FBattleAbilitySet_GrantedHandles
 	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* Set);
 
+	const TArray<FGameplayAbilitySpecHandle>& GetGameplayAbilityHandes() const;
+	const TArray<FActiveGameplayEffectHandle>& GetGameplayEffectHandles() const;
+	const TArray<TObjectPtr<UAttributeSet>>& GetAttributeSets() const;
+	
 	
 	void TakeFromAbilitySystem(UBattleAbilitySystemComponent* BattleASC);
 	

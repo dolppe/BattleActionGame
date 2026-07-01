@@ -140,7 +140,6 @@ public:
 
 private:
 	
-	TArray<FVector> GetBestSpots() const;
 	TArray<FVector> GetTargetSpots() const;
 
 	UPROPERTY(EditAnywhere)
@@ -181,7 +180,6 @@ public:
 
 private:
 	
-	TArray<FVector> GetBestSpots() const;
 	TArray<FVector> GetTargetSpots() const;
 
 	UPROPERTY(EditDefaultsOnly)

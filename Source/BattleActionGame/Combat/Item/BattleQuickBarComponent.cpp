@@ -165,20 +165,27 @@ bool UBattleQuickBarComponent::UseItemQuantity(int Quantity)
 		}
 		else if (Slots[Idx].Num == Quantity)
 		{
-			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(GetPawn<ABattleCharacterBase>()->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+			if (ABattleCharacterBase* Character = GetPawn<ABattleCharacterBase>())
 			{
-				CombatManagerComponent->CurrentUsedItemInfo = Slots[ActiveSlotIndex];
+				if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+				{
+					CombatManagerComponent->CurrentUsedItemInfo = Slots[ActiveSlotIndex];
+				}
 			}
 			RemoveItemFromSlot(Idx);
 		}
 		else
 		{
-			if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(GetPawn<ABattleCharacterBase>()->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+			if (ABattleCharacterBase* Character = GetPawn<ABattleCharacterBase>())
 			{
-				CombatManagerComponent->CurrentUsedItemInfo = Slots[ActiveSlotIndex];
+				if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(Character->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
+				{
+					CombatManagerComponent->CurrentUsedItemInfo = Slots[ActiveSlotIndex];
+				}	
 			}
-			OnRep_Slots();
+			
 			Slots[Idx].Num -= Quantity;
+			OnRep_Slots();
 		}
 
 		if (APlayerController* PC = Cast<APlayerController>(GetOwner()))

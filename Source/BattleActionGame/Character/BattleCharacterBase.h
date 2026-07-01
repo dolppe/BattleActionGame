@@ -53,6 +53,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void PerformPoiseBreak();
 	
+	virtual void OnGroggy();
+	
+	virtual void OnPoiseBreak();
+	
+	
+	
+	FTimerHandle StopMotionHandle;
+	
 protected:
 	
 	UFUNCTION(NetMulticast, Unreliable)
@@ -88,7 +96,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TMap<TEnumAsByte<EPhysicalSurface>, UPhysicalMaterial*> PhysicalSurfaceMap;
 
-	FTimerHandle StopMotionHandle;
+
 	
 	
 };

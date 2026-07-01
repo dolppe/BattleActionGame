@@ -85,13 +85,15 @@ void ABattleCharacterBase::MulticastPlayMontage_Implementation(UAnimMontage* Ani
 {
 	BA_DEFAULT_LOG(LogBattle, Log, TEXT("Multicast Start"));
 	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	UAnimInstance * AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr;
-	if (AnimInstance->Montage_IsPlaying(AnimMontage))
+	if (UAnimInstance * AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr)
 	{
-		return;
-	}
+		if (AnimInstance->Montage_IsPlaying(AnimMontage))
+		{
+			return;
+		}
 
-	PlayAnimMontage(AnimMontage, InPlayRate, StartSectionName);
+		PlayAnimMontage(AnimMontage, InPlayRate, StartSectionName);	
+	}
 }
 
 
@@ -133,6 +135,8 @@ void ABattleCharacterBase::PerformGroggy()
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
 	}
 	
+	OnGroggy();
+	
 }
 
 void ABattleCharacterBase::PerformPoiseBreak()
@@ -144,6 +148,16 @@ void ABattleCharacterBase::PerformPoiseBreak()
 		
 		bool bTrySuccess = ASC->TryActivateAbilitiesByTag(GameplayTags);
 	}
+	
+	OnPoiseBreak();
+}
+
+void ABattleCharacterBase::OnGroggy()
+{
+}
+
+void ABattleCharacterBase::OnPoiseBreak()
+{
 }
 
 void ABattleCharacterBase::ServerJumpToSection_Implementation(UAnimMontage* AnimMontage, FName SectionName)
@@ -154,45 +168,19 @@ void ABattleCharacterBase::ServerJumpToSection_Implementation(UAnimMontage* Anim
 void ABattleCharacterBase::MulticastJumpToSection_Implementation(UAnimMontage* AnimMontage, FName SectionName)
 {
 	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	UAnimInstance * AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr;
-	AnimInstance->Montage_JumpToSection(SectionName, AnimMontage);
+	UAnimInstance* AnimInstance = (CharacterMesh)? CharacterMesh->GetAnimInstance() : nullptr;
 	
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("JumpToSection Multicast Start"));
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->Montage_JumpToSection(SectionName, AnimMontage);
+	
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("JumpToSection Multicast Start"));	
+	}
+	
 }
 
 void ABattleCharacterBase::MulticastStopMotion_Implementation(float StopSeconds, float TimeDilation)
 {
-	// if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-	// {
-	// 	if (FAnimMontageInstance* MontageInstance = AnimInstance->GetActiveMontageInstance())
-	// 	{
-	// 		if (!MontageInstance->IsPlaying())
-	// 		{
-	// 			return;
-	// 		}
-	// 		MontageInstance->Pause();
-	// 		GetWorldTimerManager().SetTimer(StopMotionHandle,
-	// 			[this]()
-	// 			{
-	// 				this->ResumeMotion();
-	// 			},
-	// 			StopSeconds, false
-	// 		);
-	// 	}
-	// 	else
-	// 	{
-	// 		this->CustomTimeDilation = 0.0f;
-	//
-	// 		GetWorldTimerManager().SetTimer(StopMotionHandle,
-	// 			[this]()
-	// 			{
-	// 				this->CustomTimeDilation = 1.0f;
-	// 			},
-	// 			StopSeconds, false
-	// 		);
-	// 	}
-	// }
-
 	this->CustomTimeDilation = TimeDilation;
 
 	GetWorldTimerManager().SetTimer(StopMotionHandle,

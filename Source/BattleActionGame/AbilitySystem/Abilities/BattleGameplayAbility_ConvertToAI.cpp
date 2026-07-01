@@ -23,59 +23,70 @@ void UBattleGameplayAbility_ConvertToAI::ActivateAbility(const FGameplayAbilityS
 	{
 		if (ABattleObserverPawn* ObserverPawn = AvatarCharacter->GetObserverPawn())
 		{
-			AController* Controller = AvatarCharacter->GetController();
-			Controller->Possess(ObserverPawn);
-			
-			ABattlePlayerAIController* PlayerAIController = AvatarCharacter->GetAiController();
-			PlayerAIController->Possess(AvatarCharacter);
+			if (AController* Controller = AvatarCharacter->GetController())
+			{
+				if (ABattlePlayerAIController* PlayerAIController = AvatarCharacter->GetAiController())
+				{
+					Controller->Possess(ObserverPawn);			
+					PlayerAIController->Possess(AvatarCharacter);
+					FTimerHandle TimerHandle;
+	
+					GetWorld()->GetTimerManager().SetTimer(TimerHandle,[this]()
+					{
+						this->EndAbility(this->GetCurrentAbilitySpecHandle(), this->GetCurrentActorInfo(), this->GetCurrentActivationInfo(), true, false);
+					}, 1.f, false);
+					return;
+				}
+			}
 		}
 		else
 		{
-			FActorSpawnParameters SpawnParams;
-			
-			SpawnParams.Owner = AvatarCharacter->GetController();
-			SpawnParams.Instigator = AvatarCharacter;
-			FVector SpawnTransform = AvatarCharacter->GetActorLocation();
-			
-			ABattleObserverPawn* NewObserverPawn = GetWorld()->SpawnActor<ABattleObserverPawn>(SpawnTransform, FRotator::ZeroRotator, SpawnParams);
-			
-			NewObserverPawn->AttachToActor(AvatarCharacter, FAttachmentTransformRules::SnapToTargetIncludingScale);
-			UBattlePawnExtensionComponent* PawnExtensionComp = Cast<UBattlePawnExtensionComponent>(AvatarCharacter->GetComponentByClass(UBattlePawnExtensionComponent::StaticClass()));
-			const UBattlePawnData* PawnData = nullptr; 
-			if (PawnExtensionComp != nullptr)
+			if (UBattlePawnExtensionComponent* PawnExtensionComp = Cast<UBattlePawnExtensionComponent>(AvatarCharacter->GetComponentByClass(UBattlePawnExtensionComponent::StaticClass())))
 			{
-				PawnData = PawnExtensionComp->GetPawnData<UBattlePawnData>();
+				if (AController* Controller = AvatarCharacter->GetController())
+				{
+					if (const UBattlePawnData* PawnData = PawnExtensionComp->GetPawnData<UBattlePawnData>())
+					{
+						if (CheckValidPawnDataForConvertToAI(*PawnData))
+						{
+							FActorSpawnParameters SpawnParams;
+			
+							SpawnParams.Owner = AvatarCharacter->GetController();
+							SpawnParams.Instigator = AvatarCharacter;
+							{
+								FVector SpawnTransform = AvatarCharacter->GetActorLocation();
+								ABattleObserverPawn* NewObserverPawn = GetWorld()->SpawnActor<ABattleObserverPawn>(SpawnTransform, FRotator::ZeroRotator, SpawnParams);
+								NewObserverPawn->AttachToActor(AvatarCharacter, FAttachmentTransformRules::SnapToTargetIncludingScale);
+								NewObserverPawn->SetDefaultData(*PawnData);
+								AvatarCharacter->SetObserverPawn(NewObserverPawn);
+						
+								Controller->Possess(NewObserverPawn);
+							}
+							{
+								ABattlePlayerAIController* PlayerAIController = GetWorld()->SpawnActor<ABattlePlayerAIController>(SpawnParams);
+								AvatarCharacter->SetAIController(PlayerAIController);
+						
+								PlayerAIController->SetAttackGA(PawnData->AIComboGA, PawnData->AIComboStrongGA);
+								PlayerAIController->Possess(AvatarCharacter);
+							}
+							
+							FTimerHandle TimerHandle;
+	
+							GetWorld()->GetTimerManager().SetTimer(TimerHandle,[this]()
+							{
+								this->EndAbility(this->GetCurrentAbilitySpecHandle(), this->GetCurrentActorInfo(), this->GetCurrentActivationInfo(), true, false);
+							}, 1.f, false);
+							return;
+						}
+					}
+				}
 			}
-			if (PawnData != nullptr)
-			{
-				NewObserverPawn->SetDefaultData(*PawnExtensionComp->GetPawnData<UBattlePawnData>());
-			}
-			
-			AvatarCharacter->SetObserverPawn(NewObserverPawn);
-			
-			AController* Controller = AvatarCharacter->GetController();
-			Controller->Possess(NewObserverPawn);
-			
-			ABattlePlayerAIController* PlayerAIController = GetWorld()->SpawnActor<ABattlePlayerAIController>(SpawnParams);
-			AvatarCharacter->SetAIController(PlayerAIController);
-			if (PawnData != nullptr)
-			{
-				PlayerAIController->SetAttackGA(PawnData->ComboGA, PawnData->ComboStrongGA);
-			}
-			
-			PlayerAIController->Possess(AvatarCharacter);
-
 		}
 	}
 	
-	FTimerHandle TimerHandle;
 	
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle,[this]()
-	{
-		this->EndAbility(this->GetCurrentAbilitySpecHandle(), this->GetCurrentActorInfo(), this->GetCurrentActivationInfo(), true, false);
-	}, 1.f, false);
 	
-	//EndAbility(GetCurrentAbilitySpecHandle(), ActorInfo, ActivationInfo, true, false);
+	EndAbility(GetCurrentAbilitySpecHandle(), ActorInfo, ActivationInfo, true, true);
 }
 
 void UBattleGameplayAbility_ConvertToAI::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -83,4 +94,30 @@ void UBattleGameplayAbility_ConvertToAI::EndAbility(const FGameplayAbilitySpecHa
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+bool UBattleGameplayAbility_ConvertToAI::CheckValidPawnDataForConvertToAI(const UBattlePawnData& PawnData)
+{
+	if (PawnData.ObserverInputData == nullptr)
+	{
+		return false;
+	}
+	if (PawnData.ObserverDefaultCameraMode == nullptr)
+	{
+		return false;
+	}
+	if (PawnData.ObserverInputConfigs.IsEmpty())
+	{
+		return false;
+	}
+	if (PawnData.AIComboGA == nullptr)
+	{
+		return false;
+	}
+	if (PawnData.AIComboStrongGA == nullptr)
+	{
+		return false;
+	}
+	
+	return true;
 }
