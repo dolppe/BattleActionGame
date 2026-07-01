@@ -34,12 +34,17 @@ dtReal FRecastQueryFilter_CustomCost::getVirtualCost(const dtReal* pa, const dtR
 {
 	dtReal Distance = dtVdist(pa, pb);
 	
-	float RiskWeight = 2.0f;
-	float RiskValue = RiskGridMapSubSystem->GetRiskValue(FVector(-pb[0], -pb[2], pb[1])) * RiskWeight * Distance;
-
 	const dtReal areaChangeCost = nextPoly != 0 && nextPoly->getArea() != curPoly->getArea()
-		? data.m_areaFixedCost[nextPoly->getArea()] : 0.f;
-
+	? data.m_areaFixedCost[nextPoly->getArea()] : 0.f;
+	
+	if (RiskGridMapSubSystem == nullptr)
+	{
+		return Distance * data.m_areaCost[curPoly->getArea()] + areaChangeCost;
+	}
+	
+	float RiskWeight = RiskGridMapSubSystem->InitData.RiskWeight;
+	float RiskValue = RiskGridMapSubSystem->GetRiskValue(FVector(-pb[0], -pb[2], pb[1])) * RiskWeight * Distance;
+	
 	return Distance * data.m_areaCost[curPoly->getArea()] + areaChangeCost + RiskValue;
 }
 

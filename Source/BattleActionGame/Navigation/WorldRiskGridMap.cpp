@@ -7,7 +7,7 @@
 
 PRAGMA_DISABLE_OPTIMIZATION
 
-FIntPoint FGridChunk::GetCellIdx(const FVector& Location)
+FIntPoint FGridChunk::GetCellIdx(const FVector& Location) const
 {
 	float DiffX = Location.X - (CenterLocation.X - GridMapSubSystem->InitData.ChunkSize/2); 
 	float DiffY = Location.Y - (CenterLocation.Y - GridMapSubSystem->InitData.ChunkSize/2);
@@ -19,7 +19,7 @@ FIntPoint FGridChunk::GetCellIdx(const FVector& Location)
 	
 }
 
-float FGridChunk::GetRiskValue(const FVector& Location)
+float FGridChunk::GetRiskValue(const FVector& Location) const
 {
 	FIntPoint CellIdx = GetCellIdx(Location);
 
@@ -40,6 +40,16 @@ float FGridChunk::GetRiskValue(const FVector& Location)
 		//DrawDebugLine(GridMapSubSystem->GetWorld(), LineStart, LineEnd, FColor::Green, false, 10.0, 0, 5.0f);
 		return 0.0f;
 	}
+}
+
+float FGridChunk::GetRiskValue(FIntPoint CellIdx) const
+{
+	if (RiskCellMap.Contains(CellIdx))
+	{
+		return RiskCellMap[CellIdx].RiskValue;
+	}
+	
+	return 0.0f;
 }
 
 void FGridChunk::UpdateChunk()
@@ -272,5 +282,22 @@ void UWorldRiskGridMapSubSystem::UpdateRisk(const FVector& Location)
 	}
 	
 }
+
+bool UWorldRiskGridMapSubSystem::GetChunk(const FVector& Location, FGridChunk& OutChunk)
+{	
+	FIntPoint ChunkIdx = GetChunkIdx(Location);
+	if (ChunkIdx == FIntPoint::NoneValue)
+	{
+		return false;
+	}
+	
+	if (GridRiskMap.Contains(ChunkIdx))
+	{
+		OutChunk = GridRiskMap[ChunkIdx];
+		return true;
+	}
+	return false;
+}
+
 
 PRAGMA_ENABLE_OPTIMIZATION

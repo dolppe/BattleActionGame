@@ -16,6 +16,10 @@ struct FGridRiskOffset
 };
 
 
+/*
+ * 단점이 있어서 WorldRiskGridMap을 사용함
+ */
+
 UCLASS(Blueprintable, Meta=(BlueprintSpawnableComponent))
 class UGridRiskMapComponent : public UActorComponent
 {
