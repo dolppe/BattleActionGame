@@ -25,6 +25,8 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
 	ABattleCharacterBase* OwnerCharacter = Cast<ABattleCharacterBase>(MeshComp->GetOwner());
+	
+	TMap<int, FAttackCollisionDebugSpec> CollisionDebugSpecArr;
 
 	if (OwnerCharacter)
 	{
@@ -34,23 +36,28 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 		{
 
 			TArray<FHitResult> HitResultsWithModify;
-			
+			int Idx = 0;
 			for (UAttackCollisionData* CollisionData : CollisionDatas)
 			{
 				TArray<FHitResult> HitResults;
-				CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->StartCollisionCheck(HitResults, CollisionData);
+				FAttackCollisionDebugSpec CollisionDebugSpec;
+				
+				CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->StartCollisionCheck(HitResults, CollisionData, CollisionDebugSpec);
 
 				MakeUniqueHitResults(HitResults, HitResultsWithModify);
+				
+				CollisionDebugSpecArr.Add(Idx, CollisionDebugSpec);
+				Idx++;
 			}
 			
 			SendHitResults(HitResultsWithModify, CombatManager->GetWorld()->GetGameState()->GetServerWorldTimeSeconds(), CombatManager);
 			
 		}
 	}
-	else
-	{
-		DrawDebugBegin(MeshComp);
-	}
+	
+#if 1
+		DrawDebugBegin(MeshComp, CollisionDebugSpecArr);
+#endif
 	
 	
 }
@@ -67,6 +74,8 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
 	
+	TMap<int, FAttackCollisionDebugSpec> CollisionDebugSpecArr;
+	
 	if (ABattleCharacterBase* OwnerCharacter = Cast<ABattleCharacterBase>(MeshComp->GetOwner()))
 	{
 		if (UBattleCombatManagerComponent* CombatManager = Cast<UBattleCombatManagerComponent>(OwnerCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
@@ -74,25 +83,29 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 			if (OwnerCharacter->IsLocallyControlled() || Cast<AAIController>(OwnerCharacter->GetController()) != nullptr)
 			{
 				TArray<FHitResult> HitResultsWithModify;
-		
+				int Idx = 0;
+				
 				for (UAttackCollisionData* CollisionData : CollisionDatas)
 				{
+					FAttackCollisionDebugSpec CollisionDebugSpec;
 					if (CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->IsNeedTick())
 					{
 						TArray<FHitResult> HitResults;
-						CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->TickCollisionCheck(HitResults, CollisionData, FrameDeltaTime);
+						CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->TickCollisionCheck(HitResults, CollisionData, FrameDeltaTime, CollisionDebugSpec);
 				
 						MakeUniqueHitResults(HitResults, HitResultsWithModify);
 					}
+					CollisionDebugSpecArr.Add(Idx, CollisionDebugSpec);
+					Idx++;
 				}
 				SendHitResults(HitResultsWithModify, CombatManager->GetWorld()->GetGameState()->GetServerWorldTimeSeconds(), CombatManager);
 			}
 		}
 	}
-	else
-	{
-		DrawDebugTick(MeshComp);
-	}
+	
+#if 0
+	DrawDebugTick(MeshComp, CollisionDebugSpecArr);
+#endif
 }
 
 
@@ -131,25 +144,65 @@ void UAnimNotifyState_AttackWindow::SendHitResults(const TArray<FHitResult>& Sen
 	}
 }
 
-void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshComp)
+void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshComp,
+	TMap<int, FAttackCollisionDebugSpec>& CollisionDebugSpecMap)
 {
+	if (MeshComp->GetWorld() != nullptr)
+	{
+		if (ACharacter* OwnerCharacter = Cast<ACharacter>(MeshComp->GetOwner()))
+		{
+			if (!OwnerCharacter->IsLocallyControlled())
+			{
+				return;
+			}
+		}
+		
+	}
+	
+	int Idx = 0;
 	for (UAttackCollisionData* CollisionData : CollisionDatas)
 	{
 		if (CollisionData->CollisionMethodType == ECollisionMethodType::DirectionalSweep)
 		{
-			UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(MeshComp, CollisionData);
+			FAttackCollisionDebugSpec CollisionDebugSpec;
+			if (CollisionDebugSpecMap.Find(Idx))
+			{
+				CollisionDebugSpec = CollisionDebugSpecMap[Idx];
+			}
+			UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(MeshComp, CollisionData, CollisionDebugSpec);
 		}
+		
+		Idx++;
 	}
 }
 
-void UAnimNotifyState_AttackWindow::DrawDebugTick(USkeletalMeshComponent* MeshComp)
+void UAnimNotifyState_AttackWindow::DrawDebugTick(USkeletalMeshComponent* MeshComp,
+	TMap<int, FAttackCollisionDebugSpec>& CollisionDebugSpecMap)
 {
+	if (MeshComp->GetWorld() != nullptr)
+	{
+		if (MeshComp->GetNetMode() == ENetMode::NM_DedicatedServer || MeshComp->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			return;
+		}
+	}
+	
+	int Idx = 0;
+	
 	for (UAttackCollisionData* CollisionData : CollisionDatas)
 	{
 		if (CollisionData->CollisionMethodType == ECollisionMethodType::SocketBasedLineTrace)
 		{
-			UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(MeshComp, CollisionData);
+			FAttackCollisionDebugSpec CollisionDebugSpec;
+			if (CollisionDebugSpecMap.Find(Idx))
+			{
+				CollisionDebugSpec = CollisionDebugSpecMap[Idx];
+			}
+			
+			UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(MeshComp, CollisionData, CollisionDebugSpec);
 		}
+		Idx++;
 	}
 }
+
 

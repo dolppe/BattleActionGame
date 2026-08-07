@@ -74,7 +74,10 @@ public:
 	float AttackRange = 10.f;
 
 	UPROPERTY(EditAnywhere, Category=CollisionData)
-	float AttackRotationOffset;
+	float AttackYawOffset;
+	
+	UPROPERTY(EditAnywhere, Category=CollisionData)
+	float AttackPitchOffset;
 	
 };
 

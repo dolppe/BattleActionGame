@@ -8,9 +8,8 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AttackCollisionMethod_SocketBasedLineTrace)
 
-
 void UAttackCollisionMethod_SocketBasedLineTrace::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
-	UAttackCollisionData* AttackCollisionData)
+	UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec)
 {
 	UAttackCollisionData_SocketBasedLineTrace* SocketCollisionData = Cast<UAttackCollisionData_SocketBasedLineTrace>(AttackCollisionData);
 	StartName = SocketCollisionData->StartSocketName;
@@ -25,6 +24,10 @@ void UAttackCollisionMethod_SocketBasedLineTrace::StartCollisionCheck(TArray<FHi
 	PreviousStart = MeshComponent->GetSocketLocation(*StartName);
 	PreviousEnd = MeshComponent->GetSocketLocation(*EndName);
 	PreviousMiddle = FMath::Lerp(PreviousStart, PreviousEnd, 0.5f);
+	
+	OutCollisionDebugSpec.StartArr.Add(PreviousStart);
+	OutCollisionDebugSpec.EndArr.Add(PreviousEnd);
+	
 }
 
 void UAttackCollisionMethod_SocketBasedLineTrace::EndCollisionCheck()
@@ -39,8 +42,12 @@ bool UAttackCollisionMethod_SocketBasedLineTrace::IsNeedTick()
 }
 
 void UAttackCollisionMethod_SocketBasedLineTrace::TickCollisionCheck(TArray<FHitResult>& OutHitResult,
-	UAttackCollisionData* AttackCollisionData, float FrameDeltaTime)
+	UAttackCollisionData* AttackCollisionData, float FrameDeltaTime, FAttackCollisionDebugSpec& OutCollisionDebugSpec)
 {
+	if (MeshComponent == nullptr)
+	{
+		return;
+	}
 	FVector Start = MeshComponent->GetSocketLocation(*StartName);
 	FVector End = MeshComponent->GetSocketLocation(*EndName);
 
@@ -56,15 +63,28 @@ void UAttackCollisionMethod_SocketBasedLineTrace::TickCollisionCheck(TArray<FHit
 	PreviousStart = Start;
 	PreviousEnd = End;
 	
+	OutCollisionDebugSpec.StartArr.Add(Start);
+	OutCollisionDebugSpec.EndArr.Add(End);
 }
 
 void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebugWithTick(USkeletalMeshComponent* MeshComp,
-	UAttackCollisionData* AttackCollisionData)
+	UAttackCollisionData* AttackCollisionData, const FAttackCollisionDebugSpec& CollisionDebugSpec)
 {
 	UAttackCollisionData_SocketBasedLineTrace* SocketCollisionData = Cast<UAttackCollisionData_SocketBasedLineTrace>(AttackCollisionData);
 	
-	FVector Start = MeshComp->GetSocketLocation(*SocketCollisionData->StartSocketName);
-	FVector End = MeshComp->GetSocketLocation(*SocketCollisionData->EndSocketName);
+	FVector Start;
+	FVector End;
+	
+	if (CollisionDebugSpec.IsValid())
+	{
+		Start = CollisionDebugSpec.StartArr.Last();
+		End = CollisionDebugSpec.EndArr.Last();
+	}
+	else
+	{
+		Start = MeshComp->GetSocketLocation(*SocketCollisionData->StartSocketName);
+		End = MeshComp->GetSocketLocation(*SocketCollisionData->EndSocketName);
+	}
 	
 	FColor HitColor = FColor::Green;
 
@@ -148,6 +168,7 @@ void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheck(TArray<FHitRes
 
 void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebug(FVector& CurWeaponStart, FVector& CurWeaponEnd, bool bIsHit)
 {
+#if 1
 	FColor HitColor = FColor::Red;
 
 	UWorld* World = GetWorld();
@@ -161,4 +182,6 @@ void UAttackCollisionMethod_SocketBasedLineTrace::DrawDebug(FVector& CurWeaponSt
 	float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
 	FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
 	DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, AttackRadius,CapsuleRotation, HitColor,false, 2.f);
+	
+#endif
 }

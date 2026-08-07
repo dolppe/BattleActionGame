@@ -11,13 +11,13 @@ class UAttackCollisionMethod_SocketBasedLineTrace : public UAttackCollisionMetho
 	GENERATED_BODY()
 public:
 
-	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData) override;
+	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec) override;
 	virtual void EndCollisionCheck() override;
 
 	virtual bool IsNeedTick() override;
 
-	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime) override;
-	static void DrawDebugWithTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
+	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime, FAttackCollisionDebugSpec& OutCollisionDebugSpec) override;
+	static void DrawDebugWithTick(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData, const FAttackCollisionDebugSpec& CollisionDebugSpec);
 
 protected:
 	

@@ -49,7 +49,5 @@ public:
 
 	virtual bool ControllerCanRestart(AController* Controller);
 
-	void TryMapLoad();
-	void GoToMap();
 		
 };

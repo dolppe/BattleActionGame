@@ -19,8 +19,7 @@ public:
 	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
 	virtual float GetMaxSpeed() const override;
 
-	
-	
+	virtual void ReplicateMoveToServer(float DeltaTime, const FVector& NewAcceleration) override;
 	
 };
 

@@ -3,6 +3,7 @@
 
 #include "AnimNotifyState_AttackWindow.generated.h"
 
+struct FAttackCollisionDebugSpec;
 class UAttackCollisionData;
 class UBattleCombatManagerComponent;
 class ABattleCharacterBase;
@@ -37,7 +38,7 @@ protected:
 
 private:
 
-	void DrawDebugBegin(USkeletalMeshComponent* MeshComp);
-	void DrawDebugTick(USkeletalMeshComponent* MeshComp);
+	void DrawDebugBegin(USkeletalMeshComponent* MeshComp, TMap<int, FAttackCollisionDebugSpec>& CollisionDebugSpecMap);
+	void DrawDebugTick(USkeletalMeshComponent* MeshComp, TMap<int, FAttackCollisionDebugSpec>& CollisionDebugSpecMap);
 		
 };

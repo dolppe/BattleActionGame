@@ -11,7 +11,7 @@
 PRAGMA_DISABLE_OPTIMIZATION
 
 void UAttackCollisionMethod_CircularAOE::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
-	UAttackCollisionData* AttackCollisionData)
+	UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec)
 {
 	if (UAttackCollisionData_CircularAOE* CollisionData = Cast<UAttackCollisionData_CircularAOE>(AttackCollisionData))
 	{
@@ -27,6 +27,9 @@ void UAttackCollisionMethod_CircularAOE::StartCollisionCheck(TArray<FHitResult>&
 			GetWorld()->SweepMultiByChannel(HitResults, AttackAreaDataItem,AttackAreaDataItem, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(CollisionData->AttackRadius), FCollisionQueryParams());
 
 			OutHitResult.Append(HitResults);
+			
+			OutCollisionDebugSpec.StartArr.Add(AttackAreaDataItem);
+			OutCollisionDebugSpec.EndArr.Add(AttackAreaDataItem);
 			
 #if 1
 			FVector Start = AttackAreaDataItem;

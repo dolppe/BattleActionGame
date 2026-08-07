@@ -14,6 +14,26 @@ enum class ECollisionMethodType : uint8
 	
 };
 
+struct FAttackCollisionDebugSpec
+{
+	TArray<FVector> StartArr;
+	TArray<FVector> EndArr;
+	
+	bool IsValid() const
+	{
+		if (StartArr.IsEmpty())
+		{
+			return false;
+		}
+		if (EndArr.IsEmpty())
+		{
+			return false;
+		}
+		return true;
+	}
+	
+};
+
 
 UCLASS(Abstract)
 class UAttackCollisionMethod : public UObject
@@ -21,10 +41,10 @@ class UAttackCollisionMethod : public UObject
 	GENERATED_BODY()
 public:
 	
-	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData);
+	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec);
 	virtual void EndCollisionCheck();
 	virtual bool IsNeedTick();
-	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime);
+	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime, FAttackCollisionDebugSpec& OutCollisionDebugSpec);
 	
 	void SetCharacter(ACharacter* InCharacter)
 	{

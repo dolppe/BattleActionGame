@@ -9,10 +9,10 @@ class UAttackCollisionMethod_DirectionalSweep : public UAttackCollisionMethod
 	GENERATED_BODY()
 public:
 
-	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData) override;
+	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec) override;
 	virtual void EndCollisionCheck() override;
 
-	static void DrawDebugWithStart(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData);
+	static void DrawDebugWithStart(USkeletalMeshComponent* MeshComp, UAttackCollisionData* AttackCollisionData, const FAttackCollisionDebugSpec& CollisionDebugSpec);
 	
 };
 

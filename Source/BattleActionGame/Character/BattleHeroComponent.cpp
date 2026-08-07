@@ -333,6 +333,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 				}
 				
 				UBattleInputComponent* BattleIC = CastChecked<UBattleInputComponent>(PlayerInputComponent);
+				BattleIC->ClearActionBindings();
 				{
 					{
 						TArray<uint32> BindHandles;
@@ -397,16 +398,18 @@ void UBattleHeroComponent::ChangePlayerInput(UInputComponent* PlayerInputCompone
 
 void UBattleHeroComponent::Input_Move(const FInputActionValue& InputActionValue)
 {
-	if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+	if (CachedASC)
 	{
-		Input_RotationCharacter(InputActionValue);
-		return;
+		if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement_AllowRotation))
+		{
+			Input_RotationCharacter(InputActionValue);
+			return;
+		}
+		else if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
+		{
+			return;
+		}
 	}
-	else if (CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Block_Movement))
-	{
-		return;
-	}
-
 	// if (!CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_Movement) && CachedASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().Allow_AllowRotation))
 	// {
 	// 	Input_RotationCharacter(InputActionValue);

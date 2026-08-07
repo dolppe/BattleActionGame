@@ -10,7 +10,7 @@ class UAttackCollisionMethod_CircularAOE : public UAttackCollisionMethod
 	GENERATED_BODY()
 public:
 	
-	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData) override;
+	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec) override;
 	virtual void EndCollisionCheck() override;
 
 protected:
