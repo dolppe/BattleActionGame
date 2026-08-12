@@ -35,7 +35,8 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_ImpactResistance, Category = "Battle|Combat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData ImpactResistance;
-	
+
+
 private:
 	UPROPERTY(BlueprintReadOnly, Category="Battle|Combat", Meta=(AllowPrivateAccess=true))
 	FGameplayAttributeData ImpactDamage;

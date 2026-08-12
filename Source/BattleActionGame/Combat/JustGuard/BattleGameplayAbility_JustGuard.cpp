@@ -7,6 +7,8 @@
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Character/BattleHeroComponent.h"
+#include "BattleActionGame/Player/BattlePlayerStart.h"
+#include "BattleActionGame/Player/BattlePlayerState.h"
 #include "GameFramework/Character.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_JustGuard)
@@ -165,6 +167,13 @@ void UBattleGameplayAbility_JustGuard::StartJustDash()
 			DesiredLocation.Z = PlayerCharacter->GetActorLocation().Z + 150.f;
 			
 			HeroComponent->SetDesiredCameraMode(ImpactCameraMode, DesiredLocation, (PlayerCharacter->GetActorLocation() - DesiredLocation).Rotation());
+			if (APlayerState* PS = PlayerCharacter->GetPlayerState())
+			{
+				if (ABattlePlayerState* BattlePS = Cast<ABattlePlayerState>(PS))
+				{
+					BattlePS->CombatStat.JustGuardCount++;
+				}
+			}
 		}
 	}
 

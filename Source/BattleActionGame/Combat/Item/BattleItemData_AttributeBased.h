@@ -4,6 +4,10 @@
 #include "GameplayTags.h"
 #include "BattleItemData_AttributeBased.generated.h"
 
+
+
+
+
 USTRUCT(BlueprintType)
 struct FAttributeMagData
 {
@@ -41,5 +45,6 @@ public:
 	UPROPERTY(EditAnywhere, Category="Battle|Item")
 	TArray<FAttributeData> AttributeData;
 
+	static TArray<FGameplayTag>& GetAttributeTags();
 
 };

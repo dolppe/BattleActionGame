@@ -307,7 +307,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 	}
 
 	// EnhancedInputLocalPlayerSubsystem에 매핑 컨텍스트을 초기화 시켜줌.
-	Subsystem->ClearAllMappings();
+	//Subsystem->ClearAllMappings();
 
 	// PawnExtComp => PawnData => InputConfig 존재 판단.
 	if (const UBattlePawnExtensionComponent* PawnExtComp = UBattlePawnExtensionComponent::FindPawnExtensionComponent(Pawn))
@@ -333,7 +333,7 @@ void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComp
 				}
 				
 				UBattleInputComponent* BattleIC = CastChecked<UBattleInputComponent>(PlayerInputComponent);
-				BattleIC->ClearActionBindings();
+				//BattleIC->ClearActionBindings();
 				{
 					{
 						TArray<uint32> BindHandles;

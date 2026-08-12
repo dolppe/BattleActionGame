@@ -115,21 +115,35 @@ void UBattleGameplayAbility_UseItem_AttributeBased::UseItem()
 	UAbilitySystemComponent* ASC = CharacterBase->GetAbilitySystemComponent();
 	UBattleItemData_AttributeBased* ItemData = Cast<UBattleItemData_AttributeBased>(ItemInfo->ItemDef);
 	for (FAttributeData& AttData : ItemData->AttributeData)
-	{
+	{		
 		if (AttData.Duration == 0.0f)
 		{
 			FGameplayEffectSpecHandle InstanceSpecHandle = ASC->MakeOutgoingSpec(InstanceGameplayEffectClass, 1.0f, ASC->MakeEffectContext());
+			
+			for (FGameplayTag& AttributeTag : UBattleItemData_AttributeBased::GetAttributeTags())
+			{
+				InstanceSpecHandle.Data->SetSetByCallerMagnitude(AttributeTag, 0.0f);
+			}
+			
 			for (FAttributeMagData& MagData : AttData.AttributeMag)
 			{
 				InstanceSpecHandle.Data->SetSetByCallerMagnitude(MagData.AttributeTag, MagData.Magnitude);
 			}
+			
 			InstanceSpecHandle.Data->Duration = FGameplayEffectConstants::INSTANT_APPLICATION;
+			
 
 			ASC->ApplyGameplayEffectSpecToSelf(*InstanceSpecHandle.Data.Get());
 		}
 		else
 		{
 			FGameplayEffectSpecHandle DurationSpecHandle = ASC->MakeOutgoingSpec(DurationGameplayEffectClass, 1.0f, ASC->MakeEffectContext());
+			
+			for (FGameplayTag& AttributeTag : UBattleItemData_AttributeBased::GetAttributeTags())
+			{
+				DurationSpecHandle.Data->SetSetByCallerMagnitude(AttributeTag, 0.0f);
+			}
+			
 			for (FAttributeMagData& MagData : AttData.AttributeMag)
 			{
 				DurationSpecHandle.Data->SetSetByCallerMagnitude(MagData.AttributeTag, MagData.Magnitude);

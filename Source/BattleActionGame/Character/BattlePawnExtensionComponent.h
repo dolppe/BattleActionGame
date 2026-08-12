@@ -27,6 +27,7 @@ public:
 	virtual void OnActorInitStateChanged(const FActorInitStateChangedParams& Params) final;
 	virtual bool CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const final;
 	virtual void CheckDefaultInitialization() final;
+	virtual void HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) override;
 
 	// Member Methods
 	template <class T>
@@ -56,5 +57,7 @@ public:
 	// ASC의 Init, Uninit Delegate
 	FSimpleMulticastDelegate OnAbilitySystemInitialized;
 	FSimpleMulticastDelegate OnAbilitySystemUninitialized;
+	
+	FSimpleMulticastDelegate OnGameplayReady;
 	
 };

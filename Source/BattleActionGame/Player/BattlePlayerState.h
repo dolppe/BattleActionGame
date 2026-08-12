@@ -17,6 +17,7 @@ enum class ECombatStatType : uint8
 	ItemCount UMETA(DisplayName = "ItemCount"),
 	JustDashCount UMETA(DisplayName = "JustDashCount"),
 	JustClashCount UMETA(DisplayName = "JustClashCount"),
+	JustGuardCount UMETA(DisplayName = "JustGuardCount"),
 	MAX UMETA(DisplayName = "MAX"),
 	
 };
@@ -40,6 +41,8 @@ struct FCombatStat
 			return JustDashCount;
 		case ECombatStatType::JustClashCount:
 			return JustClashCount;
+		case ECombatStatType::JustGuardCount:
+			return JustGuardCount;
 			default:
 				return 0.0f;
 		}
@@ -63,6 +66,10 @@ struct FCombatStat
 			break;
 		case ECombatStatType::JustClashCount:
 			JustClashCount = Value;
+		case ECombatStatType::JustGuardCount:
+			JustGuardCount = Value;
+			break;
+		default:
 			break;
 		}
 	}
@@ -82,6 +89,9 @@ struct FCombatStat
 	
 	UPROPERTY(BlueprintReadWrite)
 	int JustClashCount = 0;
+	
+	UPROPERTY(BlueprintReadWrite)
+	int JustGuardCount = 0;
 };
 
 

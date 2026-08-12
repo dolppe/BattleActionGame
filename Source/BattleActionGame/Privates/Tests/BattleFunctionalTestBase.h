@@ -13,8 +13,14 @@ public:
 	
 	virtual void Tick(float DeltaSeconds) override;
 	
+	void PlayerControllerReady();
+	void GameplayReady();
+	
 	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnPlayerDataReady")
 	void OnPlayerDataReady();
+	
+	UFUNCTION(BlueprintImplementableEvent, DisplayName="OnGameplayReady")
+	void OnGameplayReady();
 	
 	UFUNCTION(BlueprintCallable)
 	ABattleFunctionalTestPlayerController* GetTestPlayerController()
@@ -30,7 +36,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClientInputPress(const FKey& Key);
 	
+	UFUNCTION(BlueprintCallable)
+	void ClientInputPressRepeat(const FKey& Key, float Duration, float Period);
 	
+	UFUNCTION(BlueprintCallable)
+	void ClientInputAxis(const FKey& Key, const FVector& Delta);
+	
+	UFUNCTION(BlueprintCallable)
+	void ClientInputInjection(const UInputAction* InputAction);
 	
 	
 protected:

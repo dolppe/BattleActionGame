@@ -1,5 +1,6 @@
 #include "WorldRiskGridMap.h"
 
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
 
@@ -17,6 +18,17 @@ FIntPoint FGridChunk::GetCellIdx(const FVector& Location) const
 
 	return {DiffColCount, DiffRowCount};
 	
+}
+
+FVector FGridChunk::GetCellLocation(const FIntPoint& CellIdx) const
+{
+	float ChunkStartX = CenterLocation.X - (GridMapSubSystem->InitData.ChunkSize/2);
+	float ChunkStartY = CenterLocation.Y - (GridMapSubSystem->InitData.ChunkSize/2);
+	
+	float CellLocationX = ChunkStartX + GridMapSubSystem->InitData.CellSize*CellIdx.X;
+	float CellLocationY = ChunkStartY + GridMapSubSystem->InitData.CellSize*CellIdx.Y;
+	
+	return FVector(CellLocationX, CellLocationY, 0.0f);
 }
 
 float FGridChunk::GetRiskValue(const FVector& Location) const
@@ -61,7 +73,7 @@ void FGridChunk::UpdateChunk()
 	TArray<FOverlapResult> OutOverlaps;
 	FVector BoxExtender(GridMapSubSystem->InitData.ChunkSize/2, GridMapSubSystem->InitData.ChunkSize/2, 3000.f);
 
-	//DrawDebugPoint(GridMapSubSystem->GetWorld(), CenterLocation, 5.0f, FColor::Blue, false, 20.f);
+	DrawDebugPoint(GridMapSubSystem->GetWorld(), CenterLocation, 5.0f, FColor::Blue, false, 20.f);
 	
 	GridMapSubSystem->GetWorld()->OverlapMultiByChannel(OutOverlaps, CenterLocation, FQuat::Identity, Battle_TraceChannel_AttackToCharacter, FCollisionShape::MakeBox(BoxExtender));
 
@@ -81,14 +93,15 @@ void FGridChunk::UpdateChunk()
 void FGridChunk::SetRiskValue(const FVector& Location)
 {
 	FIntPoint CellIdx = GetCellIdx(Location);
+	float RiskWeight = GridMapSubSystem->InitData.RiskWeight;
 
 	if (RiskCellMap.Contains(CellIdx))
 	{
-		RiskCellMap[CellIdx].RiskValue = 1.0f;
+		RiskCellMap[CellIdx].RiskValue = 1.0f * RiskWeight;
 	}
 	else
 	{
-		RiskCellMap.Add({CellIdx, FRiskCell(1.0f, UpdateTime)});
+		RiskCellMap.Add({CellIdx, FRiskCell(1.0f * RiskWeight, UpdateTime)});
 	}
 
 	float CellSize = GridMapSubSystem->InitData.CellSize;
@@ -103,9 +116,11 @@ void FGridChunk::SetRiskValue(const FVector& Location)
 
 	FColor Color = FColor::Red;
 
-	//DrawDebugLine(GridMapSubSystem->GetWorld(), LineStart, LineEnd, FColor::Red, false, 10.0f, 0,10.0f);
+	DrawDebugLine(GridMapSubSystem->GetWorld(), LineStart, LineEnd, FColor::Red, false, 10.0f, 0,10.0f);
 
 	int MaxCellIdx = GridMapSubSystem->InitData.ChunkSize / GridMapSubSystem->InitData.CellSize;
+	
+	UE_LOG(LogBattle, Log, TEXT("SetRiskValue: %s"), *CenterLocation.ToString());
 
 	for (const FRiskCellOffset& Offset : GridMapSubSystem->InitData.RiskOffsetTable)
 	{
@@ -120,43 +135,72 @@ void FGridChunk::SetRiskValue(const FVector& Location)
 
 		if (RiskCellMap.Contains(CurIdx))
 		{
-			if (RiskCellMap[CurIdx].RiskValue < Offset.RiskValue || RiskCellMap[CurIdx].UpdateTime < UpdateTime)
+			if (RiskCellMap[CurIdx].RiskValue < Offset.RiskValue * RiskWeight || RiskCellMap[CurIdx].UpdateTime < UpdateTime)
 			{
-				RiskCellMap[CurIdx].RiskValue = Offset.RiskValue;
+				
+				RiskCellMap[CurIdx].RiskValue = Offset.RiskValue * RiskWeight;
 				RiskCellMap[CurIdx].UpdateTime = UpdateTime;
+				
+				if (FMath::IsNearlyEqual(Offset.RiskValue, 1.0f))
+				{
+					Color = FColor::Red;
+				}
+				if (FMath::IsNearlyEqual(Offset.RiskValue, 0.8f))
+				{
+					Color = FColor::Orange;
+				}
+				if (FMath::IsNearlyEqual(Offset.RiskValue, 0.5f))
+				{
+					Color = FColor::Yellow;
+				}
+				if (FMath::IsNearlyEqual(Offset.RiskValue, 0.3f))
+				{
+					Color = FColor::Black;
+				}
+
+				LineStart = CenterLocation;
+				LineStart.X += CurIdx.X * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+				LineStart.Y += CurIdx.Y * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+				LineStart.Z = -5000.f;
+
+				LineEnd = LineStart;
+				LineEnd.Z = 5000.f;
+
+				DrawDebugBox(GridMapSubSystem->GetWorld(), GetCellLocation(CurIdx), FVector(GridMapSubSystem->InitData.CellSize/2),Color, false, 10.f, 0, 10.f);
 			}
 		}
 		else
 		{
 			RiskCellMap.Add({CurIdx, FRiskCell(Offset.RiskValue, UpdateTime)});
+			if (FMath::IsNearlyEqual(Offset.RiskValue, 1.0f))
+			{
+				Color = FColor::Red;
+			}
+			if (FMath::IsNearlyEqual(Offset.RiskValue, 0.7f))
+			{
+				Color = FColor::Orange;
+			}
+			if (FMath::IsNearlyEqual(Offset.RiskValue, 0.5f))
+			{
+				Color = FColor::Yellow;
+			}
+			if (FMath::IsNearlyEqual(Offset.RiskValue, 0.3f))
+			{
+				Color = FColor::Black;
+			}
+
+			LineStart = CenterLocation;
+			LineStart.X += CurIdx.X * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+			LineStart.Y += CurIdx.Y * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+			LineStart.Z = -5000.f;
+
+			LineEnd = LineStart;
+			LineEnd.Z = 5000.f;
+
+			DrawDebugBox(GridMapSubSystem->GetWorld(), GetCellLocation(CurIdx), FVector(GridMapSubSystem->InitData.CellSize/2),Color, false, 10.f, 0, 10.f);
 		}
 
-		if (FMath::IsNearlyEqual(Offset.RiskValue, 1.0f))
-		{
-			Color = FColor::Red;
-		}
-		if (FMath::IsNearlyEqual(Offset.RiskValue, 0.7f))
-		{
-			Color = FColor::Orange;
-		}
-		if (FMath::IsNearlyEqual(Offset.RiskValue, 0.5f))
-		{
-			Color = FColor::Yellow;
-		}
-		if (FMath::IsNearlyEqual(Offset.RiskValue, 0.3f))
-		{
-			Color = FColor::Black;
-		}
-
-		LineStart = CenterLocation;
-		LineStart.X += CurIdx.X * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
-		LineStart.Y += CurIdx.Y * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
-		LineStart.Z = -5000.f;
-
-		LineEnd = LineStart;
-		LineEnd.Z = 5000.f;
-
-		//DrawDebugLine(GridMapSubSystem->GetWorld(), LineStart, LineEnd, Color, false, 10.0f, 0,10.0f);
+		
 	}
 }
 
