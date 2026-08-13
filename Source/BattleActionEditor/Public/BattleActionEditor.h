@@ -9,5 +9,11 @@ class FBattleActionEditorModule : public IModuleInterface
 public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+	
+	void RegisterMenus();
+
+	void OnValidateBattleAssetsClicked();
+	
+	
 };
 
