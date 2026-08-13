@@ -13,6 +13,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure=false)
 	UCommonSession_HosetSessionRequest* CreateHostingRequest() const;
 	
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Experience, meta=(AllowedTypes="Map"))
 	FPrimaryAssetId MapID;
 

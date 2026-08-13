@@ -13,6 +13,7 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_UseItem_AttributeBased)
 
@@ -89,6 +90,19 @@ void UBattleGameplayAbility_UseItem_AttributeBased::EndAbility(const FGameplayAb
 	}
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+EDataValidationResult UBattleGameplayAbility_UseItem_AttributeBased::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (!DurationGameplayEffectClass || !InstanceGameplayEffectClass)
+	{
+		Context.AddError(FText::FromString(TEXT("GA_UseItem_AttributeBased must have AttributeGEClass")));
+		Result = EDataValidationResult::Invalid;
+	}
+
+	return Result;
 }
 
 void UBattleGameplayAbility_UseItem_AttributeBased::ServerRPCNotifyUseItem_Implementation()

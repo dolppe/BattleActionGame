@@ -27,6 +27,8 @@ public class BattleActionEditor : ModuleRules
                 "SlateCore",
                 "AssetRegistry",
                 "EditorSubsystem",
+                "GameplayAbilities",
+                "EnhancedInput",
             }
         );
         

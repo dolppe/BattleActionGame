@@ -41,6 +41,8 @@ class UBattleItemData_AttributeBased : public UBattleItemData
 public:
 
 	UBattleItemData_AttributeBased();
+	
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
 
 	UPROPERTY(EditAnywhere, Category="Battle|Item")
 	TArray<FAttributeData> AttributeData;

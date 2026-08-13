@@ -14,6 +14,8 @@ class UBattleExperienceDefinition : public UPrimaryDataAsset
 	GENERATED_BODY()
 public:
 	UBattleExperienceDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
 
 #if WITH_EDITORONLY_DATA
 	virtual void UpdateAssetBundleData() override;

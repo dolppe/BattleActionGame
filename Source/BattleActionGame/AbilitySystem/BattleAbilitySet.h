@@ -101,6 +101,8 @@ public:
 
 	void GiveToAbilitySystem(UBattleAbilitySystemComponent* BattleASC, FBattleAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject= nullptr) const;
 
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+	
 protected:
 	
 	// 허용된 GameplayAbilities

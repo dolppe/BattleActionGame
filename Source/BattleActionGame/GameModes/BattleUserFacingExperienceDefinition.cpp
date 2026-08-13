@@ -1,6 +1,7 @@
 #include "BattleUserFacingExperienceDefinition.h"
 
 #include "CommonSessionSubsystem.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUserFacingExperienceDefinition)
 
@@ -16,6 +17,19 @@ UCommonSession_HosetSessionRequest* UBattleUserFacingExperienceDefinition::Creat
 	UCommonSession_HosetSessionRequest* Result = NewObject<UCommonSession_HosetSessionRequest>();
 	Result->MapID = MapID;
 	Result->ExtraArgs.Add(TEXT("Experience"), ExperienceName);
+
+	return Result;
+}
+
+EDataValidationResult UBattleUserFacingExperienceDefinition::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (!MapID.IsValid() || !ExperienceID.IsValid())
+	{
+		Context.AddError(FText::FromString(TEXT("UBattleUserFacingExperienceDefinition must have Valid Map And Experience")));
+		Result = EDataValidationResult::Invalid;
+	}
 
 	return Result;
 }

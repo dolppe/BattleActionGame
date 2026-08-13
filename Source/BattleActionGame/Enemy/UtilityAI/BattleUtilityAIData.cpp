@@ -1,6 +1,8 @@
 #include "BattleUtilityAIData.h"
 
+#include "Actions/BattleUtilityAction.h"
 #include "BattleActionGame/Math/CalcFunctions.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAIData)
 
@@ -34,6 +36,40 @@ void UBattleUtilityAIData::PostEditChangeChainProperty(struct FPropertyChangedCh
 }
 
 #endif
+
+EDataValidationResult UBattleUtilityAIData::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (Consider.IsEmpty())
+	{
+		Context.AddError(FText::FromString(TEXT("UBattleUtilityAIData must have at least One Consider")));
+		Result = EDataValidationResult::Invalid;
+	}
+	if (ActionConfigs.IsEmpty())
+	{
+		Context.AddError(FText::FromString(TEXT("UBattleUtilityAIData must have at least One Consider")));
+		Result = EDataValidationResult::Invalid;
+	}
+	if (!ActionConfigs.IsEmpty())
+	{
+		for (const FActionConfig& ActionConfig : ActionConfigs)
+		{
+			if (ActionConfig.ActionClass == nullptr)
+			{
+				Context.AddError(FText::FromString(TEXT("ActionConfig must have ActionClass")));
+				Result = EDataValidationResult::Invalid;
+			}
+			if (ActionConfig.AxisConfigs.IsEmpty())
+			{
+				Context.AddError(FText::FromString(TEXT("ActionConfig must have at least one AxisConfig")));
+				Result = EDataValidationResult::Invalid;
+			}
+		}
+	}
+	
+	return Result;
+}
 
 void UBattleUtilityAIData::ApplyAxisFunctionPreset(FAxisConfig& OutAxisConfig)
 {

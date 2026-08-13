@@ -8,6 +8,7 @@
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Camera/CameraComponent.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_JustDash)
 
@@ -74,4 +75,17 @@ void UBattleGameplayAbility_JustDash::EndAbility(const FGameplayAbilitySpecHandl
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+EDataValidationResult UBattleGameplayAbility_JustDash::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (!GE_AllowedCounterAttack)
+	{
+		Context.AddError(FText::FromString(TEXT("GA_JustDash must have GE_AllowedCounterAttack")));
+		Result = EDataValidationResult::Invalid;
+	}
+
+	return Result;
 }
