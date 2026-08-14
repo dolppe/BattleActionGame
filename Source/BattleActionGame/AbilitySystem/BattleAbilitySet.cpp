@@ -174,7 +174,7 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 	
 	
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleAbilitySet::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -213,5 +213,5 @@ EDataValidationResult UBattleAbilitySet::IsDataValid(class FDataValidationContex
 
 	return Result;
 }
-
+#endif
 	PRAGMA_ENABLE_OPTIMIZATION

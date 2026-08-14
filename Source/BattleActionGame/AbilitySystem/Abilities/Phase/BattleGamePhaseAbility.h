@@ -11,7 +11,9 @@ public:
 
 	UBattleGamePhaseAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
+#if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+#endif
 
 	const FGameplayTag& GetGamePhaseTag() const {return GamePhaseTag;}
 

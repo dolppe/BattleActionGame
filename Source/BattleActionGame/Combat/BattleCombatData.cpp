@@ -25,7 +25,7 @@ UAttackCollisionData_CircularAOE::UAttackCollisionData_CircularAOE()
 UBattleCombatData::UBattleCombatData()
 {
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleCombatData::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -82,3 +82,4 @@ EDataValidationResult UBattleCombatData::IsDataValid(class FDataValidationContex
 
 	return Result;
 }
+#endif

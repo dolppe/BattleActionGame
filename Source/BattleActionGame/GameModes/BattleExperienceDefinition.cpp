@@ -9,7 +9,7 @@ UBattleExperienceDefinition::UBattleExperienceDefinition(const FObjectInitialize
 	: Super(ObjectInitializer)
 {
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleExperienceDefinition::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -22,7 +22,7 @@ EDataValidationResult UBattleExperienceDefinition::IsDataValid(class FDataValida
 
 	return Result;
 }
-
+#endif
 #if WITH_EDITORONLY_DATA
 void UBattleExperienceDefinition::UpdateAssetBundleData()
 {

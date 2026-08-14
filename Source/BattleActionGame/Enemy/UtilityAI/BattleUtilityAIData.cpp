@@ -36,7 +36,7 @@ void UBattleUtilityAIData::PostEditChangeChainProperty(struct FPropertyChangedCh
 }
 
 #endif
-
+#if WITH_EDITOR
 EDataValidationResult UBattleUtilityAIData::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -70,6 +70,7 @@ EDataValidationResult UBattleUtilityAIData::IsDataValid(class FDataValidationCon
 	
 	return Result;
 }
+#endif
 
 void UBattleUtilityAIData::ApplyAxisFunctionPreset(FAxisConfig& OutAxisConfig)
 {

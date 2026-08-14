@@ -13,7 +13,7 @@ UBattleGamePhaseAbility::UBattleGamePhaseAbility(const FObjectInitializer& Objec
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleGamePhaseAbility::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -26,7 +26,7 @@ EDataValidationResult UBattleGamePhaseAbility::IsDataValid(class FDataValidation
 
 	return Result;
 }
-
+#endif
 void UBattleGamePhaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                               const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                               const FGameplayEventData* TriggerEventData)

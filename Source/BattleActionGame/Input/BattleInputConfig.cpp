@@ -11,6 +11,7 @@ UBattleInputConfig::UBattleInputConfig(const FObjectInitializer& ObjectInitializ
 {
 }
 
+#if WITH_EDITOR
 EDataValidationResult UBattleInputConfig::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -24,6 +25,7 @@ EDataValidationResult UBattleInputConfig::IsDataValid(class FDataValidationConte
 	return Result;
 	
 }
+#endif
 
 const UInputAction* UBattleInputConfig::FindNativeInputActionForTag(const FGameplayTag& InputTag,
                                                                     bool bLogNotFound) const

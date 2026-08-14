@@ -42,7 +42,9 @@ public:
 
 	UBattleItemData_AttributeBased();
 	
+#if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+#endif
 
 	UPROPERTY(EditAnywhere, Category="Battle|Item")
 	TArray<FAttributeData> AttributeData;

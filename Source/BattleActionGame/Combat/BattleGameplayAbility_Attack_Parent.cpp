@@ -103,7 +103,7 @@ void UBattleGameplayAbility_Attack_Parent::CancelAbility(const FGameplayAbilityS
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 	
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleGameplayAbility_Attack_Parent::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -116,7 +116,7 @@ EDataValidationResult UBattleGameplayAbility_Attack_Parent::IsDataValid(class FD
 
 	return Result;
 }
-
+#endif
 
 void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FBattleHitMessage& HitMessage)
 {
