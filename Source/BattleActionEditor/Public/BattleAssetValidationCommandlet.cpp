@@ -1,12 +1,23 @@
 #include "BattleAssetValidationCommandlet.h"
 
 #include "BattleAssetValidationSubsystem.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "BattleActionGame/BattleLogChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAssetValidationCommandlet)
 
 int32 UBattleAssetValidationCommandlet::Main(const FString& Params)
 {
+	
+	FAssetRegistryModule& AssetRegistryModule =	FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	TArray<FString> PathsToRescan;
+	PathsToRescan.Add(TEXT("/ActionCore"));
+
+	AssetRegistry.ScanPathsSynchronous(PathsToRescan,true,false);
+	
 	UE_LOG(
 		LogBattle,
 		Display,
@@ -19,6 +30,8 @@ int32 UBattleAssetValidationCommandlet::Main(const FString& Params)
 		UE_LOG(LogBattle,Error,TEXT("BattleAssetValidationSubsystem not found"));
 		return 2;
 	}
+
+	
 
 	FValidateAssetsResults Results;
 
