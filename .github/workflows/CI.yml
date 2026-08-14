@@ -1,0 +1,29 @@
+
+name: BattleAction CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  runner-test:
+    if: github.repository == 'dolppe/BattleActionGamePrivate'
+
+    runs-on:
+      - self-hosted
+      - Windows
+      - X64
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Runner Test
+        shell: powershell
+        run: |
+          Write-Host "BattleAction CI Started"
+          Write-Host "Repository: $env:GITHUB_REPOSITORY"
+          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
+          git --version
+
