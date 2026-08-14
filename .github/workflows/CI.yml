@@ -8,7 +8,7 @@ on:
 
 
 jobs:
-  runner-test:
+  CI:
     if: github.repository == 'dolppe/BattleActionGamePrivate'
 
     runs-on:
@@ -18,15 +18,19 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          clean: false
 
-      - name: Runner Test
-        shell: powershell
+      - name: Build BattleActionGame Editor
+        shell : cmd
         run: |
-          Write-Host "BattleAction CI Started"
-          Write-Host "Repository: $env:GITHUB_REPOSITORY"
-          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
-          git --version
-      - name: Build BattleActionGame
+          "F:\UnrealEngine-5.1\Engine\Build\BatchFiles\Build.bat" ^
+            BattleActionGameEditor ^
+            Win64 ^
+            Development ^
+            -Project="%GITHUB_WORKSPACE%\BattleActionGame.uproject" ^
+            -WaitMutex
+      - name: Build BattleActionGame Client And Server
         shell: cmd
         run: |
           "F:\UnrealEngine-5.1\Engine\Build\BatchFiles\RunUAT.bat" BuildCookRun ^
@@ -38,3 +42,13 @@ jobs:
             -server ^
             -client ^
             -build
+      - name: C++ AutomationTest (UnitTest + ActorTest)
+        shell: cmd
+        run: |
+          "F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
+            "%GITHUB_WORKSPACE%\BattleActionGame.uproject"
+            -ExecCmds="Automation RunTest BattleAction;Quit" ^
+            -unattended ^
+            -nop4 ^
+            -ReportExportPath="%GITHUB_WORKSPACE%\Saved\AutomationReports\Cpp"
+
