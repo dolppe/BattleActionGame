@@ -70,7 +70,8 @@ void FBattleActionEditorModule::OnValidateBattleAssetsClicked()
 	
 	if (AssetValidateSubsystem)
 	{
-		AssetValidateSubsystem->ValidateAssets();
+		FValidateAssetsResults ValidateResults;
+		AssetValidateSubsystem->ValidateAssets(ValidateResults);
 	}
 	else
 	{
