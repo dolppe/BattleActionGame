@@ -45,10 +45,5 @@ jobs:
       - name: C++ AutomationTest (UnitTest + ActorTest)
         shell: cmd
         run: |
-          "F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
-            "%GITHUB_WORKSPACE%\BattleActionGame.uproject"
-            -ExecCmds="Automation RunTest BattleAction;Quit" ^
-            -unattended ^
-            -nop4 ^
-            -ReportExportPath="%GITHUB_WORKSPACE%\Saved\AutomationReports\Cpp"
+          run: '"F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "%GITHUB_WORKSPACE%\BattleActionGame.uproject" -ExecCmds="Automation RunTest BattleAction;Quit" -unattended -nopause -nosplash -nop4 -stdout -FullStdOutLogOutput -ReportExportPath="%GITHUB_WORKSPACE%\Saved\AutomationReports\Cpp"'
 
