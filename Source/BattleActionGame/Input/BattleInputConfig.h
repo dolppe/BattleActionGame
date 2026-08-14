@@ -28,7 +28,9 @@ class UBattleInputConfig : public UDataAsset
 public:
 	UBattleInputConfig(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
+#if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+#endif
 
 	const UInputAction* FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
 	const UInputAction* FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;

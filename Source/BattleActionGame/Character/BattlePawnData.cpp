@@ -11,7 +11,7 @@ UBattlePawnData::UBattlePawnData(const FObjectInitializer& ObjectInitializer)
 	DefaultCameraMode = nullptr;
 	InputConfig = nullptr;
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattlePawnData::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -24,3 +24,4 @@ EDataValidationResult UBattlePawnData::IsDataValid(class FDataValidationContext&
 
 	return Result;
 }
+#endif

@@ -91,7 +91,7 @@ void UBattleGameplayAbility_UseItem_AttributeBased::EndAbility(const FGameplayAb
 	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleGameplayAbility_UseItem_AttributeBased::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -104,7 +104,7 @@ EDataValidationResult UBattleGameplayAbility_UseItem_AttributeBased::IsDataValid
 
 	return Result;
 }
-
+#endif
 void UBattleGameplayAbility_UseItem_AttributeBased::ServerRPCNotifyUseItem_Implementation()
 {
 	//UE_LOG(LogBattle, Log, TEXT("ServerRPC: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));

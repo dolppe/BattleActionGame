@@ -1,12 +1,11 @@
 #include "BattleAssetValidationSubsystem.h"
 
-#include "EditorValidatorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "BattleActionGame/BattleLogChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAssetValidationSubsystem)
 
-void UBattleAssetValidationSubsystem::ValidateAssets()
+bool UBattleAssetValidationSubsystem::ValidateAssets(FValidateAssetsResults& OutResults)
 {
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
 	
@@ -42,7 +41,7 @@ void UBattleAssetValidationSubsystem::ValidateAssets()
 	if (!ValidatorSubsystem)
 	{
 		UE_LOG(LogBattle, Warning, TEXT("Failed To Get EditorValidatorSubsystem"));
-		return;
+		return false;
 	}
 	FValidateAssetsSettings Settings;
 	
@@ -51,9 +50,9 @@ void UBattleAssetValidationSubsystem::ValidateAssets()
 	Settings.ValidationUsecase = EDataValidationUsecase::Manual;
 	Settings.bSkipExcludedDirectories = true;
 	
-	FValidateAssetsResults Results;
+	const int32 NumIssues =	ValidatorSubsystem->ValidateAssetsWithSettings(AssetDataList, Settings,OutResults);
 	
-	const int32 NumIssues =	ValidatorSubsystem->ValidateAssetsWithSettings(AssetDataList, Settings,Results);
+	UE_LOG(LogBattle, Log,TEXT("ValidateFinished - Checked: %d, Validated: %d, InValidated: %d, Skipped: %d, Ext: %d"), OutResults.NumChecked, OutResults.NumValid, OutResults.NumInvalid, OutResults.NumSkipped, OutResults.NumUnableToValidate + OutResults.NumWarnings);
 	
-	UE_LOG(LogBattle, Log,TEXT("ValidateFinished - Checked: %d, Validated: %d, InValidated: %d, Skipped: %d, Ext: %d"), Results.NumChecked, Results.NumValid, Results.NumInvalid, Results.NumSkipped, Results.NumUnableToValidate + Results.NumWarnings);
+	return true;
 }

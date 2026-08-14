@@ -145,7 +145,9 @@ class UBattleUtilityAIData : public UDataAsset
 	GENERATED_BODY()
 public:
 	
+#if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+#endif
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UtilityAI")
 	TArray<EBattleConsiderType> Consider;

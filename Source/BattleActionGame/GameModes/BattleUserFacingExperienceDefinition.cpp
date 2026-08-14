@@ -20,7 +20,7 @@ UCommonSession_HosetSessionRequest* UBattleUserFacingExperienceDefinition::Creat
 
 	return Result;
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleUserFacingExperienceDefinition::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -33,3 +33,4 @@ EDataValidationResult UBattleUserFacingExperienceDefinition::IsDataValid(class F
 
 	return Result;
 }
+#endif

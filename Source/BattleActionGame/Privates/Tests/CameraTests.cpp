@@ -27,7 +27,7 @@ bool FCameraTest::RunTest(const FString& Parameters)
 	
 	TestNotNull(TEXT("카메라 Component가 Register되면 CameraModeStack이 생성되어야 함"),CameraComponent->CameraModeStack.Get());
 	
-	if (CameraComponent->CameraModeStack.IsNull())
+	if (CameraComponent->CameraModeStack == nullptr)
 	{
 		return false;
 	}

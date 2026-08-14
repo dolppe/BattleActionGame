@@ -77,6 +77,7 @@ void UBattleGameplayAbility_JustDash::EndAbility(const FGameplayAbilitySpecHandl
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+#if WITH_EDITOR
 EDataValidationResult UBattleGameplayAbility_JustDash::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -89,3 +90,4 @@ EDataValidationResult UBattleGameplayAbility_JustDash::IsDataValid(class FDataVa
 
 	return Result;
 }
+#endif

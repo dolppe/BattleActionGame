@@ -223,7 +223,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UHitReactionTable* HitReactionTable;
 	
+#if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+#endif
 	
 };
 

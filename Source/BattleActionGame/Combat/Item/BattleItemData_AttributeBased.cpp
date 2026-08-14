@@ -9,7 +9,7 @@ UBattleItemData_AttributeBased::UBattleItemData_AttributeBased()
 {
 	ItemType = EItemType::AttributeBased;
 }
-
+#if WITH_EDITOR
 EDataValidationResult UBattleItemData_AttributeBased::IsDataValid(class FDataValidationContext& Context)
 {
 	EDataValidationResult Result = Super::IsDataValid(Context);
@@ -46,7 +46,7 @@ EDataValidationResult UBattleItemData_AttributeBased::IsDataValid(class FDataVal
 
 	return Result;
 }
-
+#endif
 
 TArray<FGameplayTag>& UBattleItemData_AttributeBased::GetAttributeTags()
 {

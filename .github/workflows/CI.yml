@@ -8,7 +8,7 @@ on:
 
 
 jobs:
-  runner-test:
+  CI:
     if: github.repository == 'dolppe/BattleActionGamePrivate'
 
     runs-on:
@@ -18,12 +18,49 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          clean: false
 
-      - name: Runner Test
-        shell: powershell
+      - name: Link Content
+        shell: cmd
         run: |
-          Write-Host "BattleAction CI Started"
-          Write-Host "Repository: $env:GITHUB_REPOSITORY"
-          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
-          git --version
+          if exist "%GITHUB_WORKSPACE%\Content" rmdir "%GITHUB_WORKSPACE%\Content"
+          mklink /J "%GITHUB_WORKSPACE%\Content" "F:\BattleActionGame\Content"
+
+      - name: Build BattleActionGame Editor
+        shell : cmd
+        run: |
+          "F:\UnrealEngine-5.1\Engine\Build\BatchFiles\Build.bat" ^
+            BattleActionGameEditor ^
+            Win64 ^
+            Development ^
+            -Project="%GITHUB_WORKSPACE%\BattleActionGame.uproject" ^
+            -WaitMutex
+      - name: Build BattleActionGame Client And Server
+        shell: cmd
+        run: |
+          "F:\UnrealEngine-5.1\Engine\Build\BatchFiles\RunUAT.bat" BuildCookRun ^
+            -project="%GITHUB_WORKSPACE%\BattleActionGame.uproject" ^
+            -noP4 ^
+            -platform=Win64 ^
+            -clientconfig=Development ^
+            -serverconfig=Development ^
+            -server ^
+            -client ^
+            -build
+
+      - name: C++ Test (UnitTest + ActorTest)
+        shell: cmd
+        run: '"F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "%GITHUB_WORKSPACE%\BattleActionGame.uproject" -ExecCmds="Automation RunTest BattleAction;Quit" -unattended -nopause -nosplash -nop4 -stdout -FullStdOutLogOutput -ReportExportPath="%GITHUB_WORKSPACE%\Saved\AutomationReports\Cpp"'
+
+      - name: Asset Test
+        shell: cmd
+        run: '"F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "%GITHUB_WORKSPACE%\BattleActionGame.uproject" -run=BattleAssetValidation -unattended -nopause -nosplash -nop4 -stdout -FullStdOutLogOutput'
+
+      - name: Map Test
+        shell: cmd
+        run: '"F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "%GITHUB_WORKSPACE%\BattleActionGame.uproject" -ExecCmds="Automation RunTest Project.Functional Tests;Quit" -unattended -nopause -nosplash -nop4 -stdout -FullStdOutLogOutput -ReportExportPath="%GITHUB_WORKSPACE%\Saved\AutomationReports\Cpp"'
+        
+
+
 

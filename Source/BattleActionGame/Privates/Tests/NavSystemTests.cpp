@@ -46,6 +46,7 @@ bool FWorldRiskGridMapTest::RunTest(const FString& Parameters)
 	TestInitData.NumChunkCols = 6;
 	TestInitData.NumChunkRows = 6;
 	TestInitData.CellSize = 100.f;
+	TestInitData.RiskWeight = 1.0f;
 	
 	WorldRiskGridMapSubSystem->Init(TestInitData);
 	
