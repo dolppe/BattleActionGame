@@ -21,11 +21,11 @@ jobs:
         with:
           clean: false
 
-      - name: Sync Content
+      - name: Link Content
         shell: cmd
         run: |
-          robocopy "F:\BattleActionGame\Content" "%GITHUB_WORKSPACE%\Content" /E
-          if %ERRORLEVEL% GEQ 8 exit /b %ERRORLEVEL%
+          if exist "%GITHUB_WORKSPACE%\Content" rmdir "%GITHUB_WORKSPACE%\Content"
+          mklink /J "%GITHUB_WORKSPACE%\Content" "F:\BattleActionGame\Content"
 
       - name: Build BattleActionGame Editor
         shell : cmd
