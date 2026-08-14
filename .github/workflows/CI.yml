@@ -21,6 +21,12 @@ jobs:
         with:
           clean: false
 
+      - name: Sync Content
+        shell: cmd
+        run: |
+          robocopy "F:\BattleActionGame\Content" "%GITHUB_WORKSPACE%\Content" /E
+          if %ERRORLEVEL% GEQ 8 exit /b %ERRORLEVEL%
+
       - name: Build BattleActionGame Editor
         shell : cmd
         run: |
