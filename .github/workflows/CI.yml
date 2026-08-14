@@ -48,12 +48,18 @@ jobs:
             -server ^
             -client ^
             -build
-      - name: C++ AutomationTest (UnitTest + ActorTest)
+
+      - name: C++ Test (UnitTest + ActorTest)
         shell: cmd
         run: '"F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "%GITHUB_WORKSPACE%\BattleActionGame.uproject" -ExecCmds="Automation RunTest BattleAction;Quit" -unattended -nopause -nosplash -nop4 -stdout -FullStdOutLogOutput -ReportExportPath="%GITHUB_WORKSPACE%\Saved\AutomationReports\Cpp"'
-      - name: Asset Validation
+
+      - name: Asset Test
         shell: cmd
         run: '"F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "%GITHUB_WORKSPACE%\BattleActionGame.uproject" -run=BattleAssetValidation -unattended -nopause -nosplash -nop4 -stdout -FullStdOutLogOutput'
+
+      - name: Map Test
+        shell: cmd
+        run: '"F:\UnrealEngine-5.1\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "%GITHUB_WORKSPACE%\BattleActionGame.uproject" -ExecCmds="Automation RunTest Project.Functional Tests;Quit" -unattended -nopause -nosplash -nop4 -stdout -FullStdOutLogOutput -ReportExportPath="%GITHUB_WORKSPACE%\Saved\AutomationReports\Cpp"'
         
 
 
