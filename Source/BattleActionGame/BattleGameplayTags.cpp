@@ -54,6 +54,7 @@ void FBattleGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 	AddTag(InputTag_Look_Mouse, "InputTag.Look.Mouse", "");
 	AddTag(InputTag_ReadyToggle, "InputTag.ReadyToggle", "");
 	AddTag(InputTag_SpecialKey, "InputTag.SpecialKey", "");
+	AddTag(InputTag_ReturnToCharacter, "InputTag.ReturnToCharacter", "");
 	
 	
 	

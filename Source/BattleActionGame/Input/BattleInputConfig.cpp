@@ -1,6 +1,7 @@
 #include "BattleInputConfig.h"
 
 #include "BattleActionGame/BattleLogChannels.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleInputConfig)
 
@@ -10,8 +11,22 @@ UBattleInputConfig::UBattleInputConfig(const FObjectInitializer& ObjectInitializ
 {
 }
 
+EDataValidationResult UBattleInputConfig::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (NativeInputActions.IsEmpty() && AbilityInputActions.IsEmpty())
+	{
+		Context.AddError(FText::FromString(TEXT("UBattleInputConfig must have at least NativeInputActions or AbilityInputActions")));
+		Result = EDataValidationResult::Invalid;
+	}
+
+	return Result;
+	
+}
+
 const UInputAction* UBattleInputConfig::FindNativeInputActionForTag(const FGameplayTag& InputTag,
-	bool bLogNotFound) const
+                                                                    bool bLogNotFound) const
 {
 	// NativeInputActions를 순회하며, Input으로 들어온 InputTag가 있는지 체크함.
 	// - 있으면 그에 따른 InputAction을 반환하고 없으면, nullptr을 반환함.

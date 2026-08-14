@@ -1457,6 +1457,13 @@ void UBattleUtilityAIComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	{
 		return;
 	}
+	if (const APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+	{
+		if (!OwnerPawn->IsLocallyControlled())
+		{
+			return;
+		}
+	}
 	if (ActiveAction)
 	{
 		ActiveAction->TickAction(DeltaTime);

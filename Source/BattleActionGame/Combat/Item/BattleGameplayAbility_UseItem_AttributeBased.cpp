@@ -13,6 +13,7 @@
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_UseItem_AttributeBased)
 
@@ -91,6 +92,19 @@ void UBattleGameplayAbility_UseItem_AttributeBased::EndAbility(const FGameplayAb
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+EDataValidationResult UBattleGameplayAbility_UseItem_AttributeBased::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (!DurationGameplayEffectClass || !InstanceGameplayEffectClass)
+	{
+		Context.AddError(FText::FromString(TEXT("GA_UseItem_AttributeBased must have AttributeGEClass")));
+		Result = EDataValidationResult::Invalid;
+	}
+
+	return Result;
+}
+
 void UBattleGameplayAbility_UseItem_AttributeBased::ServerRPCNotifyUseItem_Implementation()
 {
 	//UE_LOG(LogBattle, Log, TEXT("ServerRPC: %s"), GetWorld()->GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
@@ -115,21 +129,35 @@ void UBattleGameplayAbility_UseItem_AttributeBased::UseItem()
 	UAbilitySystemComponent* ASC = CharacterBase->GetAbilitySystemComponent();
 	UBattleItemData_AttributeBased* ItemData = Cast<UBattleItemData_AttributeBased>(ItemInfo->ItemDef);
 	for (FAttributeData& AttData : ItemData->AttributeData)
-	{
+	{		
 		if (AttData.Duration == 0.0f)
 		{
 			FGameplayEffectSpecHandle InstanceSpecHandle = ASC->MakeOutgoingSpec(InstanceGameplayEffectClass, 1.0f, ASC->MakeEffectContext());
+			
+			for (FGameplayTag& AttributeTag : UBattleItemData_AttributeBased::GetAttributeTags())
+			{
+				InstanceSpecHandle.Data->SetSetByCallerMagnitude(AttributeTag, 0.0f);
+			}
+			
 			for (FAttributeMagData& MagData : AttData.AttributeMag)
 			{
 				InstanceSpecHandle.Data->SetSetByCallerMagnitude(MagData.AttributeTag, MagData.Magnitude);
 			}
+			
 			InstanceSpecHandle.Data->Duration = FGameplayEffectConstants::INSTANT_APPLICATION;
+			
 
 			ASC->ApplyGameplayEffectSpecToSelf(*InstanceSpecHandle.Data.Get());
 		}
 		else
 		{
 			FGameplayEffectSpecHandle DurationSpecHandle = ASC->MakeOutgoingSpec(DurationGameplayEffectClass, 1.0f, ASC->MakeEffectContext());
+			
+			for (FGameplayTag& AttributeTag : UBattleItemData_AttributeBased::GetAttributeTags())
+			{
+				DurationSpecHandle.Data->SetSetByCallerMagnitude(AttributeTag, 0.0f);
+			}
+			
 			for (FAttributeMagData& MagData : AttData.AttributeMag)
 			{
 				DurationSpecHandle.Data->SetSetByCallerMagnitude(MagData.AttributeTag, MagData.Magnitude);

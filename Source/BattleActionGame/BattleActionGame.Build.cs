@@ -47,6 +47,8 @@ public class BattleActionGame : ModuleRules
 			"Niagara",
 			// Navigation
 			"Navmesh",
+			// Test
+			"FunctionalTesting",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

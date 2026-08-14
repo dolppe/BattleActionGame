@@ -4,7 +4,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AttackCollisionMethod)
 
 void UAttackCollisionMethod::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
-	UAttackCollisionData* AttackCollisionData)
+	UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec)
 {
 }
 
@@ -18,8 +18,9 @@ bool UAttackCollisionMethod::IsNeedTick()
 }
 
 void UAttackCollisionMethod::TickCollisionCheck(TArray<FHitResult>& OutHitResult,
-	UAttackCollisionData* AttackCollisionData, float FrameDeltaTime)
+	UAttackCollisionData* AttackCollisionData, float FrameDeltaTime, FAttackCollisionDebugSpec& OutCollisionDebugSpec)
 {
 }
+
 
 

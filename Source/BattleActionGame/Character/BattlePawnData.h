@@ -17,6 +17,8 @@ class UBattlePawnData : public UPrimaryDataAsset
 	GENERATED_BODY()
 public:
 	UBattlePawnData(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Battle|Pawn")
 	TSubclassOf<APawn> PawnClass;

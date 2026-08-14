@@ -65,8 +65,8 @@ protected:
 	
 	float ThinkPeriod = 0.3f;
 	float LastThinkTime = -1000.f;
-	float AllowedAttackRange = 1100.f;
-	float AllowedMoveRange = 400.f;
+	float AllowedAttackRange = 700.f;
+	float AllowedMoveRange = 150.f;
 	
 	UPROPERTY(EditAnywhere)
 	bool bUsePerfectMoving = true;

@@ -57,7 +57,7 @@ public:
 	
 	virtual void OnPoiseBreak();
 	
-	
+	virtual void TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
 	
 	FTimerHandle StopMotionHandle;
 	

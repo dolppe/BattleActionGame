@@ -74,7 +74,10 @@ public:
 	float AttackRange = 10.f;
 
 	UPROPERTY(EditAnywhere, Category=CollisionData)
-	float AttackRotationOffset;
+	float AttackYawOffset;
+	
+	UPROPERTY(EditAnywhere, Category=CollisionData)
+	float AttackPitchOffset;
 	
 };
 
@@ -219,6 +222,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UHitReactionTable* HitReactionTable;
+	
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
 	
 };
 

@@ -1,47 +1,44 @@
 #include "AttackCollisionMethod_DirectionalSweep.h"
 
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleCombatData.h"
 #include "BattleGameplayAbility_Attack_Parent.h"
+#include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "GameFramework/GameStateBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AttackCollisionMethod_DirectionalSweep)
 
 
+
+
 void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
-	UAttackCollisionData* AttackCollisionData)
+	UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec)
 {
 	if (UAttackCollisionData_DirectionalSweep* CollisionData = Cast<UAttackCollisionData_DirectionalSweep>(AttackCollisionData))
 	{
-		ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(Character);
-		USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
+		if (ABattleCharacterBase* CharacterBase = Cast<ABattleCharacterBase>(Character))
+		{
+			USkeletalMeshComponent* SkeletalMesh = CharacterBase->GetMesh();
 
-		const FRotator Rotation = CharacterBase->GetActorRotation();
-		const FRotator YawRotation(0,Rotation.Yaw+CollisionData->AttackRotationOffset,0);
+			const FRotator Rotation = CharacterBase->GetActorRotation();
+			const FRotator NewRotation(Rotation.Pitch + CollisionData->AttackPitchOffset,Rotation.Yaw+CollisionData->AttackYawOffset,0);
 
-		FCollisionQueryParams Temp;
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			FCollisionQueryParams Temp;
+			//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			const FVector ForwardDirection = NewRotation.Vector();
 
-		FVector Start = SkeletalMesh->GetSocketLocation(*CollisionData->StartSocketName);
-		FVector End = Start + ForwardDirection*CollisionData->AttackRange;
+			FVector Start = SkeletalMesh->GetSocketLocation(*CollisionData->StartSocketName);
+			FVector End = Start + ForwardDirection*CollisionData->AttackRange;
 	
-		float Radius = CollisionData->AttackRadius;
+			float Radius = CollisionData->AttackRadius;
 
-		GetWorld()->SweepMultiByChannel(OutHitResult, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
-
-
-
-#if 1
-
-		FVector TraceVector = End - Start;
-		FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
-		float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
-		FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
-		DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.f, 0, 0);
-		DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Radius,CapsuleRotation, FColor::Green,false, 2.f);
-	
-#endif
-		
+			GetWorld()->SweepMultiByChannel(OutHitResult, Start, End, FQuat::Identity, CollisionData->CollisionChannel, FCollisionShape::MakeSphere(Radius),Temp);
+			
+			OutCollisionDebugSpec.StartArr.Add(Start);
+			OutCollisionDebugSpec.EndArr.Add(End);
+			
+		}
 	}
 }
 
@@ -51,27 +48,57 @@ void UAttackCollisionMethod_DirectionalSweep::EndCollisionCheck()
 }
 
 void UAttackCollisionMethod_DirectionalSweep::DrawDebugWithStart(USkeletalMeshComponent* MeshComp,
-	UAttackCollisionData* AttackCollisionData)
+	UAttackCollisionData* AttackCollisionData, const FAttackCollisionDebugSpec& CollisionDebugSpec)
 {
 	if (UAttackCollisionData_DirectionalSweep* CollisionData = Cast<UAttackCollisionData_DirectionalSweep>(AttackCollisionData))
 	{
-		const FRotator Rotation = MeshComp->GetComponentRotation();
-		const FRotator YawRotation(0,Rotation.Yaw+CollisionData->AttackRotationOffset+90,0);
-
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		FVector Start;
+		FVector End;
+		if (CollisionDebugSpec.IsValid())
+		{
+			Start = CollisionDebugSpec.StartArr.Last();
+			End = CollisionDebugSpec.EndArr.Last();
+		}
+		else
+		{
+			FRotator BaseRotation;
+			if (ACharacter* OwnerCharacter = Cast<ACharacter>(MeshComp->GetOwner()))
+			{
+				FRotator Rotation;
+				Rotation = OwnerCharacter->GetActorRotation();
+				BaseRotation = FRotator(0.0f,Rotation.Yaw,0.0f);
+				
+			}
+			else if (MeshComp != nullptr)
+			{
+				FRotator Rotation;
+				Rotation = MeshComp->GetComponentRotation();
+				BaseRotation = FRotator(0.0f,Rotation.Yaw+90.f,0.0f);
+			}
+			else
+			{
+				return;
+			}
+			
+			
+			const FRotator NewRotation(BaseRotation.Pitch + CollisionData->AttackPitchOffset,BaseRotation.Yaw+CollisionData->AttackYawOffset,0);
 		
-		FVector Start = MeshComp->GetSocketLocation(*CollisionData->StartSocketName);
-		FVector End = Start + ForwardDirection*CollisionData->AttackRange;
-
+			Start = MeshComp->GetSocketLocation(*CollisionData->StartSocketName);
+			End = Start + NewRotation.Vector()*CollisionData->AttackRange;
+		}
+		
 		FVector TraceVector = End - Start;
 		FVector CapsuleCenter = (Start + End) * 0.5f;  // 캡슐의 중심은 Start와 End의 중간 지점
-		float CapsuleHalfHeight = TraceVector.Size() * 0.5f;  // 캡슐의 절반 길이
+		float CapsuleHalfHeight = TraceVector.Size() * 0.5f + CollisionData->AttackRadius;
 		FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::UpVector, TraceVector.GetSafeNormal());
 
 		UWorld* World = MeshComp->GetWorld();
-	
+		
+		FVector UpVector = MeshComp->GetUpVector().GetSafeNormal();
+		
 		DrawDebugLine(World, Start, End, FColor::Green, false, 2.f, 0, 0);
-		DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, CollisionData->AttackRadius,CapsuleRotation, FColor::Green,false, 2.f);
+		DrawDebugCapsule(World, CapsuleCenter, CapsuleHalfHeight, CollisionData->AttackRadius,CapsuleRotation, FColor::Emerald,false, 5.f);
 	}
 
 }
+

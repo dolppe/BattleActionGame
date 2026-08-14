@@ -19,6 +19,8 @@ public:
 
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
+	
 protected:
 
 	UPROPERTY(EditAnywhere)

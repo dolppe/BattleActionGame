@@ -20,9 +20,15 @@ public class BattleActionEditor : ModuleRules
                 "UnrealEd",
                 "AnimGraph",
                 "BattleActionGame",
-                "BlueprintGraph"
-                
-
+                "BlueprintGraph", 
+                "DataValidation",
+                "ToolMenus",
+                "Slate",
+                "SlateCore",
+                "AssetRegistry",
+                "EditorSubsystem",
+                "GameplayAbilities",
+                "EnhancedInput",
             }
         );
         

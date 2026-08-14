@@ -20,12 +20,14 @@ class UBattleGameplayAbility_Attack_Parent : public UBattleGameplayAbility
 {
 	GENERATED_BODY()
 public:
-
+	
 	UBattleGameplayAbility_Attack_Parent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
+	
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void ServerRPCNotifyHit(FBattleHitMessage HitMessage, float HitCheckTime);

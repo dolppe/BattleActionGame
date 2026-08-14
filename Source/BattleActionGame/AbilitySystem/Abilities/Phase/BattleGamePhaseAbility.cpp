@@ -1,6 +1,8 @@
 #include "BattleGamePhaseAbility.h"
 #include "AbilitySystemComponent.h"
 #include "BattleGamePhaseSubsystem.h"
+#include "Misc/DataValidation.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGamePhaseAbility)
 
 UBattleGamePhaseAbility::UBattleGamePhaseAbility(const FObjectInitializer& ObjectInitializer)
@@ -12,9 +14,22 @@ UBattleGamePhaseAbility::UBattleGamePhaseAbility(const FObjectInitializer& Objec
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
+EDataValidationResult UBattleGamePhaseAbility::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (!GamePhaseTag.IsValid())
+	{
+		Context.AddError(FText::FromString(TEXT("UBattleGamePhaseAbility must have valid PhaseTag")));
+		Result = EDataValidationResult::Invalid;
+	}
+
+	return Result;
+}
+
 void UBattleGamePhaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                              const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                              const FGameplayEventData* TriggerEventData)
 {
 	if (ActorInfo->IsNetAuthority())
 	{

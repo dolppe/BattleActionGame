@@ -175,6 +175,19 @@ void UBattlePawnExtensionComponent::CheckDefaultInitialization()
 	ContinueInitStateChain(StateChain);
 }
 
+void UBattlePawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager,
+	FGameplayTag CurrentState, FGameplayTag DesiredState)
+{
+	const FBattleGameplayTags& InitTags = FBattleGameplayTags::Get();
+	
+	if (CurrentState == InitTags.InitState_GameplayReady)
+	{
+		OnGameplayReady.Broadcast();
+	}
+	
+	
+}
+
 void UBattlePawnExtensionComponent::SetPawnData(const UBattlePawnData* InPawnData)
 {
 	// Pawn에 대해 Authority가 없으면 SetPawn을 안함.

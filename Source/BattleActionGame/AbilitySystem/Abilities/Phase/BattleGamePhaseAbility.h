@@ -10,6 +10,8 @@ class UBattleGamePhaseAbility : public UBattleGameplayAbility
 public:
 
 	UBattleGamePhaseAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& Context) override;
 
 	const FGameplayTag& GetGamePhaseTag() const {return GamePhaseTag;}
 

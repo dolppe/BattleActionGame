@@ -13,6 +13,7 @@
 #include "BattleActionGame/Player/BattlePlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameStateBase.h"
+#include "Misc/DataValidation.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_Attack_Parent)
@@ -101,6 +102,19 @@ void UBattleGameplayAbility_Attack_Parent::CancelAbility(const FGameplayAbilityS
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 	
+}
+
+EDataValidationResult UBattleGameplayAbility_Attack_Parent::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (GameplayEffect_Damage == nullptr)
+	{
+		Context.AddError(FText::FromString(TEXT("GA_Attack must have GE_Damage")));
+		Result = EDataValidationResult::Invalid;
+	}
+
+	return Result;
 }
 
 

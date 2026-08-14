@@ -3,6 +3,7 @@
 #include "BattleCharacter.h"
 #include "EnhancedInputSubsystems.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/BattleLogChannels.h"
 
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
 #include "BattleActionGame/Input/BattleInputComponent.h"
@@ -66,20 +67,33 @@ void ABattleObserverPawn::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	}
 }
 
+void ABattleObserverPawn::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	
+	if (IsLocallyControlled() && InputComponent)
+	{
+		InitializePlayerInput(InputComponent);
+	}
+	
+}
+
 PRAGMA_DISABLE_OPTIMIZATION
 
 void ABattleObserverPawn::ServerReturnToCharacter_Implementation()
 {
 	if (ABattleCharacter* OriginCharacter = Cast<ABattleCharacter>(GetInstigator()))
 	{
-		// if (AController* AIController = OriginCharacter->GetController())
-		// {
-		// 	AIController->UnPossess();
-		// }
+		if (AController* AIController = OriginCharacter->GetController())
+		{
+			AIController->UnPossess();
+		}
+		
+		UE_LOG(LogBattle, Log, TEXT("ServerReturnToCharacter_Implementation"));
 		
 		AController* PlayerController = GetController();
 		
-		//PlayerController->UnPossess();
+		PlayerController->UnPossess();
 		PlayerController->Possess(OriginCharacter);
 	}
 	
@@ -133,9 +147,10 @@ void ABattleObserverPawn::InitializePlayerInput(UInputComponent* PlayerInputComp
 		}
 		if (UBattleInputComponent* BattleIC = CastChecked<UBattleInputComponent>(InputComponent))
 		{
+			BattleIC->ClearActionBindings();
 			const FBattleGameplayTags& GameplayTags = FBattleGameplayTags::Get();
 			BattleIC->BindNativeAction(InputData, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this,&ThisClass::Input_LookMouse, false);
-			BattleIC->BindNativeAction(InputData, GameplayTags.InputTag_SpecialKey, ETriggerEvent::Triggered, this,&ThisClass::Input_ReturnToCharacter, false);
+			BattleIC->BindNativeAction(InputData, GameplayTags.InputTag_ReturnToCharacter, ETriggerEvent::Triggered, this,&ThisClass::Input_ReturnToCharacter, false);
 			
 		}
 	}

@@ -89,6 +89,7 @@ struct FGridChunk
 	}
 	
 	FIntPoint GetCellIdx(const FVector& Location) const;
+	FVector GetCellLocation(const FIntPoint& CellIdx) const;
 	float GetRiskValue(const FVector& Location) const;
 	float GetRiskValue(FIntPoint CellIdx) const;
 	
@@ -123,7 +124,10 @@ public:
 	}
 	
 	float GetRiskValue(const FVector& Location);
+	
+	UFUNCTION(BlueprintCallable)
 	void UpdateRisk(const FVector& Location);
+	
 	bool GetChunk(const FVector& Location, FGridChunk& OutChunk);
 
 	FGridMapInitData InitData;

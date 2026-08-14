@@ -1,12 +1,26 @@
 #include "BattleExperienceDefinition.h"
 
 #include "GameFeatureAction.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleExperienceDefinition)
 
 UBattleExperienceDefinition::UBattleExperienceDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+}
+
+EDataValidationResult UBattleExperienceDefinition::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	if (!DefaultPawnData)
+	{
+		Context.AddError(FText::FromString(TEXT("UBattleExperienceDefinition must have DefaultPawnData")));
+		Result = EDataValidationResult::Invalid;
+	}
+
+	return Result;
 }
 
 #if WITH_EDITORONLY_DATA

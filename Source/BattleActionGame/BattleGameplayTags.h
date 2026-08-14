@@ -49,6 +49,7 @@ public:
 	FGameplayTag InputTag_Look_Mouse;
 	FGameplayTag InputTag_ReadyToggle;
 	FGameplayTag InputTag_SpecialKey;
+	FGameplayTag InputTag_ReturnToCharacter;
 
 	/*
 	 *	Status

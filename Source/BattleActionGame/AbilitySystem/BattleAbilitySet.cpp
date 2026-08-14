@@ -2,6 +2,7 @@
 #include "Abilities/BattleGameplayAbility.h"
 #include "BattleAbilitySystemComponent.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "Misc/DataValidation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAbilitySet)
 
@@ -174,4 +175,43 @@ void UBattleAbilitySet::GiveToAbilitySystem(UBattleAbilitySystemComponent* Battl
 	
 }
 
-PRAGMA_ENABLE_OPTIMIZATION
+EDataValidationResult UBattleAbilitySet::IsDataValid(class FDataValidationContext& Context)
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	for (FBattleAbilitySet_GameplayAbility& GameplayAbility : GrantedGameplayAbilities)
+	{
+		if (GameplayAbility.Ability == nullptr)
+		{
+			Context.AddError(FText::FromString(TEXT("UBattleAbilitySet-Ability must have AbilityClass")));
+			Result = EDataValidationResult::Invalid;
+		}
+	}
+	
+	for (FBattleAbilitySet_GameplayEffect& GameplayEffect : GrantedGameplayEffects)
+	{
+		if (GameplayEffect.GameplayEffect == nullptr)
+		{
+			Context.AddError(FText::FromString(TEXT("UBattleAbilitySet-GameplayEffect must have GameplayEffectClass")));
+			Result = EDataValidationResult::Invalid;
+		}
+	}
+	
+	for (FBattleAbilitySet_AttributeSet& Attribute : GrantedAttributes)
+	{
+		if (Attribute.AttributeSet == nullptr)
+		{
+			Context.AddError(FText::FromString(TEXT("UBattleAbilitySet-Attribute must have AttributeSet")));
+			Result = EDataValidationResult::Invalid;
+		}
+		if (Attribute.InitializationData == nullptr)
+		{
+			Context.AddError(FText::FromString(TEXT("UBattleAbilitySet-Attribute must have AttributeSet-DataTable")));
+			Result = EDataValidationResult::Invalid;
+		}
+	}
+
+	return Result;
+}
+
+	PRAGMA_ENABLE_OPTIMIZATION

@@ -160,6 +160,21 @@ void ABattleCharacterBase::OnPoiseBreak()
 {
 }
 
+void ABattleCharacterBase::TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction)
+{
+	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
+	if (HasAuthority())
+	{
+		int a;
+		a = 3;
+	}
+	else
+	{
+		int b;
+		b= 5;
+	}
+}
+
 void ABattleCharacterBase::ServerJumpToSection_Implementation(UAnimMontage* AnimMontage, FName SectionName)
 {
 	MulticastJumpToSection(AnimMontage, SectionName);
