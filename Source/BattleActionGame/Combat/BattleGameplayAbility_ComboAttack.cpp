@@ -7,6 +7,7 @@
 #include "BattleActionGame/BattleGameplayTags.h"
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
+#include "BattleActionGame/Player/BattlePlayerAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -37,6 +38,18 @@ void UBattleGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilityS
 	FName MontageSectionName = GetNextSection();
 
 	CurrentCombatManager->SetComboGA(this);
+	
+	if (Character->GetController())
+	{
+		if (ABattlePlayerAIController* AIController = Cast<ABattlePlayerAIController>(Character->GetController()))
+		{
+			Character->NetPlayMontage(AttackData->Montage, 1.0f, MontageSectionName);
+		
+		
+			StartComboTimer(MontageSectionName);
+		}	
+	}
+	
 	
 	if (Character->IsLocallyControlled())
 	{

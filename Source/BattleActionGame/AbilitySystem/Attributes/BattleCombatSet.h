@@ -15,6 +15,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UBattleCombatSet, AttackPower);
 	ATTRIBUTE_ACCESSORS(UBattleCombatSet, ImpactResistance);
 	ATTRIBUTE_ACCESSORS(UBattleCombatSet, ImpactDamage);
+	ATTRIBUTE_ACCESSORS(UBattleCombatSet, TestPower);
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
@@ -36,10 +37,32 @@ private:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_ImpactResistance, Category = "Battle|Combat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData ImpactResistance;
 
-
+	UPROPERTY(BlueprintReadOnly, Category = "Battle|Combat", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData TestPower;
+	
 private:
 	UPROPERTY(BlueprintReadOnly, Category="Battle|Combat", Meta=(AllowPrivateAccess=true))
 	FGameplayAttributeData ImpactDamage;
 	
 };
+
+UCLASS()
+class UBattleTestSet : public UBattleAttributeSet
+{
+	GENERATED_BODY()
+public:
+	UBattleTestSet();
+	
+	ATTRIBUTE_ACCESSORS(UBattleTestSet, TestAttributeA);
+	ATTRIBUTE_ACCESSORS(UBattleTestSet, TestAttributeB);
+	
+private:
+	UPROPERTY(BlueprintReadOnly, Category="Battle|Test", Meta=(AllowPrivateAccess=true))
+	FGameplayAttributeData TestAttributeA;
+	
+	UPROPERTY(BlueprintReadOnly, Category="Battle|Test", Meta=(AllowPrivateAccess=true))
+	FGameplayAttributeData TestAttributeB;
+	
+};
+
 

@@ -12,28 +12,10 @@ class ABrokenPartActor;
 UENUM(BlueprintType)
 enum class EPartEventType : uint8
 {
+	None,
 	Damage,
 	Destroy,
 };
-
-USTRUCT()
-struct FDestroyedPartsData
-{
-	GENERATED_BODY()
-
-	FDestroyedPartsData(){};
-	
-	UPROPERTY()
-	FName BoneName = NAME_None;
-	UPROPERTY()
-	ABrokenPartActor* BrokenActor = nullptr;
-	UPROPERTY()
-	FVector Impulse = FVector(0);
-	UPROPERTY()
-	FGameplayTag PartTag;
-};
-
-
 
 USTRUCT(BlueprintType)
 struct FPartEventData
@@ -60,6 +42,8 @@ struct FPartData
 
 	void HandleDamaged(UBattlePartsManagerComponent* PartsManager, FGameplayTag PartTag, const FVector& HitDirection, int DamagedHp = 1);
 	bool WillDamageTrigger(int DamagedHp = 1);
+	EPartEventType GetNextPartEventType();
+	
 	
 	UPROPERTY(EditAnywhere)
 	int PartHp = 5;
@@ -77,7 +61,6 @@ struct FPartData
 	TEnumAsByte<EPhysicalSurface> SurfaceState = SurfaceType_Default;
 
 	int PartEventIdx = 0;
-	bool bIsDestroyed = false;
 	
 };
 
@@ -91,8 +74,6 @@ public:
 
 	UBattlePartsManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual void InitializeComponent() override;
-
 	UFUNCTION(BlueprintCallable)
 	void HandleDamagedToPart(const FGameplayTag& PartTag, const FVector& HitDirection);
 	
@@ -105,26 +86,26 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool WillPartEventTrigger(const FGameplayTag& PartTag);
 	
-	void DestroyParts(const FGameplayTag& PartTag, const FVector& Impulse);
+	UFUNCTION(BlueprintCallable)
+	bool WillDestroyedPart(const FGameplayTag& PartTag);
+	
+	void DestroyParts(const FGameplayTag& PartTag);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 
 	UFUNCTION()
-	void TryDestroyedParts(const FGameplayTag& PartTag, const FVector& Impulse, int Idx);
-
-	UFUNCTION()
 	void OnRep_DestroyedPartTags();
 
 	UFUNCTION()
-	void OnRep_DestroyedParts();
+	void OnRep_BrokenPartActors();
 
 	UFUNCTION()
-	void DetachedFrameDelayed();
+	void FinalizeBrokenParts();
 
 	UPROPERTY()
-	TArray<FDestroyedPartsData> FrameDelayedDestroyedPartsDatas;
+	TArray<ABrokenPartActor*> PendingBrokenParts;
 	
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<EPhysicalSurface> DefaultSurfaceType = EPhysicalSurface::SurfaceType_Default;
@@ -135,8 +116,8 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_DestroyedPartTags)
 	TArray<FGameplayTag> DestroyedPartTags;
 
-	UPROPERTY(ReplicatedUsing=OnRep_DestroyedParts)
-	TArray<ABrokenPartActor*> DestroyedParts;
+	UPROPERTY(ReplicatedUsing=OnRep_BrokenPartActors)
+	TArray<ABrokenPartActor*> BrokenPartActors;
 
 	TArray<FGameplayTag> AppliedPartTags;
 
@@ -144,24 +125,18 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UDestroyedAnimInstance> DestroyedAnimInstance;
 
-
 private:
-
 	
-	void CreateDestroyedPhysicsAsset(ABrokenPartActor* BrokenPartActor, FName InLimb) const;
-	void TerminatePhysicsBodies(UPhysicsAsset* PhysicsAsset, int32 Index) const;
+	void TryApplyDestroyedParts();
+	void ApplyDestroyedPart(int32 Index);
 	
-	ABrokenPartActor* CreateDestroyedPart(const FName& BoneName, const FGameplayTag& PartTag, const FVector& Impulse);
+	void CreateBrokenPartPhysicsAsset(ABrokenPartActor* BrokenPartActor) const;
+	void FilterPhysicsAssetForPart(UPhysicsAsset* PhysicsAsset, const TArray<int32>& BodyIndexes, const TArray<FName>& BoneNamesToKeep) const;
 	
-	bool DestroyParts_Internal(const FGameplayTag& PartTag, const FVector& Impulse);
+	ABrokenPartActor* CreateBrokenPartActor(const FName& BoneName);
+	void SetBoneInfos(ABrokenPartActor* BrokenPartActor, const FName& BoneName);
 
-	USkeletalMeshComponent* GetOwnerSkeletalMeshComponent();
-
-private:
-
-	FTimerHandle TempHandle;
-	FTimerHandle TestHandle;
-	
+	USkeletalMeshComponent* GetOwnerSkeletalMeshComponent() const;
 	
 };
 

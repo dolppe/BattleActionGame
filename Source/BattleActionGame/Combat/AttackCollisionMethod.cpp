@@ -8,6 +8,11 @@ void UAttackCollisionMethod::StartCollisionCheck(TArray<FHitResult>& OutHitResul
 {
 }
 
+void UAttackCollisionMethod::StartCollisionCheck(TArray<FHitResult>& OutHitResult,
+	UAttackCollisionData* AttackCollisionData)
+{
+}
+
 void UAttackCollisionMethod::EndCollisionCheck()
 {
 }

@@ -2,6 +2,7 @@
 
 #include "BattleActionGame/BattleLogChannels.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
+#include "BattleActionGame/Enemy/UtilityAI/BattleConsiderationFactors.h"
 #include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAxis.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction_Search)
@@ -13,37 +14,48 @@ UBattleUtilityAction_SearchTarget::UBattleUtilityAction_SearchTarget()
 void UBattleUtilityAction_SearchTarget::StartAction()
 {
 	Super::StartAction();
-
-	AActor* SelectTarget = nullptr;
-	for (AActor* BestTarget : BestTargets)
+	
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	
+	if (!IsValid(ConsiderList))
 	{
-		if (BestTarget == nullptr)
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* SelectedTarget = ConsiderList->GetSelectedTarget();
+	
+	if (!IsValid(SelectedTarget))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+
+	AActor* BestTarget = BestTargets[EAxisType::Target];
+	
+	if (BestTarget == nullptr)
+	{
+		for (int32 Idx = 0; Idx < ConsiderList->GetCandidateArrNum(EAxisType::Target); ++Idx)
 		{
-			continue;
-		}
-		if (BestTarget->IsA(ABattleCharacterBase::StaticClass()))
-		{
-			SelectTarget = BestTarget;
+			AActor* TargetActor = ConsiderList->GetCandidatePtr(EAxisType::Target, Idx);
+			if (!IsValid(TargetActor))
+			{
+				continue;
+			}
+			BestTarget = TargetActor;
 			break;
 		}
 	}
-
-	if (SelectTarget == nullptr)
+	
+	if (BestTarget == nullptr)
 	{
-		for (AActor* Target : CachedAIComponent->ConsiderList->TargetActors)
-		{
-			SelectTarget = Target;
-			break;
-		}
-		
-		if (SelectTarget != nullptr)
-		{
-			CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(SelectTarget);	
-		}
+		bIsCompletedAction = true;
+		return;
 	}
-	else
+	
+	if (ABattleCharacterBase* BestCharacter = Cast<ABattleCharacterBase>(BestTarget))
 	{
-		CachedAIComponent->ConsiderList->SelectedTarget = Cast<ABattleCharacterBase>(SelectTarget);
+		ConsiderList->SetSelectedTarget(BestCharacter);	
 	}
 
 	bIsCompletedAction = true;
@@ -57,9 +69,4 @@ void UBattleUtilityAction_SearchTarget::EndAction()
 void UBattleUtilityAction_SearchTarget::TickAction(float DeltaTime)
 {
 
-}
-
-float UBattleUtilityAction_SearchTarget::EvaluateScore(const UConsiderationFactors* ConsiderList)
-{
-	return Super::EvaluateScore(ConsiderList);
 }

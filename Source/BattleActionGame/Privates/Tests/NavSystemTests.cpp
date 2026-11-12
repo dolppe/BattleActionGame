@@ -46,7 +46,7 @@ bool FWorldRiskGridMapTest::RunTest(const FString& Parameters)
 	TestInitData.NumChunkCols = 6;
 	TestInitData.NumChunkRows = 6;
 	TestInitData.CellSize = 100.f;
-	TestInitData.RiskWeight = 1.0f;
+	TestInitData.CellRiskValue = 1.0f;
 	
 	WorldRiskGridMapSubSystem->Init(TestInitData);
 	
@@ -143,14 +143,7 @@ bool FWorldRiskGridMapTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("따라서 C 위치의 RiskValue는 1이 나와야 함"), WorldRiskGridMapSubSystem->GetRiskValue(TestCharacter_C->GetActorLocation()),  1.0f);
 	
 	FGridChunk CharacterChunk_D;
-	TestFalse(TEXT("D의 경우 A의 청크 밖에 있기 때문에 같이 업데이트되지 않아야 함."),WorldRiskGridMapSubSystem->GetChunk(TestCharacter_D->GetActorLocation(), CharacterChunk_D));
-	
-	if (!CharacterChunk_D.RiskCellMap.IsEmpty())
-	{
-		return false;
-	}
-	
-	WorldRiskGridMapSubSystem->UpdateRisk(TestCharacter_A->GetActorLocation());
+	WorldRiskGridMapSubSystem->UpdateNearlyChunk(TestCharacter_A->GetActorLocation());
 	
 	TestTrue(TEXT("UpdateRisk의 경우 주변의 청크까지 모두 업데이트를 진행하기에 D도 업데이트 되어야 함"),WorldRiskGridMapSubSystem->GetChunk(TestCharacter_D->GetActorLocation(), CharacterChunk_D));
 	TestEqual(TEXT("업데이트 된 D 위치의 RiskValue는 1이 나와야 함"), WorldRiskGridMapSubSystem->GetRiskValue(TestCharacter_D->GetActorLocation()), 1.0f);

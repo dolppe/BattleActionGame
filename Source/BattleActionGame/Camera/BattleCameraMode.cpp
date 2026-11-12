@@ -2,6 +2,7 @@
 #include "BattleCameraComponent.h"
 #include "BattlePlayerCameraManager.h"
 #include "GameplayTagContainer.h"
+#include "BattleActionGame/BattleLogChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCameraMode)
 
@@ -42,6 +43,12 @@ void FBattleCameraModeView::Blend(const FBattleCameraModeView& Other, float Othe
 	FieldOfView = FMath::Lerp(FieldOfView, Other.FieldOfView, OtherWeight);
 }
 
+FBattleCameraModeInitData::FBattleCameraModeInitData()
+	: StartMyLocation(FVector::ZeroVector), StartTargetLocation(FVector::ZeroVector), ImpactPointLocation(FVector::ZeroVector),
+	DesiredLocation(FVector::ZeroVector), DesiredRotation(FRotator::ZeroRotator)
+{
+}
+
 UBattleCameraMode::UBattleCameraMode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -69,6 +76,10 @@ AActor* UBattleCameraMode::GetTargetActor() const
 {
 	const UBattleCameraComponent* BattleCameraComponent = GetBattleCameraComponent();
 	return BattleCameraComponent->GetTargetActor();
+}
+
+void UBattleCameraMode::InitCameraMode(const FBattleCameraModeInitData& InitData)
+{
 }
 
 FVector UBattleCameraMode::GetPivotLocation() const
@@ -362,6 +373,7 @@ void UBattleCameraModeStack::BlendStack(FBattleCameraModeView& OutCameraModeView
 
 	// 제일 밑에 있는 (Bottom)은 BlendWeight가 1.0임
 	OutCameraModeView = CameraMode->GetCameraModeView();
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("CameraView: %s => %s"), *OutCameraModeView.Location.ToString(), *OutCameraModeView.Rotation.ToString());
 
 	// 이미 Bottom은 OutCameraModeView로 지정했기에 다음것부터 순회함.
 	for (int32 StackIndex = (StackSize -2); StackIndex >=0 ; --StackIndex)
@@ -370,7 +382,7 @@ void UBattleCameraModeStack::BlendStack(FBattleCameraModeView& OutCameraModeView
 		check(CameraMode);
 
 		OutCameraModeView.Blend(CameraMode->GetCameraModeView(), CameraMode->GetBlendWeight());
-		
+		BA_DEFAULT_LOG(LogBattle, Log, TEXT("CameraViewBlend %d: %s => %s"), StackIndex,*OutCameraModeView.Location.ToString(), *OutCameraModeView.Rotation.ToString());
 	}
 	
 }

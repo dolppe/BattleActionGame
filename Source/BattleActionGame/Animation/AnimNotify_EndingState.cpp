@@ -16,10 +16,12 @@ void UAnimNotify_EndingState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 void UAnimNotify_EndingState::AllowMovementTag(USkeletalMeshComponent* MeshComp)
 {
+
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner()))
 	{
 		ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Status_Action_Attack,0);
 		ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Block_Movement, 0);	
+		ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Block_Movement_AllowRotation, 0);	
 	}
 	
 	

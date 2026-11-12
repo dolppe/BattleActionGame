@@ -740,17 +740,34 @@ bool FCombatAttributeSetTest::RunTest(const FString& Parameters)
 }
 
 
+DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(
+	FDeathTestCleanup,
+	TFunction<void()>,
+	Cleanup);
+
+bool FDeathTestCleanup::Update()
+{
+	Cleanup();
+	return true;
+}
+
+
 bool FGameplayAbility_DeathTest_WaitEvent::Update()
 {
+	// 사망 진행 상태가 되면 명령 완료
 	if (HealthComponent->IsDeadOrDying())
 	{
 		return true;
 	}
+	
+	// 제한 시간 초과 시 테스트 오류를 기록하고 명령 완료
 	if (FPlatformTime::Seconds() >= StartTime +10)
 	{
 		Test->AddError(TEXT("TimeOver: Dead 상태가 되지 않음"));
 		return true;
 	}
+	
+	// 아직 대기중이면 다음 갱신에서 다시 확인
 	return false;
 }
 
@@ -760,9 +777,14 @@ bool FGameplayAbility_DeathTest::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
+	bool bCleanupDeferred = false;
 	
 	ON_SCOPE_EXIT{
-		ClearWorld();
+		// Latent Command 등록 전에 실패하면 즉시 정리
+		if (!bCleanupDeferred)
+		{
+			ClearWorld();
+		}
 	};
 	
 	ABattleCharacter* PlayerCharacter = GetWorld()->SpawnActor<ABattleCharacter>();
@@ -794,14 +816,29 @@ bool FGameplayAbility_DeathTest::RunTest(const FString& Parameters)
 	UBattleHealthComponent* HealthComponent = PlayerCharacter->GetHealthComponent();
 	TestEqual(TEXT("Death를 하기 전에는 NotDead 상태여야 함"),HealthComponent->GetDeathState(), EBattleDeathState::NotDead);
 	
+	// 사망 이벤트 전달
 	FGameplayEventData Payload;
 	Payload.EventTag = FBattleGameplayTags::Get().GameplayEvent_Death;
 
 	ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
 	
-	ADD_LATENT_AUTOMATION_COMMAND(FGameplayAbility_DeathTest_WaitEvent(this, FPlatformTime::Seconds(), HealthComponent));
+	// 이후 갱신에서 사망 상태 변경을 확인하기 위한 명령 등록
+	ADD_LATENT_AUTOMATION_COMMAND(
+		FGameplayAbility_DeathTest_WaitEvent(
+			this, FPlatformTime::Seconds(), HealthComponent));
 	
 	
+	
+	
+	
+	
+	ADD_LATENT_AUTOMATION_COMMAND(
+		FDeathTestCleanup([this]()
+		{
+			ClearWorld();
+		}));
+	
+	bCleanupDeferred = true;
 	return true;
 }
 

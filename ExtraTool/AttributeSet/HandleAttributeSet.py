@@ -74,8 +74,8 @@ def attributeset_data_to_excel(excel_path, attributeset_data : dict):
                 new_attribute_df = pd.DataFrame([make_attribute(attributeset_key, attribute_info.name, attribute_info.base_value)], columns=excel_df.columns)
                 excel_df = pd.concat([excel_df, new_attribute_df])
                 unreal.log(f"Make attribute: {attributeset_key}-{attribute_info.name}")
-        # attribute의 개수가 다른 경우                
-        elif attributeset_count != len(attributeset_data[attributeset_key]):
+        # 존재하면 이름 비교
+        else: 
             select_attribute_df = excel_df[excel_df["AttributeSetName"] == attributeset_key]
             for attribute_info in attributeset_data[attributeset_key]:
                 exist_df = select_attribute_df[select_attribute_df["AttributeName"] == attribute_info.name]
@@ -208,14 +208,23 @@ def attributeset_csv_to_unreal_data_table(csv_path, data_table_path):
 
     csv_factory = unreal.CSVImportFactory()
 
-    all_assets = unreal.AssetRegistryHelpers.get_asset_registry().get_all_assets()
+    data_table = unreal.EditorAssetLibrary.load_asset("/Game/DataTable/AttributeSet/DT_Hero_BattleHealthSet")
 
-    for asset_data in all_assets:
-        if asset_data.asset_class_path.asset_name == "DataTable":
-            #unreal.log(asset_data)
-            data_table = unreal.EditorAssetLibrary.load_asset(asset_data.package_name)
-            row_struct = data_table.get_editor_property("row_struct")
-            csv_factory.automated_import_settings.import_row_struct = row_struct
+    if not data_table:
+        unreal.log_error("RefDataTable Not Found /Game/DataTable/AttributeSet/DT_Hero_BattleHealthSet")
+        return
+
+    row_struct = data_table.get_editor_property("row_struct")
+    csv_factory.automated_import_settings.import_row_struct = row_struct
+
+    # all_assets = unreal.AssetRegistryHelpers.get_asset_registry().get_all_assets()
+
+    # for asset_data in all_assets:
+    #     if asset_data.asset_class_path.asset_name == "DataTable":
+    #         #unreal.log(asset_data)
+    #         data_table = unreal.EditorAssetLibrary.load_asset(asset_data.package_name)
+    #         row_struct = data_table.get_editor_property("row_struct")
+    #         csv_factory.automated_import_settings.import_row_struct = row_struct
     
     task.factory = csv_factory
     asset_tools = unreal.AssetToolsHelpers.get_asset_tools()

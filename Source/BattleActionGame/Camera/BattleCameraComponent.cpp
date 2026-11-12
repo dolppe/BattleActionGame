@@ -59,6 +59,9 @@ void UBattleCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 
 	// 카메라에 Location과 Rotation 반영
 	// CameraComponent에 대해 Parent의 SceneGraph 관계를 고려하며 업데이트를 진행함.
+	
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("Before: %s, %s"), *GetComponentLocation().ToString(), *GetComponentRotation().ToString());
+	BA_DEFAULT_LOG(LogBattle, Log, TEXT("CameraModeView: %s, %s"), *CameraModeView.Location.ToString(), *CameraModeView.Location.ToString());
 	SetWorldLocationAndRotation(CameraModeView.Location, CameraModeView.Rotation);
 
 	FieldOfView = CameraModeView.FieldOfView;

@@ -35,6 +35,33 @@ struct FBattleCameraModeView
 	float FieldOfView;
 };
 
+USTRUCT()
+struct FBattleCameraModeInitData
+{
+	GENERATED_BODY()
+	
+	FBattleCameraModeInitData();
+	
+	UPROPERTY()
+	FVector StartMyLocation;
+	
+	UPROPERTY()
+	FVector StartTargetLocation;
+	
+	UPROPERTY()
+	FVector ImpactPointLocation;
+	
+	
+	UPROPERTY()
+	FVector DesiredLocation;
+	
+	UPROPERTY()
+	FRotator DesiredRotation;
+};
+
+
+
+
 
 
 UCLASS(Abstract, NotBlueprintable)
@@ -46,6 +73,8 @@ public:
 	
 	UBattleCameraComponent* GetBattleCameraComponent() const;
 	AActor* GetTargetActor() const;
+	
+	virtual void InitCameraMode(const FBattleCameraModeInitData& InitData);
 	
 	void UpdateCameraMode(float DeltaTime);
 

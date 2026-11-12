@@ -43,7 +43,7 @@ public:
 	static TArray<FAttributeInfo> GetAttributeInfos(UAttributeSet* AttributeSet);
 
 	UFUNCTION(BlueprintCallable)
-	static TArray<FAttributeInfo> GetAttributeInfosWithClass(UClass* AttributeSet);
+	static TArray<FAttributeInfo> GetAttributeInfosWithClass(UClass* AttributeSetClass);
 	
 };
 

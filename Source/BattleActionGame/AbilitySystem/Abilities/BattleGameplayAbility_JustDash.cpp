@@ -44,14 +44,7 @@ void UBattleGameplayAbility_JustDash::ActivateAbility(const FGameplayAbilitySpec
 
 	if (HasAuthority(&ActivationInfo))
 	{
-		//BA_DEFAULT_LOG(LogBattle, Log, TEXT("SErverJustDash"));
-		// FGameplayCueParameters Params;
-		// Params.Instigator = const_cast<AActor*>(TriggerEventData->Instigator.Get());
-		//
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-		//
-		// ASC->ExecuteGameplayCue(GlobalJustDashEffectTag, Params);
-		// ASC->ExecuteGameplayCue(OwnerJustDashEffectTag, Params);
 
 		GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectToSelf(GE_AllowedCounterAttack.GetDefaultObject(), 1.0f,ASC->MakeEffectContext());
 		if (ABattleCharacterBase* AttackCharacter = Cast<ABattleCharacterBase>(TriggerEventData->Instigator))

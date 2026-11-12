@@ -5,8 +5,10 @@
 #include "GameplayMessageSubsystem.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_CounterAction)
 
@@ -66,7 +68,23 @@ void UBattleGameplayAbility_CounterAction::MoveToBestSpot()
 		FVector Direction = TargetActor->GetActorLocation() - Character->GetActorLocation();
 		Direction.Z = 0.0f;
 		Character->SetActorRotation(Direction.Rotation());
-		//Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		if (Character->GetCharacterMovement()->bOrientRotationToMovement)
+		{
+			Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+			Character->SetActorRotation(Direction.Rotation());
+			Character->GetCharacterMovement()->bOrientRotationToMovement = true;	
+		}
+		else
+		{
+			Character->SetActorRotation(Direction.Rotation());
+		}
+		if (AController* Controller = Character->GetController())
+		{
+			if (Character->bUseControllerRotationYaw)
+			{
+				Controller->SetControlRotation(Direction.Rotation());		
+			}
+		}
 	}
 }
 
@@ -93,15 +111,45 @@ void UBattleGameplayAbility_CounterAction::StartActionTrigger(FGameplayTag Chann
 
 void UBattleGameplayAbility_CounterAction::ServerCounterAction_Implementation()
 {
-	ACharacter* TargetCharacter = Cast<ACharacter>(TargetActor);
-	
-	if (TargetHitGATag.IsValid())
+	if (ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(TargetActor))
 	{
-		FGameplayTagContainer TagContainer;
-		TagContainer.AddTag(TargetHitGATag);
+		if (TargetHitGATag.IsValid())
+		{
+			FGameplayTagContainer TagContainer;
+			TagContainer.AddTag(TargetHitGATag);
 		
-		UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetCharacter)->TryActivateAbilitiesByTag(TagContainer);
+			UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetCharacter)->TryActivateAbilitiesByTag(TagContainer);
+		}
+		
+		FVector Direction = -(TargetCharacter->GetActorLocation() - GetAvatarActorFromActorInfo()->GetActorLocation()).GetSafeNormal2D();
+		
+		if (TargetCharacter->GetCharacterMovement()->bOrientRotationToMovement)
+		{
+			TargetCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+			TargetCharacter->SetActorRotation(Direction.Rotation());
+			TargetCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+		}
+		else
+		{
+			TargetCharacter->SetActorRotation(Direction.Rotation());
+		}
+		if (AController* Controller = TargetCharacter->GetController())
+		{
+			if (TargetCharacter->bUseControllerRotationYaw)
+			{
+				Controller->SetControlRotation(Direction.Rotation());
+			}
+		}
+		
+		//TargetCharacter->NetPlayMontage(TargetMontage);
+		
+		
+		FVector LaunchDirection = -Direction;
+		LaunchDirection *= 1000.f;
+		TargetCharacter->LaunchCharacter(LaunchDirection, true, true);
 	}
+	
+	
 	
 	if (GameplayEffect_Damage != nullptr)
 	{

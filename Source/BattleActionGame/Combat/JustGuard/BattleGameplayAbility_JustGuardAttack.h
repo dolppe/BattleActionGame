@@ -45,6 +45,7 @@ protected:
 private:
 	
 	TArray<FBattleHitMessage> PendingHitMessages;
+	bool bJustGuardSucceeded = false;
 
 	
 	

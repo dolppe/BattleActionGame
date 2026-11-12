@@ -5,6 +5,7 @@
 
 #include "BattleCharacter.generated.h"
 
+class UBattleCameraSequencePreset;
 class ABattleObserverPawn;
 class UBattleHeroComponent;
 class UGameplayEffect;
@@ -114,6 +115,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UBattleCameraMode> CriticalCameraMode;
+	
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UBattleCameraSequencePreset> CriticalCameraPreset;
 
 	FTimerHandle CriticalHandle;
 

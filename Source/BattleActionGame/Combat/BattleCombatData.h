@@ -2,12 +2,15 @@
 
 #include "HitReactionTable.h"
 #include "Engine/DataAsset.h"
+#include "Camera/CameraShakeBase.h"
 #include "BattleCombatData.generated.h"
 
 class UHitReactionTable;
 class UGameplayEffect;
 enum class ECollisionMethodType : uint8;
 class UNiagaraSystem;
+
+
 
 
 UENUM()

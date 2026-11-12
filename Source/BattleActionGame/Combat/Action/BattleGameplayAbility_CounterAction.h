@@ -28,12 +28,16 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* CounterMontage;
+	
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* TargetMontage;
 
 	UPROPERTY(EditAnywhere)
 	FGameplayTag CounterGCN;
 
 	UPROPERTY(EditAnywhere)
 	FGameplayTag TargetHitGATag;
+	
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UGameplayEffect> GameplayEffect_Damage;

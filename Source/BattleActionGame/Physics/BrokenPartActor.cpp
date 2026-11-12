@@ -24,7 +24,7 @@ ABrokenPartActor::ABrokenPartActor(const FObjectInitializer& ObjectInitializer)
 
 	if (GetWorld())
 	{
-		UE_LOG(LogBattle, Log, TEXT("%s"), GetWorld()->GetNetMode()==NM_Client?TEXT("Client"):TEXT("Server"));
+		//UE_LOG(LogBattle, Log, TEXT("%s"), GetWorld()->GetNetMode()==NM_Client?TEXT("Client"):TEXT("Server"));
 	}
 }
 

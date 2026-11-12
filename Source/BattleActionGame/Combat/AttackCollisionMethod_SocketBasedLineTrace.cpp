@@ -114,7 +114,7 @@ void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheckWithLerpNotStep
 		}
 	}
 
-	DrawDebug(CurWeaponStart, CurWeaponEnd, true);
+	//DrawDebug(CurWeaponStart, CurWeaponEnd, true);
 
 	GetWorld()->SweepMultiByChannel(OutHitResults, CurWeaponStart, PreviousStart, FQuat::Identity, CollisionChannel, FCollisionShape::MakeSphere(AttackRadius),Params);
 
@@ -154,9 +154,9 @@ void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheckWithLerpNotStep
 	}
 	
 
-	DrawDebug(CurWeaponStart, PreviousStart, false);
-	DrawDebug(CurWeaponEnd, PreviousEnd, false);
-	DrawDebug(CurWeaponMiddle, PreviousMiddle, false);
+	// DrawDebug(CurWeaponStart, PreviousStart, false);
+	// DrawDebug(CurWeaponEnd, PreviousEnd, false);
+	// DrawDebug(CurWeaponMiddle, PreviousMiddle, false);
 }
 
 void UAttackCollisionMethod_SocketBasedLineTrace::PerformHitCheck(TArray<FHitResult>& OutHitResults, FVector& CurWeaponStart, FVector& CurWeaponEnd)

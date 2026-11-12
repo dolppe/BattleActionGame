@@ -17,7 +17,7 @@ struct FRiskCellOffset
 	}
 	
 	FRiskCellOffset(int IndX, int IndY, float InRiskValue)
-		: dX(IndX), dY(IndY), RiskValue(InRiskValue)
+		: dX(IndX), dY(IndY), RiskWeight(InRiskValue)
 	{
 		
 	}
@@ -27,7 +27,7 @@ struct FRiskCellOffset
 	UPROPERTY(EditAnywhere)
 	int dY;
 	UPROPERTY(EditAnywhere)
-	float RiskValue;
+	float RiskWeight;
 };
 
 USTRUCT()
@@ -55,24 +55,9 @@ struct FGridMapInitData
 	float AllowUpdateTime = 5.0f;
 	
 	UPROPERTY(EditDefaultsOnly)
-	float RiskWeight = 2.0f;
+	float CellRiskValue = 2.0f;
 };
 
-
-
-
-struct FRiskCell
-{
-	FRiskCell(float InRiskValue, float InUpdateTime)
-		: RiskValue(InRiskValue), UpdateTime(InUpdateTime)
-	{
-		
-	}
-	
-	float RiskValue = 0.0f;
-	float UpdateTime = 0.0f;
-	
-};
 
 struct FGridChunk
 {
@@ -93,14 +78,16 @@ struct FGridChunk
 	float GetRiskValue(const FVector& Location) const;
 	float GetRiskValue(FIntPoint CellIdx) const;
 	
-	void UpdateChunk();
-	void SetRiskValue(const FVector& Location);
+	void UpdateChunk(TArray<FIntPoint>& NearlyChunks);
+	void PrepareChunkUpdate(float UpdateTime);
+	void SetRiskValue(const FVector& Location, TArray<FIntPoint>& NearlyChunks);
+	void SetRiskValueOneCell(const FVector& Location, float InRiskValue);
 	
 	
 
-	double UpdateTime = 0.0f;
+	double CurUpdateTime = 0.0f;
 	
-	TMap<FIntPoint, FRiskCell> RiskCellMap;
+	TMap<FIntPoint, float> RiskCellMap;
 	
 	UWorldRiskGridMapSubSystem* GridMapSubSystem;
 	
@@ -115,6 +102,8 @@ class UWorldRiskGridMapSubSystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 public:
+	
+	friend struct FGridChunk;
 
 	void Init(const FGridMapInitData& InInitData);
 
@@ -126,21 +115,26 @@ public:
 	float GetRiskValue(const FVector& Location);
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateRisk(const FVector& Location);
+	void UpdateNearlyChunk(const FVector& Location);
+	void SetRiskValue(const FVector& Location, float InRiskValue);
+	
+	FGridMapInitData InitData;
 	
 	bool GetChunk(const FVector& Location, FGridChunk& OutChunk);
-
-	FGridMapInitData InitData;
+	FIntPoint GetChunkIdx(const FVector& Location);
+	
 
 protected:
 
 	bool IsLocationInGrid(const FVector& Location);
 	TArray<FIntPoint> GetNearlyChunkIdx(const FVector& Location);
-	FIntPoint GetChunkIdx(const FVector& Location);
+	
+	
+	
 	
 	bool bIsInit = false;
 	
-	TMap<FIntPoint, FGridChunk> GridRiskMap;
+	TMap<FIntPoint, FGridChunk> RiskGridMap;
 
 private:
 

@@ -5,11 +5,13 @@
 #include "NativeGameplayTags.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "BattleActionGame/BattleLogChannels.h"
+#include "BattleActionGame/Camera/BattleCameraMode.h"
 #include "BattleActionGame/Character/BattleCharacterBase.h"
 #include "BattleActionGame/Character/BattleHeroComponent.h"
 #include "BattleActionGame/Player/BattlePlayerStart.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleGameplayAbility_JustGuard)
 
@@ -50,7 +52,23 @@ void UBattleGameplayAbility_JustGuard::MoveToBestSpot()
 		FVector Direction = GetAvatarActorFromActorInfo()->GetActorLocation() - TargetPlayerCharacter->GetActorLocation();
 		Direction.Z = 0.0f;
 
-		TargetPlayerCharacter->SetActorRotation(Direction.Rotation());
+		if (TargetPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement)
+		{
+			TargetPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+			TargetPlayerCharacter->SetActorRotation(Direction.Rotation());
+			TargetPlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;	
+		}
+		else
+		{
+			TargetPlayerCharacter->SetActorRotation(Direction.Rotation());
+		}
+		if (AController* Controller = TargetPlayerCharacter->GetController())
+		{
+			if (TargetPlayerCharacter->bUseControllerRotationYaw)
+			{
+				Controller->SetControlRotation(Direction.Rotation());		
+			}
+		}
 	}
 	
 }
@@ -97,7 +115,7 @@ void UBattleGameplayAbility_JustGuard::OnHitStopEnd()
 {
 	if (UBattleHeroComponent* HeroComponent = Cast<UBattleHeroComponent>(TargetActor->GetComponentByClass(UBattleHeroComponent::StaticClass())))
 	{
-		HeroComponent->ClearDesiredCameraMode();
+		HeroComponent->ClearSpecialCameraMode();
 	}
 
 	UAbilityTask_PlayMontageAndWait* PlayAttackMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayMontage"), EnemyMontage, 1.0f);
@@ -155,7 +173,7 @@ void UBattleGameplayAbility_JustGuard::StartJustDash()
 
 			if (Direction.Dot(PlayerCharacter->GetActorRightVector()) >=0)
 			{
-				SideDirection = PlayerCharacter->GetActorRightVector().GetSafeNormal();
+				SideDirection = (PlayerCharacter->GetActorRightVector().GetSafeNormal());
 			}
 			else
 			{
@@ -166,7 +184,11 @@ void UBattleGameplayAbility_JustGuard::StartJustDash()
 			FVector DesiredLocation = PlayerCharacter->GetActorLocation() - (Direction.GetSafeNormal() * 350.f) + (SideDirection*200.f);
 			DesiredLocation.Z = PlayerCharacter->GetActorLocation().Z + 150.f;
 			
-			HeroComponent->SetDesiredCameraMode(ImpactCameraMode, DesiredLocation, (PlayerCharacter->GetActorLocation() - DesiredLocation).Rotation());
+			FBattleCameraModeInitData InitData;
+			InitData.DesiredLocation = DesiredLocation;
+			InitData.DesiredRotation = (PlayerCharacter->GetActorLocation() - DesiredLocation).Rotation();
+			
+			HeroComponent->SetSpecialCameraMode(ImpactCameraMode, InitData);
 			if (APlayerState* PS = PlayerCharacter->GetPlayerState())
 			{
 				if (ABattlePlayerState* BattlePS = Cast<ABattlePlayerState>(PS))

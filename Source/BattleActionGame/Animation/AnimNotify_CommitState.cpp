@@ -16,6 +16,7 @@ void UAnimNotify_CommitState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 void UAnimNotify_CommitState::BlockMovementWithRotationTag(USkeletalMeshComponent* MeshComp)
 {
+
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MeshComp->GetOwner()))
 	{
 		ASC->SetLooseGameplayTagCount(FBattleGameplayTags::Get().Block_Movement_AllowRotation, 0);

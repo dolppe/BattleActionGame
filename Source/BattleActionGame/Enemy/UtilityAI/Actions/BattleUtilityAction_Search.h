@@ -21,9 +21,6 @@ public:
 	virtual void EndAction() override;
 
 	virtual void TickAction(float DeltaTime) override;
-
-	virtual float EvaluateScore(const UConsiderationFactors* ConsiderList) override;
-
 	
 protected:
 

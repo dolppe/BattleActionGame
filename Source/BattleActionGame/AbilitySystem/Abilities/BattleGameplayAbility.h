@@ -54,12 +54,6 @@ public:
 
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
 
-	UFUNCTION(BlueprintCallable, Category = "Battle|Ability")
-	void SetCameraMode(TSubclassOf<UBattleCameraMode> CameraMode);
-
-	UFUNCTION(BlueprintCallable, Category="Battle|Ability")
-	void ClearCameraMode();
-
 	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
@@ -91,7 +85,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Instanced, Category=Costs)
 	TArray<TObjectPtr<UBattleAbilityCost>> AdditionalCosts;
-
-
-	TSubclassOf<UBattleCameraMode> ActiveCameraMode;
 };

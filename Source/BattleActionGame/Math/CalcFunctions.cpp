@@ -8,15 +8,6 @@ UCalcFunctions::UCalcFunctions()
 {
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-
-float UCalcFunctions::LinearFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue)
-{
-	float Result = Slope * (X-Horizontal) + Vertical;
-	Result = ClampResult(Result, MinValue, MaxValue);
-	
-	return Result;
-}
 
 float UCalcFunctions::QuadraticFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue)
 {
@@ -40,7 +31,7 @@ float UCalcFunctions::LogitFunction(float X, float Slope, float Exponent, float 
 	if (Exponent - (X-Horizontal) == 0 || Exponent <= 0.001f)
 	{
 		UE_LOG(LogBattle, Warning, TEXT("LogitFunction Setting Error"));
-		return 0.0f;
+		return 1.0f;
 	}
 	float ShiftedX = X - Horizontal;
 	
@@ -77,22 +68,18 @@ float UCalcFunctions::ClampResult(float Result, float MinValue, float MaxValue)
 
 }
 
-float UCalcFunctions::CalcValueWithFunction(EAxisFunction FunctionType, float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue)
+float UCalcFunctions::CalcValueWithFunction(EAxisFunctionType FunctionType, float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue)
 {
 	switch (FunctionType)
 	{
-	case EAxisFunction::Linear:
-		return LinearFunction(X, Slope, Exponent, Vertical, Horizontal, MinValue, MaxValue);
-	case EAxisFunction::Quadratic:
+	case EAxisFunctionType::Quadratic:
 		return QuadraticFunction(X, Slope, Exponent, Vertical, Horizontal, MinValue, MaxValue);
-	case EAxisFunction::Logistic:
+	case EAxisFunctionType::Logistic:
 		return LogisticFunction(X, Slope, Exponent, Vertical, Horizontal, MinValue, MaxValue);
-	case EAxisFunction::Logit:
+	case EAxisFunctionType::Logit:
 		return LogitFunction(X, Slope, Exponent, Vertical, Horizontal, MinValue, MaxValue);
+	default:
+		return 0.0f;
 	}
-
-	return 0.0f;
 }
 
-
-PRAGMA_ENABLE_OPTIMIZATION

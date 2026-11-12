@@ -5,6 +5,8 @@
 
 class UBattleHeroComponent;
 
+
+
 UCLASS(Blueprintable)
 class UBattleCameraMode_DesiredViewPoint : public UBattleCameraMode
 {
@@ -13,9 +15,13 @@ public:
 	UBattleCameraMode_DesiredViewPoint(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void UpdateView(float DeltaTime) override;
-
-private:
-
-	UBattleHeroComponent* CachedHeroComponent;
+	
+	virtual void InitCameraMode(const FBattleCameraModeInitData& InitData) override;
+	
+protected:
+	
+	FVector DesiredLocation;
+	FRotator DesiredRotation;
+	
 	
 };

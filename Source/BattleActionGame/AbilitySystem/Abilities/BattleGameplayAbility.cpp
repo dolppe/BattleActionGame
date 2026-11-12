@@ -125,28 +125,6 @@ void UBattleGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityAct
 	
 }
 
-void UBattleGameplayAbility::SetCameraMode(TSubclassOf<UBattleCameraMode> CameraMode)
-{
-	if (UBattleHeroComponent* HeroComponent = GetHeroComponentFromActorInfo())
-	{
-		HeroComponent->SetAbilityCameraMode(CameraMode, CurrentSpecHandle);
-		ActiveCameraMode = CameraMode;
-	}
-}
-
-void UBattleGameplayAbility::ClearCameraMode()
-{
-	if (ActiveCameraMode)
-	{
-		if (UBattleHeroComponent* HeroComponent = GetHeroComponentFromActorInfo())
-		{
-			HeroComponent->ClearAbilityCameraMode(CurrentSpecHandle);
-		}
-		ActiveCameraMode = nullptr;
-	}
-}
-
-
 void UBattleGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);

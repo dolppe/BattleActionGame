@@ -12,30 +12,27 @@ UBattleCameraMode_DesiredViewPoint::UBattleCameraMode_DesiredViewPoint(const FOb
 
 void UBattleCameraMode_DesiredViewPoint::UpdateView(float DeltaTime)
 {
-	FVector PivotLocation = GetPivotLocation();
-	FRotator PivotRotation = GetPivotRotation();
+	FVector DesiredVector = DesiredLocation;
+	FRotator DesiredRotator = DesiredRotation;
 
-	AActor* TargetActor = GetTargetActor();
-
-	if (CachedHeroComponent == nullptr)
+	if (!DesiredVector.IsZero())
 	{
-		CachedHeroComponent = Cast<UBattleHeroComponent>(TargetActor->GetComponentByClass(UBattleHeroComponent::StaticClass()));
+		View.Location = DesiredVector;
+		View.FieldOfView = FieldOfView;
 	}
-
-	if (CachedHeroComponent != nullptr)
+	if (!DesiredRotator.IsZero())
 	{
-		FVector DesiredVector = CachedHeroComponent->GetDesiredLocation();
-		FRotator DesiredRotator = CachedHeroComponent->GetDesiredRotation();
+		View.Rotation = DesiredRotator;
+		View.ControlRotation = DesiredRotator;
+		View.FieldOfView = FieldOfView;
+	}
+	
+	
+}
 
-		if (!DesiredVector.IsZero())
-		{
-			View.Location = DesiredVector;
-		}
-		if (!DesiredRotator.IsZero())
-		{
-			View.Rotation = DesiredRotator;
-			View.ControlRotation = DesiredRotator;
-		}
-	}	
+void UBattleCameraMode_DesiredViewPoint::InitCameraMode(const FBattleCameraModeInitData& InitData)
+{
+	DesiredLocation = InitData.DesiredLocation;
+	DesiredRotation = InitData.DesiredRotation;
 	
 }

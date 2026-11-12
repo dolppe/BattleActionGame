@@ -71,6 +71,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bUsePerfectMoving = true;
 	
+	bool bAvoidMoveComplete = false;
+	
 };
 
 

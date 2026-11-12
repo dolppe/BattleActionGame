@@ -68,7 +68,7 @@ bool FAnimNotifyState_AttackWindowTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("MakeUniqueHitResults가 진행되어도 HitResult의 Actor는 그대로 전달되어야 함"), UniqueHitResults[0].GetActor(), HitActor_A);
 	TestEqual(TEXT("MakeUniqueHitResults가 진행되어도 HitResult의 Actor는 그대로 전달되어야 함"), UniqueHitResults[1].GetActor(), HitActor_B);
 	
-	AttackWindow->SendHitResults(UniqueHitResults, FPlatformTime::Seconds(), CombatManagerComp);
+	AttackWindow->SendHitResults(UniqueHitResults, CombatManagerComp);
 	
 	TestEqual(TEXT("SendHitResults는 CombatManagerComp에게 HitResult를 전달해야함"), CombatManagerComp->HitEventCount, 1);
 	

@@ -1,12 +1,24 @@
 #pragma once
 
+#include "UObject/Object.h"
 #include "BattleUtilityAxis.generated.h"
 
-enum class EAxisType : uint8;
+struct FAxisConfig;
 enum class EBattleConsiderType : uint8;
-enum class EAxisFunction : uint8;
-class UBattleUtilityAIComponent;
+enum class EAxisFunctionType : uint8;
 
+UENUM(BlueprintType)
+enum class EAxisType : uint8
+{
+	None,
+	Single,
+	Target,
+	
+};
+
+/*
+ *	Axis에 해당하는 타입과 함수 설정을 관리
+ */
 UCLASS(BlueprintType)
 class UBattleUtilityAxis : public UObject
 {
@@ -15,77 +27,32 @@ public:
 
 	UBattleUtilityAxis();
 	
-	virtual void SetConsiderFactor(EBattleConsiderType InConsiderType)
+	// 함수 세팅
+	void SetFunction(const FAxisConfig& AxisConfig);
+
+	// 전달된 값을 X값으로 사용하여 설정된 함수의 Y값을 반환
+	virtual float CalcValue(float InValue) const;
+	
+	void SetConsiderType(EBattleConsiderType InConsiderType)
 	{
 		ConsiderType = InConsiderType;
 	}
 	
-	virtual EBattleConsiderType GetConsiderFactor()
+	EBattleConsiderType GetConsiderType() const
 	{
 		return ConsiderType;
 	}
-	virtual EAxisType GetAxisType()
-	{
-		return AxisType;
-	}
 
-	virtual void SetAxisType(EAxisType InAxisType)
-	{
-		AxisType = InAxisType;
-	}
-
-	virtual void SetAIComponent(UBattleUtilityAIComponent* InAIComponent)
-	{
-		CachedAIComponent = InAIComponent;
-	}
-	
-	virtual void SetFunction(EAxisFunction InFunctionType, float InSlope, float InExponent, float InVertical, float InHorizontal, float InMinValue, float InMaxValue)
-	{
-		FunctionType = InFunctionType;
-		Slope = InSlope;
-		Exponent = InExponent;
-		VerticalShift = InVertical;
-		HorizontalShift = InHorizontal;
-		MinValue = InMinValue;
-		MaxValue = InMaxValue;
-		
-	}
-
-	virtual float CalcValue(float InValue);
-
-	virtual float GetValue();
-
-protected:
+private:
 	
 	EBattleConsiderType ConsiderType;
-	EAxisType AxisType;
-	EAxisFunction FunctionType;
 	
+	EAxisFunctionType FunctionType;
 	float Slope;
 	float Exponent;
 	float VerticalShift;
 	float HorizontalShift;
-	float MinValue;
-	float MaxValue;
-
-	UPROPERTY()
-	TObjectPtr<UBattleUtilityAIComponent> CachedAIComponent;
-	
-};
-
-UCLASS()
-class UBattleUtilityArrayAxis : public UBattleUtilityAxis
-{
-	GENERATED_BODY()
-
-public:
-
-	UBattleUtilityArrayAxis();
-
-	virtual float CalcValue(float InValue) override;
-	virtual EAxisType GetAxisType() override;
-	virtual TArray<float> GetArrayValue();
-
-protected:
+	float AxisMinValue;
+	float AxisMaxValue;
 	
 };
