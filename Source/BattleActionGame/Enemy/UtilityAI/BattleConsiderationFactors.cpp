@@ -780,7 +780,7 @@ void UConsiderationFactors::InitConsiderFunction(const UBattleUtilityAIData* InU
 		return;
 	}
 	
-	// UtilityAIData에 등록된 ConsiderType에 대해서만 Factor를 만들어둠
+	// UtilityAIData에 등록된 ConsiderType에 대해서만 Factor와 평가값 계산 함수를 만들어둠.
 	for (EBattleConsiderType ConsiderType: InUtilityAIData->Consider)
 	{
 		if (GetAxisType(ConsiderType) == EAxisType::Single)

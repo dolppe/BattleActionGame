@@ -225,6 +225,7 @@ float UBattleUtilityAction::EvaluateScore()
 			
 		const int32 TargetCount = FirstFactors->Num();
 		
+		// 같은 유형의 후보 중 최고 점수인 후보 찾기
 		float BestTargetScore = 0.0f;
 		int32 BestTargetIndex = 0;
 		
@@ -235,7 +236,7 @@ float UBattleUtilityAction::EvaluateScore()
 			{
 				continue;
 			}
-			// 후보별로 모든 MultiAxis 점수를 곱하여 결합
+			// 같은 후보의 모든 MultiAxis 점수를 곱하여 결합
 			float TargetScore = 1.0f;
 			for (UBattleUtilityAxis* MultiAxis : MatchingAxisList)
 			{
@@ -254,7 +255,7 @@ float UBattleUtilityAction::EvaluateScore()
 				TargetScore *= AxisScore;
 			}
 			
-			// 최고 점수와 해당 후보의 인덱스 저장
+			// 최고 점수 후보 선택
 			if (BestTargetScore < TargetScore)
 			{
 				BestTargetScore = TargetScore;
