@@ -87,7 +87,7 @@ public:
 	
 protected:
 
-	virtual void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
+	virtual void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& TargetData, FGameplayTag ApplicationTag);
 
 	UFUNCTION()
 	virtual void OnCompleted();
@@ -109,8 +109,11 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	FGameplayTag HitEffectGCNTag;
+	
+	UPROPERTY(EditAnywhere)
+	FGameplayTag CriticalHitEffectGCNTag;
 
-	uint8 AttackIdx = -1;
+	uint8 AttackWindowIdx = -1;
 
 	float AcceptHitDistance = 1500.f;
 
@@ -133,6 +136,8 @@ protected:
 	bool bAllowMovement = false;
 
 	const FAttackData* AttackData;
+	
+	
 	bool bHitCritical = false;
 
 	

@@ -10,11 +10,13 @@
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
 #include "BattleActionGame/Camera/BattleCameraMode.h"
+#include "BattleActionGame/Camera/BattleCameraSequencePlayer.h"
 #include "BattleActionGame/Input/BattleInputComponent.h"
 #include "BattleActionGame/Input/BattleMappableConfigPair.h"
 #include "BattleActionGame/Player/BattlePlayerController.h"
 #include "BattleActionGame/Player/BattlePlayerState.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "Engine/LocalPlayer.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -30,6 +32,7 @@ UBattleHeroComponent::UBattleHeroComponent(const FObjectInitializer& ObjectIniti
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+	
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
@@ -61,6 +64,9 @@ void UBattleHeroComponent::BeginPlay()
 	ensure(TryToChangeInitState(FBattleGameplayTags::Get().InitState_Spawned));
 
 	CheckDefaultInitialization();
+	
+	CameraSequencePlayer = NewObject<UBattleCameraSequencePlayer>(this);
+	CameraSequencePlayer->Initialize(this);
 }
 
 void UBattleHeroComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -220,15 +226,11 @@ TSubclassOf<UBattleCameraMode> UBattleHeroComponent::DetermineCameraMode() const
 		return nullptr;
 	}
 
-	if (DesiredCameraMode)
+	if (SpecialCameraMode)
 	{
-		return DesiredCameraMode;
+		return SpecialCameraMode;
 	}
 
-	if (AbilityCameraMode)
-	{
-		return AbilityCameraMode;
-	}
 
 	if (UBattlePawnExtensionComponent* PawnExtComp = UBattlePawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 	{
@@ -241,42 +243,30 @@ TSubclassOf<UBattleCameraMode> UBattleHeroComponent::DetermineCameraMode() const
 	return nullptr;
 }
 
-void UBattleHeroComponent::SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode,
-	const FGameplayAbilitySpecHandle& OwningSpecHandle)
+void UBattleHeroComponent::SetSpecialCameraMode_Implementation(TSubclassOf<UBattleCameraMode> CameraMode,
+	const FBattleCameraModeInitData& InitData)
 {
 	if (CameraMode)
 	{
-		AbilityCameraMode = CameraMode;
-		AbilityCameraModeOwningSpecHandle = OwningSpecHandle;
+		APawn* Pawn = GetPawn<APawn>();
+		//UE_LOG(LogBattle,Log,TEXT("CMCMCM: StartCS %s "), *GetOuter()->GetName());
+		if (UBattleCameraComponent* CameraComponent = UBattleCameraComponent::FindCameraComponent(Pawn))
+		{
+			if (UBattleCameraMode* CameraModeInstance = CameraComponent->CameraModeStack->GetCameraModeInstance(CameraMode))
+			{
+				CameraModeInstance->InitCameraMode(InitData);
+			}
+		}
+		
+		SpecialCameraMode = CameraMode;
 	}
 }
 
-void UBattleHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle)
+void UBattleHeroComponent::ClearSpecialCameraMode_Implementation()
 {
-	if (AbilityCameraModeOwningSpecHandle == OwningSpecHandle)
-	{
-		AbilityCameraMode = nullptr;
-		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
-	}
+	SpecialCameraMode = nullptr;
 }
 
-void UBattleHeroComponent::SetDesiredCameraMode_Implementation(TSubclassOf<UBattleCameraMode> CameraMode,
-	const FVector& DesiredLocation, const FRotator& DesiredRotation)
-{
-	if (CameraMode)
-	{
-		DesiredCameraMode = CameraMode;
-		DesiredViewPointLocation = DesiredLocation;
-		DesiredViewPointRotation = DesiredRotation;
-	}
-}
-
-void UBattleHeroComponent::ClearDesiredCameraMode_Implementation()
-{
-	DesiredCameraMode = nullptr;
-	DesiredViewPointLocation = FVector::ZeroVector;
-	DesiredViewPointRotation = FRotator::ZeroRotator;
-}
 
 void UBattleHeroComponent::InitilizePlayerInput(UInputComponent* PlayerInputComponent)
 {

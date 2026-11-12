@@ -30,7 +30,6 @@ void UBattleGameplayAbility_TryJustGuard::ActivateAbility(const FGameplayAbility
 
 		if (const AActor* Instigator = TriggerEventData->Instigator)
 		{
-			BA_DEFAULT_LOG(LogBattle, Log, TEXT("TargetCombat Set"));
 			TargetCombatManager = Cast<UBattleCombatManagerComponent>(Instigator->GetComponentByClass(UBattleCombatManagerComponent::StaticClass()));
 		}
 
@@ -81,16 +80,6 @@ void UBattleGameplayAbility_TryJustGuard::EndAbility(const FGameplayAbilitySpecH
 
 void UBattleGameplayAbility_TryJustGuard::ServerKeyPressed_Implementation()
 {
-	BA_DEFAULT_LOG(LogBattle, Log, TEXT("ServerKeyPressed"));
-
-	if (GetWorld()->GetNetMode() == NM_Client)
-	{
-		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Client"));
-	}
-	else
-	{
-		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Server"));
-	}
 	if (TargetCombatManager != nullptr)
 	{
 		TargetCombatManager->TryJustGuard(GetAvatarActorFromActorInfo());
@@ -101,7 +90,6 @@ void UBattleGameplayAbility_TryJustGuard::GuardKeyPressed()
 {
 	if (!bPressedKey)
 	{
-		BA_DEFAULT_LOG(LogBattle, Log, TEXT("Pressed"));
 		ServerKeyPressed();
 		bPressedKey = true;
 	}

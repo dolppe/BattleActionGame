@@ -4,6 +4,8 @@
 #include "BattleActionGame/BattleLogChannels.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "BattleActionGame/Character/BattleHeroComponent.h"
+#include "Engine/LocalPlayer.h"
+#include "GameFramework/PlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(GameFeatureAction_AddInputConfig)
 

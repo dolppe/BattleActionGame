@@ -45,7 +45,7 @@ float FGridChunk::GetRiskValue(const FVector& Location) const
 	if (RiskCellMap.Contains(CellIdx))
 	{
 		//DrawDebugLine(GridMapSubSystem->GetWorld(), LineStart, LineEnd, FColor::Red, false, 10.0, 0, 5.0f);
-		return RiskCellMap[CellIdx].RiskValue;
+		return RiskCellMap[CellIdx];
 	}
 	else
 	{
@@ -58,18 +58,15 @@ float FGridChunk::GetRiskValue(FIntPoint CellIdx) const
 {
 	if (RiskCellMap.Contains(CellIdx))
 	{
-		return RiskCellMap[CellIdx].RiskValue;
+		return RiskCellMap[CellIdx];
 	}
 	
 	return 0.0f;
 }
 
-void FGridChunk::UpdateChunk()
+void FGridChunk::UpdateChunk(TArray<FIntPoint>& NearlyChunks)
 {	
 	// 대충 Character랑 Enemy 찾는 행동 및 Cell 위험도 업데이트
-
-	UpdateTime = GridMapSubSystem->GetWorld()->GetTimeSeconds();
-
 	TArray<FOverlapResult> OutOverlaps;
 	FVector BoxExtender(GridMapSubSystem->InitData.ChunkSize/2, GridMapSubSystem->InitData.ChunkSize/2, 3000.f);
 
@@ -83,26 +80,39 @@ void FGridChunk::UpdateChunk()
 		
 		if (ABattleCharacter* Character = Cast<ABattleCharacter>( OverlapActor))
 		{
-			SetRiskValue(Character->GetActorLocation());
+			SetRiskValue(Character->GetActorLocation(), NearlyChunks);
 		}
 	}
 	
 	
 }
 
-void FGridChunk::SetRiskValue(const FVector& Location)
+void FGridChunk::PrepareChunkUpdate(float UpdateTime)
+{
+	CurUpdateTime = UpdateTime;
+	
+	for (TTuple<FIntPoint, float>& RiskCellMapItem : RiskCellMap)
+	{
+		RiskCellMapItem.Value = 0.0f;
+	}
+}
+
+
+void FGridChunk::SetRiskValue(const FVector& Location, TArray<FIntPoint>& NearlyChunks)
 {
 	FIntPoint CellIdx = GetCellIdx(Location);
-	float RiskWeight = GridMapSubSystem->InitData.RiskWeight;
+	float RiskValue = GridMapSubSystem->InitData.CellRiskValue;
 
 	if (RiskCellMap.Contains(CellIdx))
 	{
-		RiskCellMap[CellIdx].RiskValue = 1.0f * RiskWeight;
+		RiskCellMap[CellIdx] = RiskValue;
 	}
 	else
 	{
-		RiskCellMap.Add({CellIdx, FRiskCell(1.0f * RiskWeight, UpdateTime)});
+		RiskCellMap.Add({CellIdx, RiskValue});
 	}
+	
+	
 
 	float CellSize = GridMapSubSystem->InitData.CellSize;
 
@@ -116,11 +126,11 @@ void FGridChunk::SetRiskValue(const FVector& Location)
 
 	FColor Color = FColor::Red;
 
-	DrawDebugLine(GridMapSubSystem->GetWorld(), LineStart, LineEnd, FColor::Red, false, 10.0f, 0,10.0f);
+	//DrawDebugLine(GridMapSubSystem->GetWorld(), LineStart, LineEnd, FColor::Red, false, 10.0f, 0,10.0f);
 
 	int MaxCellIdx = GridMapSubSystem->InitData.ChunkSize / GridMapSubSystem->InitData.CellSize;
 	
-	UE_LOG(LogBattle, Log, TEXT("SetRiskValue: %s"), *CenterLocation.ToString());
+	//UE_LOG(LogBattle, Log, TEXT("SetRiskValue: %s"), *CenterLocation.ToString());
 
 	for (const FRiskCellOffset& Offset : GridMapSubSystem->InitData.RiskOffsetTable)
 	{
@@ -130,77 +140,112 @@ void FGridChunk::SetRiskValue(const FVector& Location)
 
 		if (CurIdx.X < 0 || CurIdx.Y <0 || CurIdx.X >= MaxCellIdx || CurIdx.Y >= MaxCellIdx)
 		{
+			FVector OffsetLocation = Location;
+			OffsetLocation.X += (Offset.dX*CellSize);
+			OffsetLocation.Y += (Offset.dY*CellSize);
+			
+			FIntPoint TargetChunkIdx = GridMapSubSystem->GetChunkIdx(OffsetLocation);
+			if (TargetChunkIdx == FIntPoint::NoneValue)
+			{
+				continue;
+			}
+			
+			for (FIntPoint& NearlyChunkIdx : NearlyChunks)
+			{
+				if (TargetChunkIdx == NearlyChunkIdx)
+				{
+					GridMapSubSystem->SetRiskValue(OffsetLocation, Offset.RiskWeight * RiskValue);
+				}
+			}
+			
 			continue;
 		}
 
 		if (RiskCellMap.Contains(CurIdx))
 		{
-			if (RiskCellMap[CurIdx].RiskValue < Offset.RiskValue * RiskWeight || RiskCellMap[CurIdx].UpdateTime < UpdateTime)
+			if (RiskCellMap[CurIdx] < Offset.RiskWeight * RiskValue)
 			{
+				RiskCellMap[CurIdx] = Offset.RiskWeight * RiskValue;
 				
-				RiskCellMap[CurIdx].RiskValue = Offset.RiskValue * RiskWeight;
-				RiskCellMap[CurIdx].UpdateTime = UpdateTime;
-				
-				if (FMath::IsNearlyEqual(Offset.RiskValue, 1.0f))
-				{
-					Color = FColor::Red;
-				}
-				if (FMath::IsNearlyEqual(Offset.RiskValue, 0.8f))
-				{
-					Color = FColor::Orange;
-				}
-				if (FMath::IsNearlyEqual(Offset.RiskValue, 0.5f))
-				{
-					Color = FColor::Yellow;
-				}
-				if (FMath::IsNearlyEqual(Offset.RiskValue, 0.3f))
-				{
-					Color = FColor::Black;
-				}
-
-				LineStart = CenterLocation;
-				LineStart.X += CurIdx.X * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
-				LineStart.Y += CurIdx.Y * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
-				LineStart.Z = -5000.f;
-
-				LineEnd = LineStart;
-				LineEnd.Z = 5000.f;
-
-				DrawDebugBox(GridMapSubSystem->GetWorld(), GetCellLocation(CurIdx), FVector(GridMapSubSystem->InitData.CellSize/2),Color, false, 10.f, 0, 10.f);
+				// if (FMath::IsNearlyEqual(Offset.RiskValue, 1.0f))
+				// {
+				// 	Color = FColor::Red;
+				// }
+				// if (FMath::IsNearlyEqual(Offset.RiskValue, 0.8f))
+				// {
+				// 	Color = FColor::Orange;
+				// }
+				// if (FMath::IsNearlyEqual(Offset.RiskValue, 0.5f))
+				// {
+				// 	Color = FColor::Yellow;
+				// }
+				// if (FMath::IsNearlyEqual(Offset.RiskValue, 0.3f))
+				// {
+				// 	Color = FColor::Black;
+				// }
+				//
+				// LineStart = CenterLocation;
+				// LineStart.X += CurIdx.X * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+				// LineStart.Y += CurIdx.Y * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+				// LineStart.Z = -5000.f;
+				//
+				// LineEnd = LineStart;
+				// LineEnd.Z = 5000.f;
+				//
+				// DrawDebugBox(GridMapSubSystem->GetWorld(), GetCellLocation(CurIdx), FVector(GridMapSubSystem->InitData.CellSize/2),Color, false, 10.f, 0, 10.f);
 			}
 		}
 		else
 		{
-			RiskCellMap.Add({CurIdx, FRiskCell(Offset.RiskValue, UpdateTime)});
-			if (FMath::IsNearlyEqual(Offset.RiskValue, 1.0f))
-			{
-				Color = FColor::Red;
-			}
-			if (FMath::IsNearlyEqual(Offset.RiskValue, 0.7f))
-			{
-				Color = FColor::Orange;
-			}
-			if (FMath::IsNearlyEqual(Offset.RiskValue, 0.5f))
-			{
-				Color = FColor::Yellow;
-			}
-			if (FMath::IsNearlyEqual(Offset.RiskValue, 0.3f))
-			{
-				Color = FColor::Black;
-			}
-
-			LineStart = CenterLocation;
-			LineStart.X += CurIdx.X * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
-			LineStart.Y += CurIdx.Y * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
-			LineStart.Z = -5000.f;
-
-			LineEnd = LineStart;
-			LineEnd.Z = 5000.f;
-
-			DrawDebugBox(GridMapSubSystem->GetWorld(), GetCellLocation(CurIdx), FVector(GridMapSubSystem->InitData.CellSize/2),Color, false, 10.f, 0, 10.f);
+			RiskCellMap.Add({CurIdx, Offset.RiskWeight * RiskValue});
+			
+			// if (FMath::IsNearlyEqual(Offset.RiskValue, 1.0f))
+			// {
+			// 	Color = FColor::Red;
+			// }
+			// if (FMath::IsNearlyEqual(Offset.RiskValue, 0.7f))
+			// {
+			// 	Color = FColor::Orange;
+			// }
+			// if (FMath::IsNearlyEqual(Offset.RiskValue, 0.5f))
+			// {
+			// 	Color = FColor::Yellow;
+			// }
+			// if (FMath::IsNearlyEqual(Offset.RiskValue, 0.3f))
+			// {
+			// 	Color = FColor::Black;
+			// }
+			//
+			// LineStart = CenterLocation;
+			// LineStart.X += CurIdx.X * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+			// LineStart.Y += CurIdx.Y * CellSize - (GridMapSubSystem->InitData.ChunkSize/2);
+			// LineStart.Z = -5000.f;
+			//
+			// LineEnd = LineStart;
+			// LineEnd.Z = 5000.f;
+			//
+			// DrawDebugBox(GridMapSubSystem->GetWorld(), GetCellLocation(CurIdx), FVector(GridMapSubSystem->InitData.CellSize/2),Color, false, 10.f, 0, 10.f);
 		}
 
 		
+	}
+}
+
+void FGridChunk::SetRiskValueOneCell(const FVector& Location, float InRiskValue)
+{
+	FIntPoint CellIdx = GetCellIdx(Location);
+	
+	if (RiskCellMap.Contains(CellIdx))
+	{
+		if (RiskCellMap[CellIdx] < InRiskValue)
+		{
+			RiskCellMap[CellIdx] = InRiskValue;	
+		}
+		
+	}
+	else
+	{
+		RiskCellMap.Add({CellIdx, InRiskValue});
 	}
 }
 
@@ -255,6 +300,24 @@ TArray<FIntPoint> UWorldRiskGridMapSubSystem::GetNearlyChunkIdx(const FVector& L
 	return Result;
 }
 
+bool UWorldRiskGridMapSubSystem::GetChunk(const FVector& Location, FGridChunk& OutChunk)
+{
+	FIntPoint ChunkIdx = GetChunkIdx(Location);
+	
+	if (ChunkIdx == FIntPoint::NoneValue)
+	{
+		return false;
+	}
+	
+	if (RiskGridMap.Contains(ChunkIdx))
+	{
+		OutChunk = RiskGridMap[ChunkIdx];
+		return true;
+	}
+	return false;
+	
+}
+
 FIntPoint UWorldRiskGridMapSubSystem::GetChunkIdx(const FVector& Location)
 {
 	if (!IsLocationInGrid(Location))
@@ -277,70 +340,65 @@ float UWorldRiskGridMapSubSystem::GetRiskValue(const FVector& Location)
 {
 	const FIntPoint ChunkIdx = GetChunkIdx(Location);
 
+	// 정해진 맵 범위 밖에 있으면 위험도 없음
 	if (ChunkIdx == FIntPoint::NoneValue)
 	{
 		return 0.0f;
 	}
 
-	if (!GridRiskMap.Contains(ChunkIdx))
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	
+	// 청크가 없거나 갱신 유효 시간이 지났을 때만 주변 영역 갱신
+	if (!RiskGridMap.Contains(ChunkIdx) 
+		|| CurrentTime - RiskGridMap[ChunkIdx].CurUpdateTime > InitData.AllowUpdateTime)
 	{
-		FVector ChunkCenter = InitData.StartLocation;
-		ChunkCenter.X += InitData.ChunkSize/2 + (InitData.ChunkSize * ChunkIdx.X);
-		ChunkCenter.Y += InitData.ChunkSize/2 + (InitData.ChunkSize * ChunkIdx.Y);
-		
-		GridRiskMap.Add({ChunkIdx, FGridChunk(this, ChunkCenter)});
-		GridRiskMap[ChunkIdx].UpdateChunk();
-	}
-	else if (GetWorld()->GetTimeSeconds() - GridRiskMap[ChunkIdx].UpdateTime > InitData.AllowUpdateTime)
-	{
-		GridRiskMap[ChunkIdx].UpdateChunk();
-	}
-
-	return GridRiskMap[ChunkIdx].GetRiskValue(Location);
-}
-
-void UWorldRiskGridMapSubSystem::UpdateRisk(const FVector& Location)
-{
-	TArray<FIntPoint> UpdateChunk = GetNearlyChunkIdx(Location);
-
-	for (const FIntPoint& ChunkKey : UpdateChunk)
-	{
-		FVector ChunkCenter = InitData.StartLocation;
-		ChunkCenter.X += InitData.ChunkSize/2 + (InitData.ChunkSize * ChunkKey.X);
-		ChunkCenter.Y += InitData.ChunkSize/2 + (InitData.ChunkSize * ChunkKey.Y);
-		
-		if (!GridRiskMap.Contains(ChunkKey))
-		{
-
-			
-			GridRiskMap.Add(ChunkKey, FGridChunk(this, ChunkCenter));
-
-			
-		}
-
-		FVector BoxExtender(InitData.ChunkSize/2, InitData.ChunkSize/2, 2000);
-
-		//DrawDebugBox(GetWorld(), ChunkCenter, BoxExtender, FColor::Green, false, 20.0f, 0, 5.0f);
-		
-		GridRiskMap[ChunkKey].UpdateChunk();
+		UpdateNearlyChunk(Location);
 	}
 	
+	// 해당 Cell의 위험도를 반환
+	return RiskGridMap[ChunkIdx].GetRiskValue(Location);
 }
 
-bool UWorldRiskGridMapSubSystem::GetChunk(const FVector& Location, FGridChunk& OutChunk)
-{	
+void UWorldRiskGridMapSubSystem::UpdateNearlyChunk(const FVector& Location)
+{
+	// 현 위치를 포함하여 주변 청크에 대한 Index값을 가져옴
+	TArray<FIntPoint> NearlyChunkIndexes = GetNearlyChunkIdx(Location);
+	const float CurTime = GetWorld()->GetTimeSeconds();
+
+	// 없는 청크는 생성하고, 청크 내부의 위험도 초기화 및 갱신 시간 기록 
+	for (const FIntPoint& ChunkKey : NearlyChunkIndexes)
+	{
+		if (!RiskGridMap.Contains(ChunkKey))
+		{
+			FVector ChunkCenter = InitData.StartLocation;
+			ChunkCenter.X += InitData.ChunkSize/2 + (InitData.ChunkSize * ChunkKey.X);
+			ChunkCenter.Y += InitData.ChunkSize/2 + (InitData.ChunkSize * ChunkKey.Y);
+			
+			RiskGridMap.Add(ChunkKey, FGridChunk(this, ChunkCenter));
+		}
+		
+		RiskGridMap[ChunkKey].PrepareChunkUpdate(CurTime);
+	}
+	
+	// 전체 초기화 후, 위험도 기록
+	for (const FIntPoint& ChunkKey : NearlyChunkIndexes)
+	{
+		RiskGridMap[ChunkKey].UpdateChunk(NearlyChunkIndexes);
+	}
+}
+
+
+
+void UWorldRiskGridMapSubSystem::SetRiskValue(const FVector& Location, float InRiskValue)
+{
 	FIntPoint ChunkIdx = GetChunkIdx(Location);
+	
 	if (ChunkIdx == FIntPoint::NoneValue)
 	{
-		return false;
+		return;
 	}
 	
-	if (GridRiskMap.Contains(ChunkIdx))
-	{
-		OutChunk = GridRiskMap[ChunkIdx];
-		return true;
-	}
-	return false;
+	RiskGridMap[ChunkIdx].SetRiskValueOneCell(Location, InRiskValue);	
 }
 
 

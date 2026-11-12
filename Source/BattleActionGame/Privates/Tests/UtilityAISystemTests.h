@@ -1,50 +1,32 @@
 #pragma once
 
+#include "BattleActionGame/Enemy/UtilityAI/BattleConsiderationFactors.h"
 #include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAxis.h"
 #include "BattleActionGame/Enemy/UtilityAI/Actions/BattleUtilityAction.h"
 #include "UtilityAISystemTests.generated.h"
 
+UCLASS()
+class UMockConsiderationFactors : public UConsiderationFactors
+{
+	GENERATED_BODY()
+public:
+	
+	void ChangeFactorValue(EBattleConsiderType Consider, float InFactorValue);
+	void ChangeMultiFactorValue(EBattleConsiderType Consider, TArray<float> InMultiFactorValues);
+	
+};
 
 UCLASS()
 class UMockTestUtilityAxis : public UBattleUtilityAxis
 {
 	GENERATED_BODY()
 public:
-
-	virtual float GetValue() override
-	{
-		return 0.0f;
-	}
-	
-	virtual float CalcValue(float InValue) override
-	{
-		return WantedValue;
-	}
 	
 	
-	float WantedValue = 0.0f; 
-	
-};
-
-UCLASS()
-class UMockTestUtilityArrayAxis : public UBattleUtilityArrayAxis
-{
-	GENERATED_BODY()
-
-public:
-	
-	virtual TArray<float> GetArrayValue() override
-	{
-		return WantedValue;
-	}
-	virtual float CalcValue(float InValue) override
+	virtual float CalcValue(float InValue) const override 
 	{
 		return InValue;
 	}
-	
-	TArray<float> WantedValue;
-	
-	
 };
 
 
@@ -54,14 +36,22 @@ class UMockTestUtilityAction : public UBattleUtilityAction
 	GENERATED_BODY()
 public:
 	
-	virtual float EvaluateScore(const UConsiderationFactors* ConsiderList) override
+	void SetResultScore(float InResultScore)
+	{
+		ResultScore = InResultScore;
+	}
+	
+	// 테스트용이기에 지정한 점수를 반환하며, -1이면 실제 점수 계산 진행
+	virtual float EvaluateScore() override
 	{
 		if (ResultScore == -1.f)
 		{
-			return Super::EvaluateScore(ConsiderList);
+			return Super::EvaluateScore();
 		}
 		return ResultScore;
 	}
+	
+	float ResultScore = 1.0f;
 	
 	void SetDistanceSourceType(EDistanceSourceType InDistanceSourceType)
 	{
@@ -93,34 +83,31 @@ public:
 		CoolTime = InCoolTime;
 	}
 	
-	TArray<EAxisType>& GetAxisTypeArray()
+	TSet<EAxisType>& GetAxisTypeArray()
 	{
-		return AxisTypeArray;
+		return AxisTypes;
 	}
 	
 	TArray<TObjectPtr<UBattleUtilityAxis>>& GetAxisArray()
 	{
-		return AxisArray;
+		return SingleAxisList;
 	}
 	
-	TArray<TObjectPtr<UBattleUtilityArrayAxis>>& GetArrayAxisArray()
+	TArray<TObjectPtr<UBattleUtilityAxis>>& GetMultiAxisArray()
 	{
-		return ArrayAxisArray;
+		return MultiAxisList;
 	}
 	
-	void SetCachedAIComponent(UBattleUtilityAIComponent* InComponent)
+	
+	AActor* GetBestTarget(EAxisType AxisType)
 	{
-		CachedAIComponent = InComponent;
-	}
-	
-	TArray<TObjectPtr<AActor>>& GetBestTargets()
-	{
-		return BestTargets;
+		const TObjectPtr<AActor>* Target = BestTargets.Find(AxisType);
+		return Target ? Target->Get() : nullptr;
 	}
 	
 	
 	
-	float ResultScore = 1.0f;
+	
 	
 };
 

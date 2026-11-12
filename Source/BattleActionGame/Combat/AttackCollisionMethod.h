@@ -42,6 +42,7 @@ class UAttackCollisionMethod : public UObject
 public:
 	
 	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, FAttackCollisionDebugSpec& OutCollisionDebugSpec);
+	virtual void StartCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData);
 	virtual void EndCollisionCheck();
 	virtual bool IsNeedTick();
 	virtual void TickCollisionCheck(TArray<FHitResult>& OutHitResult, UAttackCollisionData* AttackCollisionData, float FrameDeltaTime, FAttackCollisionDebugSpec& OutCollisionDebugSpec);

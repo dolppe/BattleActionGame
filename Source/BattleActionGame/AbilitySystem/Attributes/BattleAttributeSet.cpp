@@ -35,28 +35,37 @@ TArray<FAttributeInfo> UBattleAttributeSetHelper::GetAttributeInfos(UAttributeSe
 	return Result;
 }
 
-TArray<FAttributeInfo> UBattleAttributeSetHelper::GetAttributeInfosWithClass(UClass* AttributeSet)
-{	TArray<FAttributeInfo> Result;
+TArray<FAttributeInfo> UBattleAttributeSetHelper::GetAttributeInfosWithClass(UClass* AttributeSetClass)
+{	
+	TArray<FAttributeInfo> Result;
 	
-	for (TFieldIterator<FProperty> PropertyIt(AttributeSet); PropertyIt; ++PropertyIt)
+	if (!AttributeSetClass || !AttributeSetClass->IsChildOf(UAttributeSet::StaticClass()))
 	{
-		FProperty* Property = *PropertyIt;
+		return Result;
+	}
+	
+	// Attribute 초기 설정값 조회를 위한 CDO 확보
+	const UObject* DefaultObject = AttributeSetClass->GetDefaultObject();
+	
+	for (TFieldIterator<FProperty> PropertyIt(AttributeSetClass); PropertyIt; ++PropertyIt)
+	{
+		FStructProperty* StructProperty = CastField<FStructProperty>(*PropertyIt);
 
-		if (FStructProperty* StructProperty = CastField<FStructProperty>(Property))
+		// FGameplayAttributeData 타입의 프로퍼티만 수집
+		if (!StructProperty || StructProperty->Struct != FGameplayAttributeData::StaticStruct())
 		{
-			if (StructProperty->Struct == FGameplayAttributeData::StaticStruct())
-			{
-				FGameplayAttributeData* AttData = StructProperty->ContainerPtrToValuePtr<FGameplayAttributeData>(AttributeSet->GetDefaultObject());
-
-				FAttributeInfo Info;
-
-				Info.Name = Property->GetName();
-				Info.BaseValue = AttData->GetBaseValue();
-
-				Result.Add(Info);
-			}
+			continue;
 		}
 		
+		const FGameplayAttributeData* AttributeData = 
+			StructProperty->ContainerPtrToValuePtr<FGameplayAttributeData>(DefaultObject);
+		
+		FAttributeInfo Info;
+
+		Info.Name = StructProperty->GetName();
+		Info.BaseValue = AttributeData->GetBaseValue();
+
+		Result.Add(Info);
 	}
 
 	return Result;

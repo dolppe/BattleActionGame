@@ -7,6 +7,8 @@
 #include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
 #include "BattleActionGame/AbilitySystem/Abilities/BattleGameplayAbility.h"
 #include "BattleActionGame/Combat/BattleCombatManagerComponent.h"
+#include "BattleActionGame/Enemy/UtilityAI/BattleConsiderationFactors.h"
+#include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAxis.h"
 #include "BattleActionGame/Environment/BattleWorldInfoSubsystem.h"
 #include "BattleActionGame/Navigation/FindPathFunction.h"
 #include "BattleActionGame/Navigation/WorldRiskGridMap.h"
@@ -43,20 +45,38 @@ void UBattleUtilityAction_Wait::EndAction()
 
 UBAttleUtilityAction_PlayMontage::UBAttleUtilityAction_PlayMontage()
 {
-	Priority = 2;
 }
 
 void UBAttleUtilityAction_PlayMontage::StartAction()
 {
 	Super::StartAction();
 	
-	CachedAIComponent->ConsiderList->MyCharacter->NetPlayMontage(AnimMontage);
-	AnimInstance = CachedAIComponent->ConsiderList->MyCharacter->GetMesh()->GetAnimInstance();
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	if (MyCharacter)
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	MyCharacter->NetPlayMontage(AnimMontage);
+	AnimInstance = MyCharacter->GetMesh()->GetAnimInstance();
+	
 }
 
 void UBAttleUtilityAction_PlayMontage::TickAction(float DeltaTime)
 {
 	if (AnimInstance->Montage_IsPlaying(AnimMontage))
+	{
+		bIsCompletedAction = false;
+	}
+	else
 	{
 		bIsCompletedAction = true;
 	}
@@ -69,46 +89,50 @@ void UBAttleUtilityAction_PlayMontage::EndAction()
 
 UBattleUtilityAction_BackAway::UBattleUtilityAction_BackAway()
 {
-	Priority = 2;
 }
 
 void UBattleUtilityAction_BackAway::StartAction()
 {
 	Super::StartAction();
 	
-	MyCharacter = CachedAIComponent->ConsiderList->MyCharacter;
-	SelectedTarget = CachedAIComponent->ConsiderList->SelectedTarget;
-	CachedAIComponent->ConsiderList->MyCharacter->bUseControllerRotationYaw = false;
-	
-	if (SelectedTarget != nullptr)
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
 	{
-		FVector ToTarget = (SelectedTarget->GetActorLocation() - MyCharacter->GetActorLocation()).GetSafeNormal2D();
-		WantedLocation = MyCharacter->GetActorLocation() -(ToTarget * BackAwayDistance);
-		
-		DrawDebugPoint(GetWorld(), WantedLocation, 10.f, FColor::Green, false, 5.f);
-		
-		if (UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld()))
-		{
-			FNavLocation ProjectedNavLocation;
-			
-			if (NavSystem->ProjectPointToNavigation(WantedLocation, ProjectedNavLocation, FVector(700.f,700.f,1000.f)))
-			{
-				WantedLocation = ProjectedNavLocation.Location;
-				DrawDebugPoint(GetWorld(), WantedLocation, 10.f, FColor::Red, false, 5.f);
-			}
-		}
-		
-		
-		AIController = Cast<AAIController>(CachedAIComponent->ConsiderList->MyCharacter->GetController());
-		if (AIController)
-		{
-			RequestResult = AIController->MoveToLocation(WantedLocation);
-		}
-		
+		bIsCompletedAction = true;
+		return;
 	}
 	
+	MyCharacter = ConsiderList->GetMyCharacter();
+	SelectedTarget = ConsiderList->GetSelectedTarget();
 	
+	if (!IsValid(MyCharacter) || !IsValid(SelectedTarget))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
 	
+	MyCharacter->bUseControllerRotationYaw = false;
+	FVector ToTarget = (SelectedTarget->GetActorLocation() - MyCharacter->GetActorLocation()).GetSafeNormal2D();
+	WantedLocation = MyCharacter->GetActorLocation() -(ToTarget * BackAwayDistance);
+	
+	DrawDebugPoint(GetWorld(), WantedLocation, 10.f, FColor::Green, false, 5.f);
+	
+	if (UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld()))
+	{
+		FNavLocation ProjectedNavLocation;
+		
+		if (NavSystem->ProjectPointToNavigation(WantedLocation, ProjectedNavLocation, FVector(700.f,700.f,1000.f)))
+		{
+			WantedLocation = ProjectedNavLocation.Location;
+			DrawDebugPoint(GetWorld(), WantedLocation, 10.f, FColor::Red, false, 5.f);
+		}
+	}
+	
+	AIController = Cast<AAIController>(MyCharacter->GetController());
+	if (AIController)
+	{
+		RequestResult = AIController->MoveToLocation(WantedLocation);
+	}
 }
 
 void UBattleUtilityAction_BackAway::TickAction(float DeltaTime)
@@ -162,95 +186,103 @@ void UBattleUtilityAction_BackAway::TickAction(float DeltaTime)
 
 void UBattleUtilityAction_BackAway::EndAction()
 {
-	CachedAIComponent->ConsiderList->MyCharacter->bUseControllerRotationYaw = true;
+	MyCharacter->bUseControllerRotationYaw = true;
 	Super::EndAction();
 }
 
 UBattleUtilityAction_Strafe::UBattleUtilityAction_Strafe()
 {
-	Priority = 2;
 }
 
 void UBattleUtilityAction_Strafe::StartAction()
 {
 	Super::StartAction();
 	
-	RequestResult = EPathFollowingRequestResult::Failed;
-	if (CachedAIComponent)
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
 	{
-		if (!CachedAIComponent->ConsiderList->SelectedTarget)
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	MyCharacter = ConsiderList->GetMyCharacter();
+	ABattleCharacterBase* SelectedTarget = ConsiderList->GetSelectedTarget();
+	
+	if (!IsValid(MyCharacter) || !IsValid(SelectedTarget))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	MyCharacter->bUseControllerRotationYaw = false;
+	
+	RequestResult = EPathFollowingRequestResult::Failed;
+
+	int RightCount = 0;
+	int LeftCount = 0;
+	
+	FVector MyRightVector = MyCharacter->GetActorRightVector();
+	FVector MyLocation = MyCharacter->GetActorLocation();
+	
+	for (int32 Idx = 0; Idx < ConsiderList->GetCandidateArrNum(EAxisType::Target); ++Idx)
+	{
+		AActor* TargetActor = ConsiderList->GetCandidatePtr(EAxisType::Target, Idx);
+		
+		if (!IsValid(TargetActor))
 		{
-			return;
+			continue;
 		}
-		CachedAIComponent->ConsiderList->MyCharacter->bUseControllerRotationYaw = false;
-		
-		int RightCount = 0;
-		int LeftCount = 0;
-		
-		FVector MyRightVector = CachedAIComponent->ConsiderList->MyCharacter->GetActorRightVector();
-		FVector MyLocation = CachedAIComponent->ConsiderList->MyCharacter->GetActorLocation();
-		
-		for (AActor* TargetActor : CachedAIComponent->ConsiderList->TargetActors)
+		FVector ToTargetVector = TargetActor->GetActorLocation() - MyLocation;
+		if (MyRightVector.Dot(ToTargetVector) >= 0.0f)
 		{
-			FVector ToTargetVector = TargetActor->GetActorLocation() - MyLocation;
-			if (MyRightVector.Dot(ToTargetVector) >= 0.0f)
-			{
-				RightCount++;
-			}
-			else
-			{
-				LeftCount++;
-			}
-		}
-		
-		if (RightCount >= LeftCount)
-		{
-			bIsRight = true;
+			RightCount++;
 		}
 		else
 		{
-			bIsRight = false;
+			LeftCount++;
 		}
-		
-		FVector SelectedTargetLocation = CachedAIComponent->ConsiderList->SelectedTarget->GetActorLocation();
-		float Radius = FVector::Dist2D(MyLocation, SelectedTargetLocation);
-		FVector Dir = (MyLocation - SelectedTargetLocation).GetSafeNormal2D();
-		
-		float AngleDeg = bIsRight ? 30.f : -30.f;
-		FVector RotateVector = Dir.RotateAngleAxis(AngleDeg, FVector::UpVector);
-		
-		WantedLocation = SelectedTargetLocation + RotateVector * Radius;
-		
-		FVector MoveVector = WantedLocation - MyLocation;
-		if (MoveVector.Length() > MaxDistance)
-		{
-			WantedLocation = MyLocation + MoveVector.GetSafeNormal2D() * MaxDistance;
-		}
-		
-		
-		
-		if (UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld()))
-		{
-			FNavLocation ProjectedNavLocation;
-			
-			if (NavSystem->ProjectPointToNavigation(WantedLocation, ProjectedNavLocation, FVector(700.f,700.f,1000.f)))
-			{
-				WantedLocation = ProjectedNavLocation.Location;
-			}
-		}
-		
-		
-		AIController = Cast<AAIController>(CachedAIComponent->ConsiderList->MyCharacter->GetController());
-		if (AIController)
-		{
-			RequestResult = AIController->MoveToLocation(WantedLocation);
-		}
-		
 	}
 	
-
+	if (RightCount >= LeftCount)
+	{
+		bIsRight = true;
+	}
+	else
+	{
+		bIsRight = false;
+	}
+	
+	FVector SelectedTargetLocation = SelectedTarget->GetActorLocation();
+	float Radius = FVector::Dist2D(MyLocation, SelectedTargetLocation);
+	FVector Dir = (MyLocation - SelectedTargetLocation).GetSafeNormal2D();
+	
+	float AngleDeg = bIsRight ? 30.f : -30.f;
+	FVector RotateVector = Dir.RotateAngleAxis(AngleDeg, FVector::UpVector);
+	
+	WantedLocation = SelectedTargetLocation + RotateVector * Radius;
+	
+	FVector MoveVector = WantedLocation - MyLocation;
+	if (MoveVector.Length() > MaxDistance)
+	{
+		WantedLocation = MyLocation + MoveVector.GetSafeNormal2D() * MaxDistance;
+	}
+	
+	if (UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld()))
+	{
+		FNavLocation ProjectedNavLocation;
+		
+		if (NavSystem->ProjectPointToNavigation(WantedLocation, ProjectedNavLocation, FVector(700.f,700.f,1000.f)))
+		{
+			WantedLocation = ProjectedNavLocation.Location;
+		}
+	}
 	
 	
+	AIController = Cast<AAIController>(MyCharacter->GetController());
+	if (AIController)
+	{
+		RequestResult = AIController->MoveToLocation(WantedLocation);
+	}
 }
 
 void UBattleUtilityAction_Strafe::TickAction(float DeltaTime)
@@ -258,13 +290,20 @@ void UBattleUtilityAction_Strafe::TickAction(float DeltaTime)
 	if (RequestResult != EPathFollowingRequestResult::RequestSuccessful)
 	{
 		bIsCompletedAction = true;
+		return;
 	}
 	
 	
-	AActor* MyCharacter =  CachedAIComponent->ConsiderList->MyCharacter;
-	AActor* SelectedTarget = CachedAIComponent->ConsiderList->SelectedTarget;
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
 	
-	if (MyCharacter == nullptr || SelectedTarget == nullptr)
+	ABattleCharacterBase* SelectedTarget = ConsiderList->GetSelectedTarget();
+	
+	if (!IsValid(MyCharacter) || !IsValid(SelectedTarget))
 	{
 		bIsCompletedAction = true;
 		return;
@@ -299,21 +338,38 @@ void UBattleUtilityAction_Strafe::TickAction(float DeltaTime)
 
 void UBattleUtilityAction_Strafe::EndAction()
 {
-	CachedAIComponent->ConsiderList->MyCharacter->bUseControllerRotationYaw = true;
+	if (MyCharacter)
+	{
+		MyCharacter->bUseControllerRotationYaw = true;
+	}
 	
 	Super::EndAction();
 }
 
 UBattleUtilityAction_AbilityAction::UBattleUtilityAction_AbilityAction()
 {
-	Priority = 2;
 }
 
 void UBattleUtilityAction_AbilityAction::StartAction()
 {
 	Super::StartAction();
+	
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	
+	if (!IsValid(MyCharacter))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
 
-	ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
+	ASC = MyCharacter->GetAbilitySystemComponent();
 
 	if (ASC)
 	{
@@ -356,7 +412,20 @@ void UBattleUtilityAction_MoveToTarget::StartAction()
 {
 	Super::StartAction();
 	
-	MyCharacter = CachedAIComponent->ConsiderList->MyCharacter;
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	MyCharacter = ConsiderList->GetMyCharacter();
+	
+	if (!IsValid(MyCharacter))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
 }
 
 void UBattleUtilityAction_MoveToTarget::EndAction()
@@ -368,37 +437,45 @@ void UBattleUtilityAction_MoveToTarget::EndAction()
 
 void UBattleUtilityAction_MoveToTarget::TickAction(float DeltaTime)
 {
-	if (CachedAIComponent->ConsiderList->SelectedTarget)
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
 	{
-		FVector MyLocation = MyCharacter->GetActorLocation();
-		FVector TargetLocation = CachedAIComponent->ConsiderList->SelectedTarget->GetActorLocation();
-		
-		if (FVector::DistSquared(TargetLocation,MyLocation) <= WantedDistance * WantedDistance)
-		{
-			bIsCompletedAction = true;
-		}
-		
-		FVector DirectionAwayFromTarget = (TargetLocation - MyLocation).GetSafeNormal();
-		FRotator TargetRotation = DirectionAwayFromTarget.Rotation();
-
-		TargetLocation.Z = 0.0f;
-		TargetRotation.Pitch = 0.0f;
-		TargetRotation.Roll = 0.0f;
-
-		// 현재 회전값에서 목표 회전값으로 부드럽게 회전ssd
-		FRotator NewRotation = FMath::RInterpTo(MyCharacter->GetActorRotation(), TargetRotation, DeltaTime, 10.0f);
-
-		// 캐릭터에 새 회전값 적용
-		MyCharacter->SetActorRotation(NewRotation);
-		MyCharacter->AddMovementInput(DirectionAwayFromTarget);
-		
-
+		bIsCompletedAction = true;
 		return;
 	}
-	else
+	
+	SelectedTarget = ConsiderList->GetSelectedTarget();
+	
+	if (!IsValid(SelectedTarget))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+
+	FVector MyLocation = MyCharacter->GetActorLocation();
+	FVector TargetLocation = SelectedTarget->GetActorLocation();
+	
+	if (FVector::DistSquared(TargetLocation,MyLocation) <= WantedDistance * WantedDistance)
 	{
 		bIsCompletedAction = true;
 	}
+	
+	FVector DirectionAwayFromTarget = (TargetLocation - MyLocation).GetSafeNormal();
+	FRotator TargetRotation = DirectionAwayFromTarget.Rotation();
+
+	TargetLocation.Z = 0.0f;
+	TargetRotation.Pitch = 0.0f;
+	TargetRotation.Roll = 0.0f;
+
+	// 현재 회전값에서 목표 회전값으로 부드럽게 회전ssd
+	FRotator NewRotation = FMath::RInterpTo(MyCharacter->GetActorRotation(), TargetRotation, DeltaTime, 10.0f);
+
+	// 캐릭터에 새 회전값 적용
+	MyCharacter->SetActorRotation(NewRotation);
+	MyCharacter->AddMovementInput(DirectionAwayFromTarget);
+
+
 }
 
 UBattleUtilityAction_TurnToTargetAndStare::UBattleUtilityAction_TurnToTargetAndStare()
@@ -408,9 +485,23 @@ UBattleUtilityAction_TurnToTargetAndStare::UBattleUtilityAction_TurnToTargetAndS
 void UBattleUtilityAction_TurnToTargetAndStare::StartAction()
 {
 	Super::StartAction();
-
-	SelectedTarget = CachedAIComponent->ConsiderList->SelectedTarget;
-	MyCharacter = CachedAIComponent->ConsiderList->MyCharacter;
+	
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	MyCharacter = ConsiderList->GetMyCharacter();
+	SelectedTarget = ConsiderList->GetSelectedTarget();
+	
+	
+	if (!IsValid(MyCharacter) || !IsValid(SelectedTarget))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
 	
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
 	
@@ -458,19 +549,30 @@ void UBattleUtilityAction_TurnToTargetAndStare::TickAction(float DeltaTime)
 
 UBattleUtilityAction_PatrolAround::UBattleUtilityAction_PatrolAround()
 {
-	Priority = 1;
 }
-
-PRAGMA_DISABLE_OPTIMIZATION
 
 void UBattleUtilityAction_PatrolAround::StartAction()
 {
 	Super::StartAction();
+	
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	
+	if (!IsValid(MyCharacter))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
 
 	RequestResult = EPathFollowingRequestResult::Type::Failed;
 	
 	float PatrolRadius = 10000.0f;
-	ABattleCharacterBase* MyCharacter = CachedAIComponent->ConsiderList->MyCharacter;
 
 	FVector CharacterLocation = MyCharacter->GetActorLocation();
 
@@ -535,14 +637,30 @@ UBattleUtilityAction_MoveToLocation::UBattleUtilityAction_MoveToLocation()
 {
 }
 
+PRAGMA_DISABLE_OPTIMIZATION
+
 void UBattleUtilityAction_MoveToLocation::StartAction()
 {
 	Super::StartAction();
 	
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	
+	if (!IsValid(MyCharacter))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
 	RequestResult = EPathFollowingRequestResult::Type::Failed;
-
-	ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(CachedAIComponent->ConsiderList->MyCharacter);
-	AIController = Cast<AAIController>(EnemyCharacter->GetController());
+	
+	AIController = Cast<AAIController>(MyCharacter->GetController());
 	
 	FVector TargetLocation = GetLocation();
 
@@ -553,7 +671,6 @@ void UBattleUtilityAction_MoveToLocation::StartAction()
 	else
 	{
 		RequestResult = AIController->MoveToLocation(TargetLocation);
-		//RequestResult = AIController->MoveToLocation(TargetLocation, -1, true, true, false, true, UNavQueryFilter_CustomCost::StaticClass());
 	}
 }
 
@@ -579,12 +696,35 @@ void UBattleUtilityAction_MoveToLocation::TickAction(float DeltaTime)
 		{
 			if (EPathFollowingStatus::Type::Moving == PathFollowingComponent->GetStatus())
 			{
+				const FNavPathSharedPtr Path = PathFollowingComponent ? PathFollowingComponent->GetPath() : FNavPathSharedPtr();
+				if (Path.IsValid())
+				{
+					const TArray<FNavPathPoint>& Points = Path->GetPathPoints();
+					const FVector HeightOffset(0.0f, 0.0f, 30.0f);
+
+					for (int32 Index = 1; Index < Points.Num(); ++Index)
+					{
+						DrawDebugLine(
+							GetWorld(),
+							Points[Index - 1].Location + HeightOffset,
+							Points[Index].Location + HeightOffset,
+							FColor::Green,
+							false,
+							30.0f,
+							0,
+							10.0f);
+					}
+				}
+					
+					
 				return;
 			}
 		}
 	}
 	bIsCompletedAction = true;
 }
+
+PRAGMA_ENABLE_OPTIMIZATION
 
 FVector UBattleUtilityAction_MoveToLocation::GetLocation()
 {
@@ -602,22 +742,44 @@ FVector UBattleUtilityAction_MoveToSelectedSpot::GetLocation()
 
 UBattleUtilityAction_MoveToBestSpot::UBattleUtilityAction_MoveToBestSpot()
 {
-	Priority = 3;
 }
 
 FVector UBattleUtilityAction_MoveToBestSpot::GetLocation()
 {
-	return CachedAIComponent->ConsiderList->BestSpotLocation;
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return FVector();
+	}
+	
+	return ConsiderList->GetBestSpotLocation();
 }
 
 UBattleUtilityAction_MoveToBestSpotWithRoar::UBattleUtilityAction_MoveToBestSpotWithRoar()
 {
-	Priority = 4;
 }
 
 void UBattleUtilityAction_MoveToBestSpotWithRoar::StartAction()
 {
-	UAbilitySystemComponent* ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	
+	if (!IsValid(MyCharacter))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	UAbilitySystemComponent* ASC = MyCharacter->GetAbilitySystemComponent();
 
 	if (ASC)
 	{
@@ -629,46 +791,60 @@ void UBattleUtilityAction_MoveToBestSpotWithRoar::StartAction()
 
 UBattleUtilityAction_MoveToBestSpotWithRushAttack::UBattleUtilityAction_MoveToBestSpotWithRushAttack()
 {
-	Priority =4;
 }
 
 void UBattleUtilityAction_MoveToBestSpotWithRushAttack::StartAction()
 {
 	Super::StartAction();
+	
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	
+	if (!IsValid(MyCharacter))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
 
 	bAbilityCompleted = false;
 	
-	UAbilitySystemComponent* ASC = CachedAIComponent->ConsiderList->MyCharacter->GetAbilitySystemComponent();
+	UAbilitySystemComponent* ASC = MyCharacter->GetAbilitySystemComponent();
 
-	FVector TargetLocation = CachedAIComponent->ConsiderList->BestSpotLocation;
+	FVector BestSpotLocation = ConsiderList->GetBestSpotLocation();
 
-	ABattleCharacterBase* SelectedTargetActor = nullptr;
+	AActor* SelectedTargetActor = nullptr;
 	float TargetMinDistance = BIG_NUMBER; 
-	
 
-	for (ABattleCharacterBase* TargetActor : CachedAIComponent->ConsiderList->TargetActors)
+	for (int32 Idx = 0; Idx < ConsiderList->GetCandidateArrNum(EAxisType::Target); ++Idx)
 	{
-		FVector TargetActorLocation = TargetActor->GetActorLocation();
-
-		float Distance = (TargetActorLocation - TargetLocation).SizeSquared();
+		AActor* TargetActor = ConsiderList->GetCandidatePtr(EAxisType::Target, Idx);
+		if (!IsValid(TargetActor))
+		{
+			continue;
+		}
+		float Distance = (TargetActor->GetActorLocation() - BestSpotLocation).SizeSquared();
 		if (Distance < TargetMinDistance)
 		{
 			TargetMinDistance = Distance;
 			SelectedTargetActor = TargetActor;
 		}
 	}
-
-	if (SelectedTargetActor != nullptr)
+	
+	if (UBattleCombatManagerComponent* CombatManager =Cast<UBattleCombatManagerComponent>(MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
 	{
-		if (UBattleCombatManagerComponent* CombatManager =Cast<UBattleCombatManagerComponent>(CachedAIComponent->ConsiderList->MyCharacter->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
-		{
-			CombatManager->SetCurrentTargetActor(SelectedTargetActor);
-		}
+		CombatManager->SetCurrentTargetActor(SelectedTargetActor);
 	}
-
+	
 	if (ASC)
 	{
-		AbilitySpec = ASC ->FindAbilitySpecFromClass(RushAttackGA);
+		AbilitySpec = ASC->FindAbilitySpecFromClass(RushAttackGA);
 		ASC->TryActivateAbility(AbilitySpec->Handle);
 	}
 	
@@ -683,12 +859,27 @@ void UBattleUtilityAction_MoveToBestSpotWithRushAttack::TickAction(float DeltaTi
 	}
 	else if (!bAbilityCompleted)
 	{
+		UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	
+		if (!IsValid(ConsiderList))
+		{
+			bIsCompletedAction = true;
+			return;
+		}
+	
+		ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	
+		if (!IsValid(MyCharacter))
+		{
+			bIsCompletedAction = true;
+			return;
+		}
 		RequestResult = EPathFollowingRequestResult::Type::Failed;
 
-		ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(CachedAIComponent->ConsiderList->MyCharacter);
+		ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(MyCharacter);
 		AIController = Cast<AAIController>(EnemyCharacter->GetController());
 	
-		FVector TargetLocation = CachedAIComponent->ConsiderList->BestSpotLocation;
+		FVector TargetLocation = ConsiderList->GetBestSpotLocation();
 
 		if (TargetLocation.ContainsNaN())
 		{
@@ -729,12 +920,27 @@ void UBattleUtilityAction_MoveToLocationWithGridMap::StartAction()
 {
 	Super::StartAction();
 	
-	RequestResult = EPathFollowingRequestResult::Type::Failed;
-
-	ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(CachedAIComponent->ConsiderList->MyCharacter);
-	AIController = Cast<AAIController>(EnemyCharacter->GetController());
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
 	
-	FVector TargetLocation = CachedAIComponent->ConsiderList->BestSpotLocation;
+	if (!IsValid(ConsiderList))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	ABattleCharacterBase* MyCharacter = ConsiderList->GetMyCharacter();
+	
+	if (!IsValid(MyCharacter))
+	{
+		bIsCompletedAction = true;
+		return;
+	}
+	
+	RequestResult = EPathFollowingRequestResult::Type::Failed;
+	
+	AIController = Cast<AAIController>(MyCharacter->GetController());
+	
+	FVector TargetLocation = ConsiderList->GetBestSpotLocation();
 
 	if (TargetLocation.ContainsNaN())
 	{
@@ -742,11 +948,7 @@ void UBattleUtilityAction_MoveToLocationWithGridMap::StartAction()
 	}
 	else
 	{
-		UWorldRiskGridMapSubSystem* GridMapSubSystem = GetWorld()->GetSubsystem<UWorldRiskGridMapSubSystem>();
-		GridMapSubSystem->UpdateRisk(CachedAIComponent->ConsiderList->MyCharacter->GetActorLocation());
-		
 		RequestResult = AIController->MoveToLocation(TargetLocation);
-		//RequestResult = AIController->MoveToLocation(TargetLocation, -1, true, true, false, true, UNavQueryFilter_CustomCost::StaticClass());
 	}
 }
 
@@ -781,7 +983,6 @@ void UBattleUtilityAction_MoveToLocationWithGridMap::TickAction(float DeltaTime)
 
 UBattleUtilityAction_MoveToRuin::UBattleUtilityAction_MoveToRuin()
 {
-	Priority = 4;
 }
 
 FVector UBattleUtilityAction_MoveToRuin::GetLocation()
@@ -793,7 +994,6 @@ FVector UBattleUtilityAction_MoveToRuin::GetLocation()
 
 UBattleUtilityAction_MoveToDesert::UBattleUtilityAction_MoveToDesert()
 {
-	Priority = 4;
 }
 
 FVector UBattleUtilityAction_MoveToDesert::GetLocation()
@@ -804,7 +1004,6 @@ FVector UBattleUtilityAction_MoveToDesert::GetLocation()
 
 UBattleUtilityAction_MoveToCave::UBattleUtilityAction_MoveToCave()
 {
-	Priority = 4;
 }
 
 FVector UBattleUtilityAction_MoveToCave::GetLocation()

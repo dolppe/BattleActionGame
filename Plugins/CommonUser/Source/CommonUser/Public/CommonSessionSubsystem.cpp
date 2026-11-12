@@ -10,10 +10,10 @@ FString UCommonSession_HosetSessionRequest::GetMapName() const
 	FAssetData MapAssetData;
 	if (UAssetManager::Get().GetPrimaryAssetData(MapID, MapAssetData))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Map Loading Not Error, %s "), *MapID.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("Map Loading Not Error, %s "), *MapID.ToString());
 		return MapAssetData.PackageName.ToString();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Map Loading Error, %s "), *MapID.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("Map Loading Error, %s "), *MapID.ToString());
 	return FString();
 }
 

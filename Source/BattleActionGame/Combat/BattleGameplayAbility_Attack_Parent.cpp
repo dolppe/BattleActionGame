@@ -7,6 +7,7 @@
 #include "BattleActionGame/AbilitySystem/BattleAbilitySystemComponent.h"
 #include "BattleActionGame/AbilitySystem/Attributes/BattleEnemySet.h"
 #include "BattleActionGame/Character/BattleCharacter.h"
+#include "BattleActionGame/Enemy/BattleEnemyCharacter.h"
 #include "BattleActionGame/Physics/BattleCollisionChannels.h"
 #include "BattleActionGame/Physics/BattlePartsManagerComponent.h"
 #include "BattleActionGame/Physics/PhysicalMaterialWithTags.h"
@@ -32,7 +33,7 @@ void UBattleGameplayAbility_Attack_Parent::ActivateAbility(const FGameplayAbilit
 
 	const ABattleCharacterBase* Character = Cast<ABattleCharacterBase>(ActorInfo->AvatarActor);
 
-	AttackIdx = -1;
+	AttackWindowIdx = -1;
 	AlreadyHitActors.Empty();
 
 	if (Character->IsLocallyControlled())
@@ -125,9 +126,9 @@ void UBattleGameplayAbility_Attack_Parent::AttackHitConfirm(const FBattleHitMess
 		return;
 	}
 
-	if (AttackIdx != HitMessage.WindowIndex)
+	if (AttackWindowIdx != HitMessage.WindowIndex)
 	{
-		AttackIdx = HitMessage.WindowIndex;
+		AttackWindowIdx = HitMessage.WindowIndex;
 		AlreadyHitActors.Empty();
 	}
 
@@ -258,12 +259,11 @@ EStrikeType UBattleGameplayAbility_Attack_Parent::GetStrikeType(int Index) const
 
 void UBattleGameplayAbility_Attack_Parent::ReceivedHits(const FBattleHitMessage& HitMessage)
 {
-	
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
-		if (AttackIdx != HitMessage.WindowIndex)
+		if (AttackWindowIdx != HitMessage.WindowIndex)
 		{
-			AttackIdx = HitMessage.WindowIndex;
+			AttackWindowIdx = HitMessage.WindowIndex;
 		}
 		ServerRPCNotifyHit(HitMessage, HitMessage.HitTime);
 	}
@@ -279,11 +279,13 @@ void UBattleGameplayAbility_Attack_Parent::GetLifetimeReplicatedProps(TArray<FLi
 	
 }
 
-void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
+void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& TargetData,
                                                                      FGameplayTag ApplicationTag)
 {
-	const FHitResult* HitResult = InData.Data[0].Get()->GetHitResult();
-	const FAttackWindowData* AttackWindowData = &AttackData->AttackWindowDatas[AttackIdx];
+	
+	
+	const FHitResult* HitResult = TargetData.Data[0].Get()->GetHitResult();
+	const FAttackWindowData& AttackWindowData = AttackData->AttackWindowDatas[AttackWindowIdx];
 	ABattleCharacterBase* AvatarCharacter = Cast<ABattleCharacterBase>(GetAvatarActorFromActorInfo());
 	ABattleCharacterBase* TargetCharacter = Cast<ABattleCharacterBase>(HitResult->GetActor());
 
@@ -302,50 +304,54 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 	
 	if (DamageSpecHandle.IsValid())
 	{
-		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_BaseDamage, AttackData->AttackWindowDatas[AttackIdx].BaseDamage);
-		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_AttackRate, AttackData->AttackWindowDatas[AttackIdx].AttackRate);
-		DamageSpecHandle.Data->SetSetByCallerMagnitude(FBattleGameplayTags::Get().GameplayEffect_Data_ImpactPower, AttackData->AttackWindowDatas[AttackIdx].ImpactPower);
+		// 공격 데이터의 피해량, 공격 배율, 충격량 반영
+		const FBattleGameplayTags& Tags = FBattleGameplayTags::Get();
 		
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(Tags.GameplayEffect_Data_BaseDamage, AttackWindowData.BaseDamage);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(Tags.GameplayEffect_Data_AttackRate, AttackWindowData.AttackRate);
+		DamageSpecHandle.Data->SetSetByCallerMagnitude(Tags.GameplayEffect_Data_ImpactPower, AttackWindowData.ImpactPower);
 		
-		
-		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, DamageSpecHandle, InData);
+		// Hit 결과에 포함된 대상에게 피해 효과 적용
+		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, DamageSpecHandle, TargetData);
 	}
 
 	if (GetWorld()->GetNetMode() != NM_Client)
 	{
-		for (TSubclassOf<UGameplayEffect> TargetGE : AttackData->AttackWindowDatas[AttackIdx].AppliedEffectsToTarget)
+		for (TSubclassOf<UGameplayEffect> TargetGE : AttackWindowData.AppliedEffectsToTarget)
 		{
 			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(TargetGE, 1);
 
-			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, InData);		
+			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle, TargetData);		
 		}
 
-		for (TSubclassOf<UGameplayEffect> SelfGE : AttackData->AttackWindowDatas[AttackIdx].AppliedEffectsToSelf)
+		for (TSubclassOf<UGameplayEffect> SelfGE : AttackWindowData.AppliedEffectsToSelf)
 		{
 			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SelfGE, 1);
 
 			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 		}
 	}
+	
+	
 
 
-	if (AttackWindowData->HitStopSeconds > 0.0f)
+	if (AttackWindowData.HitStopSeconds > 0.0f)
 	{
-		AvatarCharacter->NetStopMotion(AttackWindowData->HitStopSeconds);
-		TargetCharacter->NetStopMotion(AttackWindowData->HitStopSeconds);
+		AvatarCharacter->NetStopMotion(AttackWindowData.HitStopSeconds);
+		TargetCharacter->NetStopMotion(AttackWindowData.HitStopSeconds);
 	}
-
-	if (const UBattleEnemySet* EnemySet = TargetCharacter->GetBattleAbilitySystemComponent()->GetSet<UBattleEnemySet>())
+	
+	if (ABattleEnemyCharacter* EnemyCharacter = Cast<ABattleEnemyCharacter>(TargetCharacter))
 	{
-		if (EnemySet->GetMaxGroggyValue() <= EnemySet->GetGroggyValue() + AttackData->AttackWindowDatas[AttackIdx].ImpactPower)
+		if (const UBattleEnemySet* EnemySet = EnemyCharacter->GetBattleAbilitySystemComponent()->GetSet<UBattleEnemySet>())
 		{
-			bHitCritical = true;
-		}
-		else if(EnemySet->GetPoiseValue() - AttackData->AttackWindowDatas[AttackIdx].ImpactPower <= 0)
-		{
-			bHitCritical = true;
-		}
+			if (EnemySet->GetMaxGroggyValue() <= EnemySet->GetGroggyValue() + AttackWindowData.ImpactPower)
+			{
+				bHitCritical = true;
+			}
+		}	
 	}
+	
 	
 	
 	if (const UPhysicalMaterialWithTags* PhysicalMaterialWithTags = Cast<UPhysicalMaterialWithTags>(HitResult->PhysMaterial.Get()))
@@ -353,7 +359,7 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 		if (UBattlePartsManagerComponent* PartsManagerComponent = Cast<UBattlePartsManagerComponent>(TargetCharacter->GetComponentByClass(UBattlePartsManagerComponent::StaticClass())))
 		{
 			// GCN에서 Critical한 공격인지에 따른 연출을 하기 위함
-			if (PartsManagerComponent->WillPartEventTrigger(PhysicalMaterialWithTags->PartTag))
+			if (PartsManagerComponent->WillDestroyedPart(PhysicalMaterialWithTags->PartTag))
 			{
 				bHitCritical = true;
 			}
@@ -365,11 +371,10 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 				FGameplayCueParameters HitGCParams = FGameplayCueParameters();
 
 				HitGCParams.Instigator = GetAvatarActorFromActorInfo();
-				HitGCParams.SourceObject = this;
 				HitGCParams.Location = HitResult->ImpactPoint;
 				HitGCParams.Normal = HitResult->ImpactNormal;
 				HitGCParams.PhysicalMaterial = DefaultPhysicalMaterial;
-				HitGCParams.RawMagnitude = AttackIdx;
+				HitGCParams.RawMagnitude = static_cast<float>(AttackWindowData.StrikeType);
 
 				GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(HitEffectGCNTag, HitGCParams);
 			}
@@ -382,7 +387,7 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 	}
 
 	ABattlePlayerController* BattlePC = GetBattlePlayerControllerFromActorInfo();
-
+	
 	if (bHitCritical)
 	{
 		if (ABattleCharacter* AvatarPlayerCharacter = Cast<ABattleCharacter>(AvatarCharacter))
@@ -394,10 +399,19 @@ void UBattleGameplayAbility_Attack_Parent::OnTargetDataReadyCallback(const FGame
 				BattlePC->ClientStartCameraShake(CameraShake, 1.0f);
 			}
 		}
+		
+		FGameplayCueParameters CriticalHitGCParams = FGameplayCueParameters();
+
+		CriticalHitGCParams.Instigator = GetAvatarActorFromActorInfo();
+		CriticalHitGCParams.SourceObject = this;
+		CriticalHitGCParams.Location = HitResult->ImpactPoint;
+		CriticalHitGCParams.Normal = HitResult->ImpactNormal;
+		
+		GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(CriticalHitEffectGCNTag, CriticalHitGCParams);
 	}
-	else if (AttackWindowData->CameraShakeClass != nullptr)
+	else if (AttackWindowData.CameraShakeClass != nullptr)
 	{
-		BattlePC->ClientStartCameraShake(AttackWindowData->CameraShakeClass, AttackWindowData->CameraShakeScale);
+		BattlePC->ClientStartCameraShake(AttackWindowData.CameraShakeClass, AttackWindowData.CameraShakeScale);
 	}
 	
 }

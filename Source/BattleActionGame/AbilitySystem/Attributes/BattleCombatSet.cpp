@@ -44,6 +44,11 @@ void UBattleCombatSet::OnRep_ImpactResistance(const FGameplayAttributeData& OldV
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UBattleCombatSet, ImpactResistance, OldValue);
 }
 
+UBattleTestSet::UBattleTestSet()
+	: TestAttributeA(123.f), TestAttributeB(456.f)
+{
+}
+
 void UBattleCombatSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

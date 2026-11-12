@@ -139,8 +139,6 @@ public:
 	virtual void StartAttack() override;
 
 private:
-	
-	TArray<FVector> GetTargetSpots() const;
 
 	UPROPERTY(EditAnywhere)
 	float AreaRadius = 1.0f;
@@ -180,8 +178,6 @@ public:
 
 private:
 	
-	TArray<FVector> GetTargetSpots() const;
-
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UBattleGameplayAbility_Special_Spawn> GA_Spawn;
 

@@ -26,7 +26,7 @@ public:
 	
 	TArray<ABrokenPartActor*>& GetDestroyedParts()
 	{
-		return DestroyedParts;
+		return BrokenPartActors;
 	}
 	
 	TArray<FGameplayTag>& GetAppliedPartTags()

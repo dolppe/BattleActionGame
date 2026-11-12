@@ -65,6 +65,7 @@ bool ABattlePlayerAIController::CanThink()
 	{
 		return false;
 	}
+
 	
 	
 	
@@ -82,7 +83,7 @@ EPlayerAIActionType ABattlePlayerAIController::Think()
 	{
 		if (UAbilitySystemComponent* BossASC = SelectedBoss->GetAbilitySystemComponent())
 		{
-			if (BossASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().AI_Attack_Intent))
+			if (BossASC->HasMatchingGameplayTag(FBattleGameplayTags::Get().AI_Attack_Intent) && !bAvoidMoveComplete)
 			{
 				return EPlayerAIActionType::AvoidAttack;
 			}
@@ -147,6 +148,7 @@ void ABattlePlayerAIController::MoveToBoss()
 
 void ABattlePlayerAIController::AttackToBoss()
 {
+	bAvoidMoveComplete = false;
 	FVector MyLocation = GetPawn()->GetActorLocation();
 	FVector TargetLocation = SelectedBoss->GetActorLocation();
 	FVector ToTargetLocation = (TargetLocation - MyLocation).GetSafeNormal2D();
@@ -164,7 +166,7 @@ void ABattlePlayerAIController::AttackToBoss()
 			if (UBattleGameplayAbility_ComboAttack* ComboAttack = Cast<UBattleGameplayAbility_ComboAttack>(CombatManagerComponent->GetCurrentAttackGA()))
 			{
 				ComboAttack->RequestNextCombo();
-				CombatManagerComponent->RequestStrongAttack();
+				//CombatManagerComponent->RequestStrongAttack();
 			}
 		}
 		else
@@ -207,6 +209,10 @@ void ABattlePlayerAIController::AvoidAttack()
 				{
 					MoveToLocation(AvoidPaths[AvoidPathIndex], 100.f);
 				}
+				else
+				{
+					bAvoidMoveComplete = true;
+				}
 			}
 		}	
 	}
@@ -214,6 +220,7 @@ void ABattlePlayerAIController::AvoidAttack()
 	{
 		AvoidPaths.Empty();
 		AvoidPathIndex = 0;
+		bAvoidMoveComplete = false;
 		
 		if (UAbilitySystemComponent* BossASC = SelectedBoss->GetAbilitySystemComponent())
 		{

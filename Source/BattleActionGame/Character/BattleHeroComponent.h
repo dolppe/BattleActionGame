@@ -7,6 +7,8 @@
 #include "BattleActionGame/Input/BattleInputConfig.h"
 #include "BattleHeroComponent.generated.h"
 
+class UBattleCameraSequencePlayer;
+struct FBattleCameraModeInitData;
 class UAbilitySystemComponent;
 class UBattleCameraMode;
 struct FGameplayAbilitySpecHandle;
@@ -43,14 +45,19 @@ public:
 
 	// Camera
 	TSubclassOf<UBattleCameraMode> DetermineCameraMode() const;
-	void SetAbilityCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
-	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
-
+	
 	UFUNCTION(Client, Reliable)
-	void SetDesiredCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FVector& DesiredLocation, const FRotator& DesiredRotation);
-
+	void SetSpecialCameraMode(TSubclassOf<UBattleCameraMode> CameraMode, const FBattleCameraModeInitData& InitData);
+	
 	UFUNCTION(Client, Reliable)
-	void ClearDesiredCameraMode();
+	void ClearSpecialCameraMode();
+	
+	UBattleCameraSequencePlayer* GetCameraSequencePlayer() const
+	{
+		return CameraSequencePlayer;
+	}
+
+
 
 	// Input
 	void InitilizePlayerInput(UInputComponent* PlayerInputComponent);
@@ -72,16 +79,6 @@ public:
 	void AdditionalInputConfig(const UBattleInputConfig* InputConfig);
 	void RemoveAdditionalInputConfig(const UBattleInputConfig* InputConfig);
 
-	FORCEINLINE FVector GetDesiredLocation() const
-	{
-		return DesiredViewPointLocation;
-	}
-
-	FORCEINLINE FRotator GetDesiredRotation() const 
-	{
-		return DesiredViewPointRotation;
-	}
-
 	FSpecialKeyPressed SpecialKeyPressed;
 	
 	void OnUnpossessed();
@@ -92,15 +89,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	TArray<FBattleMappableConfigPair> DefaultInputConfigs;
-	
 
 	UPROPERTY()
-	TSubclassOf<UBattleCameraMode> AbilityCameraMode;
+	TSubclassOf<UBattleCameraMode> SpecialCameraMode;
 
 	UPROPERTY()
-	TSubclassOf<UBattleCameraMode> DesiredCameraMode;
-
-	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
+	UBattleCameraSequencePlayer* CameraSequencePlayer;
 
 protected:
 
@@ -110,11 +104,6 @@ protected:
 	UAnimMontage* KnockbackMontage;
 
 private:
-	
-	FVector DesiredViewPointLocation;
-	FRotator DesiredViewPointRotation;
-	bool bHasDesiredViewPoint = false;
-
 	
 	
 	

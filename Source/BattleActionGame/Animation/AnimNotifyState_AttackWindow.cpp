@@ -34,28 +34,35 @@ void UAnimNotifyState_AttackWindow::NotifyBegin(USkeletalMeshComponent* MeshComp
 		CombatManager->OnAttackStart();
 		if (OwnerCharacter->IsLocallyControlled() || Cast<AAIController>(OwnerCharacter->GetController()) != nullptr)
 		{
-
-			TArray<FHitResult> HitResultsWithModify;
-			int Idx = 0;
-			for (UAttackCollisionData* CollisionData : CollisionDatas)
+			
+			// 설정된 HitCheck 검사를 실행하고, 중복 대상을 제외하며 Hit 결과 통합
+			TArray<FHitResult> UniqueHitResults;
+			for (UAttackCollisionData* CollisionData : CollisionDataList)
 			{
-				TArray<FHitResult> HitResults;
-				FAttackCollisionDebugSpec CollisionDebugSpec;
+				UAttackCollisionMethod* CollisionMethod = CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType);
 				
-				CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->StartCollisionCheck(HitResults, CollisionData, CollisionDebugSpec);
+				TArray<FHitResult> CurHitResults;
+				CollisionMethod->StartCollisionCheck(CurHitResults, CollisionData);
 
-				MakeUniqueHitResults(HitResults, HitResultsWithModify);
-				
-				CollisionDebugSpecArr.Add(Idx, CollisionDebugSpec);
-				Idx++;
+				MakeUniqueHitResults(CurHitResults, UniqueHitResults);
 			}
 			
-			SendHitResults(HitResultsWithModify, CombatManager->GetWorld()->GetGameState()->GetServerWorldTimeSeconds(), CombatManager);
+			// 통합한 Hit 결과 전달
+			SendHitResults(UniqueHitResults, CombatManager);
 			
 		}
 	}
 	
-#if 1
+	
+	
+	
+#if 0
+	
+	int Idx = 0;
+	
+	FAttackCollisionDebugSpec CollisionDebugSpec;
+	CollisionDebugSpecArr.Add(Idx, CollisionDebugSpec);
+	Idx++;
 		DrawDebugBegin(MeshComp, CollisionDebugSpecArr);
 #endif
 	
@@ -85,7 +92,7 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 				TArray<FHitResult> HitResultsWithModify;
 				int Idx = 0;
 				
-				for (UAttackCollisionData* CollisionData : CollisionDatas)
+				for (UAttackCollisionData* CollisionData : CollisionDataList)
 				{
 					FAttackCollisionDebugSpec CollisionDebugSpec;
 					if (CombatManager->GetCollisionMethod(CollisionData->CollisionMethodType)->IsNeedTick())
@@ -98,7 +105,7 @@ void UAnimNotifyState_AttackWindow::NotifyTick(USkeletalMeshComponent* MeshComp,
 					CollisionDebugSpecArr.Add(Idx, CollisionDebugSpec);
 					Idx++;
 				}
-				SendHitResults(HitResultsWithModify, CombatManager->GetWorld()->GetGameState()->GetServerWorldTimeSeconds(), CombatManager);
+				SendHitResults(HitResultsWithModify, CombatManager);
 			}
 		}
 	}
@@ -129,24 +136,31 @@ void UAnimNotifyState_AttackWindow::MakeUniqueHitResults(const TArray<FHitResult
 	}
 }
 
-void UAnimNotifyState_AttackWindow::SendHitResults(const TArray<FHitResult>& SendHitResults, float HitTime,
-	UBattleCombatManagerComponent* CombatManager)
+void UAnimNotifyState_AttackWindow::SendHitResults(const TArray<FHitResult>& InHitResults, UBattleCombatManagerComponent* CombatManager)
 {
-	if (SendHitResults.Num() >0)
+	if (InHitResults.IsEmpty())
 	{
-		FBattleHitMessage HitMessage;
-
-		HitMessage.HitResults = SendHitResults;
-		HitMessage.WindowIndex = AttackIdx;
-		HitMessage.HitTime = HitTime;
-
-		CombatManager->OnHitEvent(HitMessage);
+		return;
 	}
+	
+	// 판정 결과와 타격 구간 번호, 판정 시각을 CombatManager에 전달
+	FBattleHitMessage HitMessage;
+
+	HitMessage.HitResults = InHitResults;
+	HitMessage.WindowIndex = AttackWindowIdx;
+	HitMessage.HitTime = CombatManager->GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+
+	CombatManager->OnHitEvent(HitMessage);
 }
 
 void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshComp,
 	TMap<int, FAttackCollisionDebugSpec>& CollisionDebugSpecMap)
 {
+	if (!bDebugDraw)
+	{
+		return;
+	}
+	
 	if (MeshComp->GetWorld() != nullptr)
 	{
 		if (ACharacter* OwnerCharacter = Cast<ACharacter>(MeshComp->GetOwner()))
@@ -160,7 +174,7 @@ void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshC
 	}
 	
 	int Idx = 0;
-	for (UAttackCollisionData* CollisionData : CollisionDatas)
+	for (UAttackCollisionData* CollisionData : CollisionDataList)
 	{
 		if (CollisionData->CollisionMethodType == ECollisionMethodType::DirectionalSweep)
 		{
@@ -179,6 +193,10 @@ void UAnimNotifyState_AttackWindow::DrawDebugBegin(USkeletalMeshComponent* MeshC
 void UAnimNotifyState_AttackWindow::DrawDebugTick(USkeletalMeshComponent* MeshComp,
 	TMap<int, FAttackCollisionDebugSpec>& CollisionDebugSpecMap)
 {
+	if (!bDebugDraw)
+	{
+		return;
+	}
 	if (MeshComp->GetWorld() != nullptr)
 	{
 		if (MeshComp->GetNetMode() == ENetMode::NM_DedicatedServer || MeshComp->GetNetMode() == ENetMode::NM_ListenServer)
@@ -189,7 +207,7 @@ void UAnimNotifyState_AttackWindow::DrawDebugTick(USkeletalMeshComponent* MeshCo
 	
 	int Idx = 0;
 	
-	for (UAttackCollisionData* CollisionData : CollisionDatas)
+	for (UAttackCollisionData* CollisionData : CollisionDataList)
 	{
 		if (CollisionData->CollisionMethodType == ECollisionMethodType::SocketBasedLineTrace)
 		{

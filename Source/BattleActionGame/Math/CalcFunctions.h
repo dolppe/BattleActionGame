@@ -3,8 +3,7 @@
 #include "CalcFunctions.generated.h"
 
 UENUM(BlueprintType)
-enum class EAxisFunction : uint8 {
-	Linear,
+enum class EAxisFunctionType : uint8 {
 	Quadratic,
 	Logistic,
 	Logit
@@ -19,14 +18,13 @@ public:
 
 	UCalcFunctions();
 	
-	static float LinearFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue);
 	static float QuadraticFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue);
 	static float LogisticFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue);
 	static float LogitFunction(float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue);
 	static float ClampResult(float Result, float MinValue, float MaxValue);
 
 	// X, Slope, Multiply, Vertical, Horizontal
-	static float CalcValueWithFunction(EAxisFunction FunctionType,float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue);
+	static float CalcValueWithFunction(EAxisFunctionType FunctionType,float X, float Slope, float Exponent, float Vertical, float Horizontal, float MinValue, float MaxValue);
 	
 	
 	

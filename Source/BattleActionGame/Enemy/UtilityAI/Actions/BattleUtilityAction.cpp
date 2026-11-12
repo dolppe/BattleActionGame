@@ -1,199 +1,151 @@
 #include "BattleUtilityAction.h"
 
-#include "BattleActionGame/BattleLogChannels.h"
-#include "NavigationSystem.h"
-#include "BattleActionGame/Combat/BattleCombatData.h"
+#include "BattleActionGame/Enemy/UtilityAI/BattleConsiderationFactors.h"
 #include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAIData.h"
 #include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAxis.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAction)
 
 
-TArray<FVector> BattleUtilityActionHelper::FindBestSpotsWithGreedy(UNavigationSystemV1* NavSystem,
-	TArray<FVector> SpotLists, float AreaRadius, int AreaNum)
+TArray<FVector> BattleUtilityActionHelper::FindBestSpotsWithGreedy(const TArray<FVector>& SpotLists, float AreaRadius, int32 AreaNum)
 {
-	if (NavSystem == nullptr || AreaNum == 0 || SpotLists.IsEmpty())
+	if (AreaNum <= 0 || AreaRadius <= 0 || SpotLists.IsEmpty())
 	{
 		return TArray<FVector>();
 	}
+	
+	// SpotList에서 X와 Y만 사용함
 	TArray<FVector> Locations;
+	TArray<bool> IsLocationsSelected;
 	TArray<FVector> Result;
 	
-	for (FVector& Spot : SpotLists)
+	Locations.Reserve(SpotLists.Num());
+	IsLocationsSelected.Reserve(SpotLists.Num());
+	Result.Reserve(AreaNum);
+	
+	for (const FVector& Spot : SpotLists)
 	{
-		Spot.Z = 0.0f;
-		Locations.Add(Spot);
+		Locations.Add(FVector(Spot.X, Spot.Y, 0.0f));
+		IsLocationsSelected.Add(false);
 	}
 	
-	if (Locations.Num() <2)
-	{
-		for (int Idx =0;Idx<Locations.Num();Idx++)
-		{
-			if (Idx >= AreaNum)
-			{
-				break;
-			}
-			FVector AreaData = Locations[Idx];
-			FNavLocation ProjectedNavLocation;	
-			if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 6000.f)))
-			{
-				AreaData = ProjectedNavLocation.Location;
-			}
-		
-			Result.Add(AreaData);
-		}
-		
-		return Result;
-	}
+	// 두 점 사이의 거리가 원의 지름 이하인 점 쌍을 저장
+	TArray<TPair<FVector,FVector>> ValidPointPairs;
 	
-	TArray<TPair<FVector,FVector>> SelectedLocations;
-	
-	for (int i = 0; i<Locations.Num();i++)
+	for (int32 i = 0; i<Locations.Num();i++)
 	{
-		FVector& StartLocation = Locations[i];
-		for (int j =i+1; j <Locations.Num();j++)
+		const FVector& StartLocation = Locations[i];
+		for (int32 j =i+1; j <Locations.Num();j++)
 		{
-			FVector& EndLocation = Locations[j];
+			const FVector& EndLocation = Locations[j];
 			
 			float Distance = FVector::Dist(StartLocation, EndLocation);
 
 			if (Distance <= AreaRadius * 2)
 			{
-				SelectedLocations.Add({StartLocation, EndLocation});
+				ValidPointPairs.Add({StartLocation, EndLocation});
 			}
 		}
 	}
-
-	if (SelectedLocations.IsEmpty())
-	{
-		for (int Idx =0;Idx<Locations.Num();Idx++)
-		{
-			if (Idx >= AreaNum)
-			{
-				break;
-			}
-			FVector AreaData = Locations[Idx];
-			FNavLocation ProjectedNavLocation;	
-		
-			if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 6000.f)))
-			{
-				AreaData = ProjectedNavLocation.Location;
-			}
-		
-			Result.Add(AreaData);
-		}
-		
-		return Result;
-	}
-
-	FAttackData AttackData;
 	
-	// 선택된 점 세트마다 원 2개 만들기
-	TSet<FVector> Centers;
-
-	for (TPair<FVector, FVector>& LocationPair : SelectedLocations)
-	{
-		FVector& StartVector = LocationPair.Key;
-		FVector& EndVector = LocationPair.Value;
-
-		FVector MidVector = (StartVector + EndVector) * 0.5f;
-
-		float HalfDistance = (StartVector - EndVector).Size2D() * 0.5f;
-
-		float MidToCenterDistance = FMath::Sqrt((AreaRadius * AreaRadius) - (HalfDistance * HalfDistance));
-
-		FVector MidUnit = (MidVector - StartVector).GetSafeNormal2D();
-
-		float CenterX1 = MidVector.X + MidToCenterDistance*MidUnit.Y;
-		float CenterY1 = MidVector.Y - MidToCenterDistance*MidUnit.X;
-		
-		float CenterX2 = MidVector.X - MidToCenterDistance*MidUnit.Y;
-		float CenterY2 = MidVector.Y + MidToCenterDistance*MidUnit.X;
-
-		FVector NewCenter = FVector(CenterX1, CenterY1, 0.0f);
-		FVector NewCenter2 = FVector(CenterX2, CenterY2, 0.0f);
-
-		Centers.Add(NewCenter);
-		Centers.Add(NewCenter2);
-	}
-	
-	// 원에 포함되는 점 개수 구하기
-	
-
+	// 원의 중심 후보 저장
+	TSet<FVector> CandidateCenters;
 	const float AreaRadiusSquared = AreaRadius * AreaRadius;
-
-	TArray<TPair<int, FVector>> CalcLocations; 
-	int MaxCount = 0;
 	
-	for (FVector& Center : Centers)
+	for (const FVector& Location : Locations)
 	{
-		int Count = 0;
-		for (FVector Location : Locations)
-		{
-			if (FMath::Abs(FVector::DistSquared2D(Location, Center) - AreaRadiusSquared) <= 0.0001)
-			{
-				Count++;
-			}
-		}
-
-		CalcLocations.Add({Count, Center});
+		CandidateCenters.Add(Location);
 	}
 
-	CalcLocations.Sort([](const TPair<int, FVector>& A, const TPair<int, FVector>& B)
+	// ValidPointPairs: 두 지점 사이의 거리가 지름 이하인 점쌍
+	if (!ValidPointPairs.IsEmpty())
 	{
-		return A.Key > B.Key;
-	});
+		for (const TPair<FVector, FVector>& PointPair : ValidPointPairs)
+		{
+			const FVector& PointA = PointPair.Key;
+			const FVector& PointB = PointPair.Value;
 
+			const FVector MidPoint = (PointA + PointB) * 0.5f;
+			const float HalfDistance = FVector::Dist2D(PointA, PointB) * 0.5f;
+			
+			// 중점에서 원의 중심까지의 거리 계산
+			const float CenterOffsetDistance = FMath::Sqrt(
+				FMath::Max(
+					(AreaRadiusSquared) - (HalfDistance * HalfDistance),0.0f));
 
-	
-	for (int Idx =0;Idx<CalcLocations.Num();Idx++)
-	{
-		if (Idx >= AreaNum)
-		{
-			break;
-		}
-		FVector AreaData = CalcLocations[Idx].Value;
-		FNavLocation ProjectedNavLocation;	
-		
-		if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 6000.f)))
-		{
-			AreaData = ProjectedNavLocation.Location;
-		}
-		
-		Result.Add(AreaData);
-	}
-	
-	if (CalcLocations.Num() < AreaNum)
-	{
-		for (int Idx =0;Idx<Locations.Num();Idx++)
-		{
-			if (Idx + CalcLocations.Num() >= AreaNum)
-			{
-				break;
-			}
-			FVector AreaData = Locations[Idx];
-			FNavLocation ProjectedNavLocation;	
-		
-			if (NavSystem->ProjectPointToNavigation(AreaData, ProjectedNavLocation, FVector(300.f,300.f, 6000.f)))
-			{
-				AreaData = ProjectedNavLocation.Location;
-			}
-		
-			Result.Add(AreaData);
+			// PointA에서 Mid로 향하는 단위 방향 벡터
+			const FVector MidUnit = (MidPoint - PointA).GetSafeNormal2D();
+			// Mid에서 Center로 향하는 방향
+			const FVector MidToCenter(MidUnit.Y, -MidUnit.X, 0.0f);
+			const FVector CenterOffset = MidToCenter * CenterOffsetDistance;
+						
+			CandidateCenters.Add(MidPoint + CenterOffset);
+			CandidateCenters.Add(MidPoint - CenterOffset);
 		}
 	}
-	
 
+	
+	// 원에 포함되는 점 개수 구하여 최종 원의 중심 확정
+	int32 CoveredTargetCount = 0;
+	int32 UniqueCenterCount = 0;
+	
+	for (int32 AreaIdx =0; AreaIdx < AreaNum; ++AreaIdx)
+	{
+		// 모든 점이 한번씩은 커버됐다면 기존에 구했던 것 재사용
+		if (CoveredTargetCount >= Locations.Num())
+		{
+			FVector CurLocation = Result[AreaIdx % UniqueCenterCount];
+			Result.Add(CurLocation);
+			continue;
+		}
+		
+		FVector BestCenter = FVector::ZeroVector;
+		TArray<int32> BestCoveredIndexes;
+		
+		for (FVector& Center : CandidateCenters)
+		{
+			TArray<int32> CoveredIndexes;
+			
+			// 아직 선택되지 않은 대상 중 현재 후보의 범위 안에 있는 대상 수집
+			for (int32 LocationIdx = 0; LocationIdx < Locations.Num(); ++LocationIdx)
+			{
+				if (!IsLocationsSelected[LocationIdx] && 
+					FVector::DistSquared2D(Locations[LocationIdx], Center) <= AreaRadiusSquared)
+				{
+					CoveredIndexes.Add(LocationIdx);
+				}
+			}
+			
+			// 미선택 대상을 가장 많이 포함하는 중심과 대상 목록 저장
+			if (BestCoveredIndexes.Num() < CoveredIndexes.Num())
+			{
+				BestCoveredIndexes = MoveTemp(CoveredIndexes);
+				BestCenter = Center;
+			}
+		}
+		
+		// 포함된 대상은 다음 공격 범위 선택 시 평가에서 제외
+		for (int32 SelectedLocationIdx : BestCoveredIndexes)
+		{
+			IsLocationsSelected[SelectedLocationIdx] = true;
+		}
+		
+		Result.Add(BestCenter);
+		
+		CoveredTargetCount += BestCoveredIndexes.Num();
+		UniqueCenterCount++;
+	}
+	
 	return Result;
-	
 }
 
 UBattleUtilityAction::UBattleUtilityAction()
 {
 }
 
-void UBattleUtilityAction::InitAction(FActionConfig& ActionConfig, UBattleUtilityAIComponent* UtilityAIComponent)
+void UBattleUtilityAction::InitAction(const FActionConfig& ActionConfig, UConsiderationFactors* InConsiderationFactors)
 {
+	// Action 기본 세팅값 설정
 	Weight = ActionConfig.Weight;
 	CoolTime = ActionConfig.CoolTime;
 	AgeTime = ActionConfig.AgeTime;
@@ -202,177 +154,142 @@ void UBattleUtilityAction::InitAction(FActionConfig& ActionConfig, UBattleUtilit
 	MinDistance = ActionConfig.MinDistance;
 	MaxDistance = ActionConfig.MaxDistance;
 	
+	ConsiderationFactors = InConsiderationFactors;
 	
-	for (FAxisConfig AxisConfig : ActionConfig.AxisConfigs)
+	// Axis 생성 및 초기화
+	for (const FAxisConfig& AxisConfig : ActionConfig.AxisConfigs)
 	{
-		if (AxisConfig.AxisType == EAxisType::Single)
+		UBattleUtilityAxis* NewAxis = NewObject<UBattleUtilityAxis>(this, UBattleUtilityAxis::StaticClass());
+		NewAxis->SetConsiderType(AxisConfig.ConsiderType);
+		NewAxis->SetFunction(AxisConfig);
+		
+		EAxisType AxisType = UConsiderationFactors::GetAxisType(AxisConfig.ConsiderType);
+		if (AxisType == EAxisType::Single)
 		{
-			UBattleUtilityAxis* NewAxis = nullptr;
-			NewAxis = NewObject<UBattleUtilityAxis>(this, UBattleUtilityAxis::StaticClass());
-
-			NewAxis->SetConsiderFactor(AxisConfig.ConsiderType);
-			NewAxis->SetFunction(AxisConfig.FunctionType, AxisConfig.Slope, AxisConfig.Exponent, AxisConfig.VerticalShift, AxisConfig.HorizontalShift, AxisConfig.AxisMinValue, AxisConfig.AxisMaxValue);
-			NewAxis->SetAIComponent(UtilityAIComponent);
-
-			AxisArray.Add(NewAxis);
+			SingleAxisList.Add(NewAxis);
 		}
 		else
 		{
-			UBattleUtilityArrayAxis* NewArrayAxis = nullptr;
-			NewArrayAxis = NewObject<UBattleUtilityArrayAxis>(this, UBattleUtilityArrayAxis::StaticClass());
-
-			NewArrayAxis->SetConsiderFactor(AxisConfig.ConsiderType);
-			NewArrayAxis->SetFunction(AxisConfig.FunctionType, AxisConfig.Slope, AxisConfig.Exponent, AxisConfig.VerticalShift, AxisConfig.HorizontalShift, AxisConfig.AxisMinValue, AxisConfig.AxisMaxValue);
-			NewArrayAxis->SetAIComponent(UtilityAIComponent);
-			NewArrayAxis->SetAxisType(AxisConfig.AxisType);
-
-			AxisTypeArray.Add(AxisConfig.AxisType);
-			ArrayAxisArray.Add(NewArrayAxis);
+			AxisTypes.Add(AxisType);
+			MultiAxisList.Add(NewAxis);
 		}
-	}
-
-	CachedAIComponent = UtilityAIComponent;
-	
+	}	
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-
-float UBattleUtilityAction::EvaluateScore(const UConsiderationFactors* ConsiderList)
+float UBattleUtilityAction::EvaluateScore()
 {
+	BestTargets.Reset();
 	
-	TArray<FUtilityAIScoreData>& UtilityAIScoreDatas = CachedAIComponent->GetUtilityAIScoreData();
-		
-	float Result = 1.0f; 
-	for (UBattleUtilityAxis* UtilityAxis : AxisArray)
+	UConsiderationFactors* ConsiderList = ConsiderationFactors.Get();
+	
+	if (!IsValid(ConsiderList))
 	{
-		float FactorValue = UtilityAxis->GetValue();
-		float CalcValue = UtilityAxis->CalcValue(FactorValue);
-
-		if (!UtilityAIScoreDatas.IsEmpty())
-		{
-			UtilityAIScoreDatas.Last().NormalFactorScoreOrigin.Add(FactorValue);
-			UtilityAIScoreDatas.Last().NormalFactorScoreFinal.Add(CalcValue);
-			UtilityAIScoreDatas.Last().NormalFactorConsiderType.Add(UtilityAxis->GetConsiderFactor());	
-		}
-		
-		
-		Result = Result * CalcValue;
+		return 0.0f;
 	}
-
-	TArray<bool> CompletedTypes;
-	CompletedTypes.Init(false, AxisTypeArray.Num());
-
-	// EAxisType이 Array쪽일 때 처리
-	// ex) TargetArray
-	// ArrayAxisArray => 각 ArrayAxis가 존재,
-	// 단, 해당 ArrayAxis가 같은 타입인 경우, 내부의 ValueArray는 같은 Index를 의미함
-	// A ArrayAxis => Target, B ArrayAxis => Target인 경우
-	// A ArrayAxis의 ValueArray의 첫번째 Target == B ArrayAxis의 ValueArray의 두번째 Target
-	BestTargets.Empty();
-	while (CompletedTypes.Contains(false))
+	
+	// 단일 Axis 점수들을 곱함
+	float ActionScore = Weight; 
+	for (UBattleUtilityAxis* SingleAxis : SingleAxisList)
 	{
-		EAxisType CurrentType =EAxisType::None;
-
-		for (int Idx = 0; Idx < AxisTypeArray.Num();Idx++)
+		// 미리 계산한 평가값 조회
+		const float FactorValue = ConsiderList->GetFactorValue(SingleAxis->GetConsiderType());
+		
+		// 해당 Axis에 설정된 함수로 Axis 점수 계산
+		const float AxisScore = SingleAxis->CalcValue(FactorValue);
+		
+		ActionScore *= AxisScore;
+	}
+	
+	for (EAxisType AxisType : AxisTypes)
+	{
+		// 같은 AxisType에 대한 MultiAxis들을 수집
+		TArray<UBattleUtilityAxis*> MatchingAxisList;
+		for (int32 Idx = 0; Idx < MultiAxisList.Num();Idx++)
 		{
-			if (!CompletedTypes[Idx])
+			if (AxisType == UConsiderationFactors::GetAxisType(MultiAxisList[Idx]->GetConsiderType()))
 			{
-				// 미완료 Idx에 접근
-				CurrentType = AxisTypeArray[Idx];
-				CompletedTypes[Idx] = true;
-				break;
+				MatchingAxisList.Add(MultiAxisList[Idx]);
 			}
 		}
 		
-		if (CurrentType == EAxisType::None)
-		{
-			break;
-		}
-
-		// 해당 타입인 ArrayAxis의 Index들을 다 가져옴
-		TArray<int> IndexArray;
-		for (int Idx = 0; Idx < ArrayAxisArray.Num();Idx++)
-		{
-			if (CurrentType == ArrayAxisArray[Idx]->GetAxisType())
-			{
-				IndexArray.Add(Idx);
-			}
-		}
-
-		int Size = ArrayAxisArray[IndexArray[0]]->GetArrayValue().Num();
+		// 현재 타입에 해당하는 MultiAxis가 반드시 존재해야 함
+		check(!MatchingAxisList.IsEmpty());
 		
-		float BestScore = 0.0f;
-		int BestIdx = 0;
-		// ArrayAxis의 모든 Target을 순회함
-		// AxisIdx => 0 => 첫 번째 Target이라는 것
-		// AxisIdx는 Target을 의미하고 IndexArrayIdx는 Axis를 의미함.
-		for (int AxisIdx = 0; AxisIdx < Size; AxisIdx++)
+		// MatchingAxisList: 같은 대상 유형을 평가하는 MultiAxis 목록
+		// MultiAxis에서 같은 인덱스는 동일한 후보를 의미
+		const TArray<float>* FirstFactors = ConsiderList->GetMultiFactorValues(MatchingAxisList[0]->GetConsiderType());
+		if (!FirstFactors || FirstFactors->IsEmpty())
 		{
-			// 하나의 Target에 대한 최종값
-			float MultiplyValue = 1.0f;
-			FArrayFactorData ArrayFactorData;
+			return 0.0f;
+		}
 			
-			for (int IndexArrayIdx = 0; IndexArrayIdx < IndexArray.Num();IndexArrayIdx++)
+		const int32 TargetCount = FirstFactors->Num();
+		
+		// 같은 유형의 후보 중 최고 점수인 후보 찾기
+		float BestTargetScore = 0.0f;
+		int32 BestTargetIndex = 0;
+		
+		for (int32 TargetIndex = 0; TargetIndex < TargetCount; ++TargetIndex)
+		{
+			AActor* Candidate = ConsiderList->GetCandidatePtr(AxisType, TargetIndex);
+			if (!IsValid(Candidate))
 			{
-				// IndexArrayIdx는 같은 Type의 ArrayAxis가 어떤 것들이 있는지 접근
-				// 따라서 같은 Target의 Hp를 담당하는 ArrayAxis, 같은 Target의 Distance를 담당하는 ArrayAxis에 각각 접근
-				// 정해진 함수 규칙에 따라서 값을 계산하고, 각 값은 곱해서 관리
-				// Target(AxisIdx)에 대해서 Axis(IndexArrayIdx) 하나의 원본 값
+				continue;
+			}
+			// 같은 후보의 모든 MultiAxis 점수를 곱하여 결합
+			float TargetScore = 1.0f;
+			for (UBattleUtilityAxis* MultiAxis : MatchingAxisList)
+			{
+				const TArray<float>* MultiFactors = ConsiderList->GetMultiFactorValues(MultiAxis->GetConsiderType());
 				
-				//ArrayFactorData.AxisType = ArrayAxisArray[IndexArray[IndexArrayIdx]]->GetConsiderFactor();
-				ArrayFactorData.AxisType = CurrentType;
-				float FactorValue = ArrayAxisArray[IndexArray[IndexArrayIdx]]->GetArrayValue()[AxisIdx];
-				ArrayFactorData.ArrayFactorScoreOrigin.Add(FactorValue);
-				// Target(AxisIdx)에 대해서 Axis(IndexArrayIdx) 하나의 계산된 값
-				float CalcValue = ArrayAxisArray[IndexArray[IndexArrayIdx]]->CalcValue(FactorValue);
-				ArrayFactorData.ArrayFactorScoreFinal.Add(CalcValue);
-				// 각 Axis의 값들이 곱해지는 것
-				MultiplyValue *= CalcValue;
-			}
-			if (!UtilityAIScoreDatas.IsEmpty())
-			{
-				UtilityAIScoreDatas.Last().ArrayFactorScore.Add(ArrayFactorData);	
+				// 후보의 Axis들 중 하나라도 이상하면 아예 해당 후보는 빼버림
+				if (!MultiFactors || !MultiFactors->IsValidIndex(TargetIndex))
+				{
+					TargetScore = 0.0f;
+					break;
+				}
+				
+				const float FactorValue = (*MultiFactors)[TargetIndex];
+				const float AxisScore = MultiAxis->CalcValue(FactorValue);
+				
+				TargetScore *= AxisScore;
 			}
 			
-			if (BestScore < MultiplyValue)
+			// 최고 점수 후보 선택
+			if (BestTargetScore < TargetScore)
 			{
-				BestScore = MultiplyValue;
-				BestIdx = AxisIdx;
+				BestTargetScore = TargetScore;
+				BestTargetIndex = TargetIndex;
 			}
 		}
-
-		Result = BestScore * Result;
-		BestTargets.Add(ConsiderList->GetTargetPtr(CurrentType, BestIdx));
+		
+		// 최적 대상 점수를 행동 점수에 반영하고, 실행에 사용할 대상 저장
+		ActionScore *= BestTargetScore;
+		BestTargets.Add(AxisType, ConsiderList->GetCandidatePtr(AxisType, BestTargetIndex));
 	}
 	
-	return Result * Weight;
+	return ActionScore;
 }
-
-PRAGMA_ENABLE_OPTIMIZATION
 
 void UBattleUtilityAction::StartAction()
 {
-	//UE_LOG(LogBattle, Log, TEXT("StartAction: %s"), *GetName());
 }
 
 void UBattleUtilityAction::EndAction()
 {
-	//UE_LOG(LogBattle, Log, TEXT("EndAction: %s"), *GetName());
 	bIsCompletedAction = true;
 }
 
 void UBattleUtilityAction::TickAction(float DeltaTime)
 {
-	
 }
 
-bool UBattleUtilityAction::CanAllowedRange(float InDistance)
+bool UBattleUtilityAction::CanAllowedRange(float InDistance) const
 {
 	if (MinDistance <= InDistance && InDistance <= MaxDistance)
 	{
 		return true;
 	}
-	
 	return false;
 }
 

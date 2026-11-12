@@ -7,6 +7,8 @@
 
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
 #include "BattleActionGame/Input/BattleInputComponent.h"
+#include "Engine/LocalPlayer.h"
+#include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -89,7 +91,7 @@ void ABattleObserverPawn::ServerReturnToCharacter_Implementation()
 			AIController->UnPossess();
 		}
 		
-		UE_LOG(LogBattle, Log, TEXT("ServerReturnToCharacter_Implementation"));
+		//UE_LOG(LogBattle, Log, TEXT("ServerReturnToCharacter_Implementation"));
 		
 		AController* PlayerController = GetController();
 		

@@ -6,6 +6,7 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "BattleUtilityAction_Movement.generated.h"
 
+class ABattleCharacterBase;
 class UBattleGameplayAbility;
 class UAbilitySystemComponent;
 class AAIController;
@@ -67,8 +68,8 @@ public:
 	
 protected:
 	
-	TObjectPtr<AActor> MyCharacter;
-	TObjectPtr<AActor> SelectedTarget;
+	TObjectPtr<ABattleCharacterBase> MyCharacter;
+	TObjectPtr<ABattleCharacterBase> SelectedTarget;
 	TObjectPtr<AAIController> AIController;
 	
 	FVector WantedLocation;
@@ -100,6 +101,9 @@ protected:
 	
 	TObjectPtr<AAIController> AIController;
 	EPathFollowingRequestResult::Type RequestResult;
+	
+private:
+	ABattleCharacterBase* MyCharacter;
 };
 
 UCLASS()

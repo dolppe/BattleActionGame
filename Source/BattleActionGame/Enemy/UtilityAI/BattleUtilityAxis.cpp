@@ -1,43 +1,29 @@
 #include "BattleUtilityAxis.h"
 
-#include "BattleActionGame/Enemy/UtilityAI/BattleUtilityAIComponent.h"
+#include "BattleUtilityAIData.h"
 #include "BattleActionGame/Math/CalcFunctions.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleUtilityAxis)
 
 UBattleUtilityAxis::UBattleUtilityAxis()
 {
-	AxisType = EAxisType::Single;
 }
 
-float UBattleUtilityAxis::CalcValue(float InValue)
+void UBattleUtilityAxis::SetFunction(const FAxisConfig& AxisConfig)
 {
-	return UCalcFunctions::CalcValueWithFunction(FunctionType, InValue, Slope, Exponent, VerticalShift, HorizontalShift, MinValue, MaxValue);
+	FunctionType = AxisConfig.FunctionType;
+	Slope = AxisConfig.Slope;
+	Exponent = AxisConfig.Exponent;
+	VerticalShift = AxisConfig.VerticalShift;
+	HorizontalShift = AxisConfig.HorizontalShift;
+	AxisMinValue = AxisConfig.AxisMinValue;
+	AxisMaxValue = AxisConfig.AxisMaxValue;
 }
 
-float UBattleUtilityAxis::GetValue()
+float UBattleUtilityAxis::CalcValue(float InValue) const
 {
-	return CachedAIComponent->ConsiderList->Factors[ConsiderType];
+	return UCalcFunctions::CalcValueWithFunction(FunctionType, InValue, Slope, Exponent, VerticalShift, HorizontalShift, AxisMinValue, AxisMaxValue);
 }
 
-UBattleUtilityArrayAxis::UBattleUtilityArrayAxis()
-{
-	AxisType = EAxisType::Target;
-}
-
-float UBattleUtilityArrayAxis::CalcValue(float InValue)
-{
-	return Super::CalcValue(InValue);
-}
-
-EAxisType UBattleUtilityArrayAxis::GetAxisType()
-{
-	return AxisType;
-}
-
-TArray<float> UBattleUtilityArrayAxis::GetArrayValue()
-{
-	return CachedAIComponent->ConsiderList->ArrayFactors[ConsiderType];
-}
 
 

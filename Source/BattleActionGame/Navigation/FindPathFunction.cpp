@@ -34,25 +34,34 @@ dtReal FRecastQueryFilter_CustomCost::getVirtualCost(const dtReal* pa, const dtR
 {
 	dtReal Distance = dtVdist(pa, pb);
 	
-	const dtReal areaChangeCost = nextPoly != 0 && nextPoly->getArea() != curPoly->getArea()
-	? data.m_areaFixedCost[nextPoly->getArea()] : 0.f;
+	const dtReal areaChangeCost = 
+		nextPoly != 0 && nextPoly->getArea() != curPoly->getArea()
+		? data.m_areaFixedCost[nextPoly->getArea()] : 0.f;
+	
+	// 기존 경로 비용
+	const dtReal BaseCost = 
+		Distance * data.m_areaCost[curPoly->getArea()] + areaChangeCost;
 	
 	if (RiskGridMapSubSystem == nullptr)
 	{
-		return Distance * data.m_areaCost[curPoly->getArea()] + areaChangeCost;
+		return BaseCost;
 	}
 	
-	float RiskWeight = RiskGridMapSubSystem->InitData.RiskWeight;
-	float RiskValue = RiskGridMapSubSystem->GetRiskValue(FVector(-pb[0], -pb[2], pb[1])) * RiskWeight * Distance;
+	// Detour 좌표를 Unreal 좌표로 변환하여 위험도 조회
+	const FVector SampleLocation(-pb[0], -pb[2], pb[1]);
+	const float RiskValue = RiskGridMapSubSystem->GetRiskValue(SampleLocation);
 	
-	return Distance * data.m_areaCost[curPoly->getArea()] + areaChangeCost + RiskValue;
+	// 위험도 x 구간 거리를 추가 비용으로 반영
+	const dtReal RiskCost = RiskValue * Distance;
+	return BaseCost + RiskCost;
+	
 }
 
 PRAGMA_DISABLE_OPTIMIZATION
 
 float FRecastQueryFilter_CustomCost::GetHeuristicScale() const
 {
-	return 100000000;
+	return 1.0f;
 }
 
 INavigationQueryFilterInterface* FRecastQueryFilter_CustomCost::CreateCopy() const
@@ -70,9 +79,14 @@ void ARecastNavMesh_CustomCost::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	const INavigationQueryFilterInterface* QueryFilterInterface = dynamic_cast<const INavigationQueryFilterInterface*>(&DefaultNavFilter);
+	
+	// FRecastQueryFilter_CustomCost 타입의 DefaultNavFilter를 기본 쿼리 필터에 연결
+	const INavigationQueryFilterInterface* QueryFilterInterface = 
+		dynamic_cast<const INavigationQueryFilterInterface*>(&DefaultNavFilter);
+	
 	DefaultQueryFilter->SetFilterImplementation(QueryFilterInterface);
 
+	
 	UWorldRiskGridMapSubSystem* GridMapSubSystem = GetWorld()->GetSubsystem<UWorldRiskGridMapSubSystem>();
 	ABattleWorldSettings* WorldSettings = Cast<ABattleWorldSettings>(GetWorld()->GetWorldSettings());
 	GridMapSubSystem->Init(WorldSettings->GetGridMapInitData());

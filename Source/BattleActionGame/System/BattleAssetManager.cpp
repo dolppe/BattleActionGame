@@ -2,6 +2,8 @@
 
 #include "AbilitySystemGlobals.h"
 #include "BattleActionGame/BattleGameplayTags.h"
+#include "Stats/StatsMisc.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleAssetManager)
 
 

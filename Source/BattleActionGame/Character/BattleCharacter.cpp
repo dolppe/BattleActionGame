@@ -10,6 +10,7 @@
 #include "BattleActionGame/Camera/BattleCameraComponent.h"
 #include "BattleActionGame/Camera/BattleCameraMode.h"
 #include "BattleActionGame/Camera/BattleCameraMode_DesiredViewPoint.h"
+#include "BattleActionGame/Camera/BattleCameraSequencePlayer.h"
 #include "Components/CapsuleComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(BattleCharacter)
@@ -156,38 +157,25 @@ void ABattleCharacter::StartCriticalHit(FVector ImpactPoint, ABattleCharacterBas
 	
 	TargetActor->PerformGroggy();
 	
-	NetStopMotion(0.7f, 0.01f);
-	TargetActor->NetStopMotion(0.7f, 0.01f);
-	
-	FVector HitDir = (ImpactPoint - GetActorLocation()).GetSafeNormal();
-	float ImpactPointLength = FVector::Dist2D(ImpactPoint, GetActorLocation());
-	
-	FVector SideDir = FVector::CrossProduct(HitDir, FVector::UpVector);
-	SideDir = SideDir.GetSafeNormal();
-	
-	if (ImpactPointLength < 500.f)
-	{
-		ImpactPointLength = 500.f;
-	}
-	
-	FVector DesiredViewPointLocation1 = GetActorLocation() + HitDir*ImpactPointLength*0.7f + SideDir*200;
-	FVector DesiredViewPointLocation2 = GetActorLocation() + HitDir*ImpactPointLength*0.7f - (SideDir*200);
-	
-	float Distance1 = (DesiredViewPointLocation1 - TargetActor->GetActorLocation()).SizeSquared();
-	float Distance2 = (DesiredViewPointLocation2 - TargetActor->GetActorLocation()).SizeSquared();
-	
-	FVector DesiredViewPointLocation = (Distance1 > Distance2) ? DesiredViewPointLocation1 : DesiredViewPointLocation2;
-	DesiredViewPointLocation.Z = GetActorLocation().Z + 300.f;
-	FRotator DesiredViewPointRotation = ((ImpactPoint - DesiredViewPointLocation).GetSafeNormal()).Rotation();
-	
-	
+	NetStopMotion(3.f, 0.01f);
+	TargetActor->NetStopMotion(3.f, 0.01f);
+		
 	UBattleHeroComponent* HeroComponent = GetHeroComponent();
+	
+	//UE_LOG(LogBattle,Log,TEXT("CMCMCM StartCritical: StartCS %s %s"), *GetOuter()->GetName(), *GetName());
 	if (HeroComponent != nullptr)
 	{
-		HeroComponent->SetDesiredCameraMode(CriticalCameraMode, DesiredViewPointLocation, DesiredViewPointRotation);
+		if (UBattleCameraSequencePlayer* CameraSequencePlayer = HeroComponent->GetCameraSequencePlayer())
+		{
+			FBattleCameraModeInitData CameraModeInitData;
+			CameraModeInitData.StartMyLocation = GetActorLocation();
+			CameraModeInitData.StartTargetLocation = TargetActor->GetActorLocation();
+			CameraModeInitData.ImpactPointLocation = ImpactPoint;
+			CameraSequencePlayer->StartCameraSequence(CriticalCameraPreset, CameraModeInitData);
+			CameraSequencePlayer->EndCameraSequenceDelegate.BindUObject(this, &ThisClass::EndCriticalHit);
+		}
 	}
-
-	GetWorld()->GetTimerManager().SetTimer(CriticalHandle, this, &ThisClass::EndCriticalHit, 0.7f, false);
+	
 }
 
 void ABattleCharacter::EndCriticalHit()
@@ -198,7 +186,11 @@ void ABattleCharacter::EndCriticalHit()
 	
 	if (HeroComponent != nullptr)
 	{
-		HeroComponent->ClearDesiredCameraMode();
+		HeroComponent->ClearSpecialCameraMode();
+		if (UBattleCameraSequencePlayer* CameraSequencePlayer = HeroComponent->GetCameraSequencePlayer())
+		{
+			CameraSequencePlayer->EndCameraSequenceDelegate.Unbind();
+		}
 	}
 
 

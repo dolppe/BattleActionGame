@@ -36,6 +36,9 @@ void UBattleGameplayAbility_JustGuardAttack::ActivateAbility(const FGameplayAbil
 	PlayAttackMontage->OnInterrupted.AddDynamic(this, &UBattleGameplayAbility_JustGuardAttack::OnInterrupted);
 	PlayAttackMontage->OnBlendOut.AddDynamic(this, &UBattleGameplayAbility_JustGuardAttack::OnBlendOut);
 	PlayAttackMontage->ReadyForActivation();
+	
+	bJustGuardSucceeded = false;
+	PendingHitMessages.Empty();
 }
 
 void UBattleGameplayAbility_JustGuardAttack::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -47,42 +50,56 @@ void UBattleGameplayAbility_JustGuardAttack::EndAbility(const FGameplayAbilitySp
 
 void UBattleGameplayAbility_JustGuardAttack::ReceivedHits(const FBattleHitMessage& HitMessage)
 {
+	// 방어 성공 후에는 Hit 무시
+	if (bJustGuardSucceeded)
+	{
+		return;
+	}
+	
+	// 방어 입력 허용 기간에는 판정이 끝날 때까지 Hit 보류
 	if (bAllowGuardEvent)
 	{
 		PendingHitMessages.Add(HitMessage);
 	}
 	else
 	{
+		// 입력 허용 기간이 지났으면 즉시 피격 처리
 		Super::ReceivedHits(HitMessage);
 	}
 }
 
 void UBattleGameplayAbility_JustGuardAttack::AllowGuardEvent()
 {
+	// 방어 입력 기회는 서버에서만 부여
 	if (GetWorld()->GetNetMode() == NM_Client)
 	{
 		return;
 	}
+	
 	bAllowGuardEvent = true;
-
+	
+	// 공격자 주변 플레이어 탐색
+	AActor* AttackActor = GetAvatarActorFromActorInfo();
 	TArray<FOverlapResult> OverlapResults;
-
-	GetWorld()->OverlapMultiByChannel(OverlapResults, GetAvatarActorFromActorInfo()->GetActorLocation(), FQuat::Identity, Battle_TraceChannel_AttackToCharacter, FCollisionShape::MakeSphere(AllowGuardRadius));
+	
+	GetWorld()->OverlapMultiByChannel(OverlapResults, AttackActor->GetActorLocation(), 
+		FQuat::Identity, Battle_TraceChannel_AttackToCharacter, FCollisionShape::MakeSphere(AllowGuardRadius));
 
 	for (const FOverlapResult& OverlapResult : OverlapResults)
 	{
 		if (ABattleCharacter* PlayerCharacter = Cast<ABattleCharacter>(OverlapResult.GetActor()))
 		{
-			FGameplayAbilitySpec AbilitySpec(UBattleGameplayAbility_TryJustGuard::StaticClass());
-			FGameplayEventData GameplayEventData;
+			// 공격자와 입력 허용 시간을 전달하며 일회성 방어 능력 활성화
+			FGameplayAbilitySpec TryGuardAbilitySpec(UBattleGameplayAbility_TryJustGuard::StaticClass());
+			FGameplayEventData TryGuardEventData;
 
-			GameplayEventData.Instigator = GetAvatarActorFromActorInfo();
-			GameplayEventData.EventMagnitude = AllowGuardEventTime;
+			TryGuardEventData.Instigator = GetAvatarActorFromActorInfo();
+			TryGuardEventData.EventMagnitude = AllowGuardEventTime;
 			
-			PlayerCharacter->GetAbilitySystemComponent()->GiveAbilityAndActivateOnce(AbilitySpec, &GameplayEventData);
+			PlayerCharacter->GetAbilitySystemComponent()->GiveAbilityAndActivateOnce(TryGuardAbilitySpec, &TryGuardEventData);
 		}
 	}
-
+	// 허용 시간이 지나면 입력 기회를 종료하고 보류한 Hit 처리
 	GetWorld()->GetTimerManager().SetTimer(AllowGuardEventHandle, this, &ThisClass::DisallowGuardEvent, AllowGuardEventTime, false);
 }
 
@@ -90,17 +107,18 @@ void UBattleGameplayAbility_JustGuardAttack::DisallowGuardEvent()
 {
 	bAllowGuardEvent = false;
 
-
+	// 방어 성공 시 보류한 Hit 결과 폐기
+	if (bJustGuardSucceeded)
+	{
+		PendingHitMessages.Reset();
+		return;
+	}
+	
+	// 방어 실패 시 보류한 Hit를 일반 피격 흐름으로 처리
 	for (const FBattleHitMessage& HitMessage : PendingHitMessages)
 	{
-		bHitCritical = false;
-		
 		if (GetWorld()->GetNetMode() == NM_Client)
 		{
-			if (AttackIdx != HitMessage.WindowIndex)
-			{
-				AttackIdx = HitMessage.WindowIndex;
-			}
 			ServerRPCNotifyHit(HitMessage, HitMessage.HitTime);
 		}
 		else
@@ -109,12 +127,14 @@ void UBattleGameplayAbility_JustGuardAttack::DisallowGuardEvent()
 		}
 	}
 	
+	PendingHitMessages.Reset();
 }
 
 void UBattleGameplayAbility_JustGuardAttack::ReceivedGuard(AActor* TryActor)
 {
 	if (bAllowGuardEvent)
 	{
+		bJustGuardSucceeded = true;
 		if (UBattleCombatManagerComponent* CombatManagerComponent = Cast<UBattleCombatManagerComponent>(GetAvatarActorFromActorInfo()->GetComponentByClass(UBattleCombatManagerComponent::StaticClass())))
 		{
 			CombatManagerComponent->SetCurrentTargetActor(TryActor);
@@ -127,7 +147,6 @@ void UBattleGameplayAbility_JustGuardAttack::ReceivedGuard(AActor* TryActor)
 				bAllowGuardEvent = false;
 			}
 		}
-		
 	}
 }
 

@@ -25,6 +25,7 @@ void UAttackCollisionMethod_DirectionalSweep::StartCollisionCheck(TArray<FHitRes
 			const FRotator NewRotation(Rotation.Pitch + CollisionData->AttackPitchOffset,Rotation.Yaw+CollisionData->AttackYawOffset,0);
 
 			FCollisionQueryParams Temp;
+			Temp.bReturnPhysicalMaterial = true;
 			//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 			const FVector ForwardDirection = NewRotation.Vector();
 
