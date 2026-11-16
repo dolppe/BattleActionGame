@@ -2,17 +2,13 @@
 
 Unreal Engine 5.1과 C++로 개발한 전용 서버(Dedicated Server) 기반 멀티플레이 액션 RPG입니다.
 
-
-<img width="2560" height="1440" alt="JustGuard순간" src="https://github.com/user-attachments/assets/a04043c1-538c-4527-99fd-2e98fbf921de" />
-
-
-
+![대표 사진](Docs/JustGuard순간.png)
 
 ## 프로젝트 자료
 
 - [플레이 영상](https://youtu.be/lwwzWyw08Vk)
 - [Notion - 전체 기능 및 상세 설명](https://app.notion.com/p/133ed0548bcd8320833e8175eab82baf)
-- [PDF 포트폴리오](https://github.com/user-attachments/files/34193687/_.pdf)
+- [PDF 포트폴리오](Docs/유성민_포트폴리오.pdf)
 
 ## 코드 샘플
 
