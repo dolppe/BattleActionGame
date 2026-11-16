@@ -14,6 +14,13 @@ Unreal Engine 5.1과 C++로 개발한 전용 서버(Dedicated Server) 기반 멀
 - [Notion - 전체 기능 및 상세 설명](https://app.notion.com/p/133ed0548bcd8320833e8175eab82baf)
 - [PDF 포트폴리오](https://github.com/user-attachments/files/34193687/_.pdf)
 
+## 코드 샘플
+
+프로젝트의 코드 구성과 구현 방식을 살펴볼 수 있는 예시로, 평가값 계산부터 행동 선택 및 실행까지 이어지는 IAUS 기반 Utility AI 시스템을 정리했습니다.  
+파일별 역할과 주요 함수의 실행 흐름을 따라 소스 코드를 확인할 수 있습니다.
+
+ - [IAUS 코드 샘플 - 파일별 역할 및 실행 흐름](Docs/IAUS_CodeGuide.md)
+
 
 ## 개발 정보
 
