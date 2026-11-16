@@ -8,7 +8,8 @@ Unreal Engine 5.1과 C++로 개발한 전용 서버(Dedicated Server) 기반 멀
 
 - [플레이 영상](https://youtu.be/lwwzWyw08Vk)
 - [Notion - 전체 기능 및 상세 설명](https://app.notion.com/p/133ed0548bcd8320833e8175eab82baf)
-- [PDF 포트폴리오](Docs/유성민_포트폴리오.pdf)
+- [PDF 포트폴리오](https://github.com/dolppe/BattleActionGame/raw/refs/heads/main/Docs/유성민_포트폴리오.pdf)
+
 
 ## 코드 샘플
 
